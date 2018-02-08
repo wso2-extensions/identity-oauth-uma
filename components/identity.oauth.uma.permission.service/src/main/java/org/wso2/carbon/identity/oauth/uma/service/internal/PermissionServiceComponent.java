@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.oauth.uma.service.internal;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -31,8 +33,16 @@ import org.wso2.carbon.identity.oauth.uma.service.impl.PermissionServiceImpl;
            immediate = true)
 public class PermissionServiceComponent {
 
+    private static Log log = LogFactory.getLog(PermissionServiceComponent.class);
+
     @Activate
     protected void activate(BundleContext bundleContext) {
-        bundleContext.registerService(PermissionService.class.getName(), new PermissionServiceImpl(), null);
+
+        try {
+            bundleContext.registerService(PermissionService.class.getName(), new PermissionServiceImpl(),
+                    null);
+        } catch (Throwable e) {
+            log.error("Error while activating PermissionServiceComponent.", e);
+        }
     }
 }

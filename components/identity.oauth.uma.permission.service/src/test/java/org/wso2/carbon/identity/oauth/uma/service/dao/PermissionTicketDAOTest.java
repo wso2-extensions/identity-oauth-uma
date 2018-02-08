@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -25,7 +25,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
-import org.wso2.carbon.identity.oauth.uma.service.dao.utils.DAOUtils;
+import org.wso2.carbon.identity.oauth.uma.service.dao.utils.DAOTestUtils;
 import org.wso2.carbon.identity.oauth.uma.service.exception.UMAException;
 import org.wso2.carbon.identity.oauth.uma.service.model.PermissionTicketDO;
 import org.wso2.carbon.identity.oauth.uma.service.model.Resource;
@@ -45,12 +45,13 @@ import static org.powermock.api.mockito.PowerMockito.when;
  * Unit tests for PermissionTicketDAO.
  */
 @PrepareForTest(IdentityDatabaseUtil.class)
-public class PermissionTicketDAOTest extends DAOUtils {
+public class PermissionTicketDAOTest extends DAOTestUtils {
 
     private static final String DB_NAME = "UMA_DB";
 
     @BeforeClass
     public void setUp() throws Exception {
+
         initiateH2Base(DB_NAME, getFilePath("permission.sql"));
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         createResourceTable(DB_NAME, 1, "1", "photo01", timestamp, "1",
@@ -63,18 +64,21 @@ public class PermissionTicketDAOTest extends DAOUtils {
 
     @AfterClass
     public void tearDown() throws Exception {
+
         closeH2Base(DB_NAME);
     }
 
     @ObjectFactory
     public IObjectFactory getObjectFactory() {
+
         return new org.powermock.modules.testng.PowerMockObjectFactory();
     }
 
     @Test
     public void testPersist() throws Exception {
+
         mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
+        try (Connection connection = DAOTestUtils.getConnection(DB_NAME)) {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             List<Resource> list = new ArrayList<>();
             list.add(getResource());
@@ -87,8 +91,9 @@ public class PermissionTicketDAOTest extends DAOUtils {
      */
     @Test(expectedExceptions = UMAException.class)//(expectedExceptions = ResourceIdDAOException.class)
     public void testPersistInvalidResourceId() throws Exception {
+
         mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
+        try (Connection connection = DAOTestUtils.getConnection(DB_NAME)) {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             List<Resource> list = new ArrayList<>();
             list.add(getResourceWithInvalidResourceId());
@@ -101,8 +106,9 @@ public class PermissionTicketDAOTest extends DAOUtils {
      */
     @Test(expectedExceptions = UMAException.class)//(expectedExceptions = ResourceScopeDAOException.class)
     public void testPersistInvalidResourceScope() throws Exception {
+
         mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
+        try (Connection connection = DAOTestUtils.getConnection(DB_NAME)) {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             List<Resource> list = new ArrayList<>();
             list.add(getResourceWithInvalidResourceScope());
@@ -115,8 +121,9 @@ public class PermissionTicketDAOTest extends DAOUtils {
      */
     @Test(expectedExceptions = UMAException.class)//(expectedExceptions = PermissionAPIException.class)
     public void testPersistEmptyPermission() throws Exception {
+
         mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
+        try (Connection connection = DAOTestUtils.getConnection(DB_NAME)) {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             List<Resource> list = new ArrayList<>();
             PermissionTicketDAO.persistPTandRequestedPermissions(list, new PermissionTicketDO());
@@ -124,6 +131,7 @@ public class PermissionTicketDAOTest extends DAOUtils {
     }
 
     private PermissionTicketDO getPermissionTicketDO() {
+
         PermissionTicketDO permissionTicketDO = new PermissionTicketDO();
         permissionTicketDO.setTicket(UUID.randomUUID().toString());
         permissionTicketDO.setStatus("ACTIVE");
@@ -133,6 +141,7 @@ public class PermissionTicketDAOTest extends DAOUtils {
     }
 
     private Resource getResource() {
+
         Resource resource = new Resource();
         resource.setResourceId("1");
         List<String> resourceScopeList = new ArrayList<>();
@@ -142,6 +151,7 @@ public class PermissionTicketDAOTest extends DAOUtils {
     }
 
     private Resource getResourceWithInvalidResourceId() {
+
         Resource resource = new Resource();
         // Invalid resource ID.
         resource.setResourceId("10");
@@ -152,6 +162,7 @@ public class PermissionTicketDAOTest extends DAOUtils {
     }
 
     private Resource getResourceWithInvalidResourceScope() {
+
         Resource resource = new Resource();
         resource.setResourceId("1");
         List<String> resourceScopeList = new ArrayList<>();

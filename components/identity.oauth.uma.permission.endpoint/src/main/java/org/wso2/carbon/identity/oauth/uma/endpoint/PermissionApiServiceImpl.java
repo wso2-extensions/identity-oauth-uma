@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -25,7 +25,6 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.oauth.uma.endpoint.dto.ErrorResponseDTO;
 import org.wso2.carbon.identity.oauth.uma.endpoint.dto.PermissionTicketResponseDTO;
 import org.wso2.carbon.identity.oauth.uma.endpoint.dto.ResourceModelDTO;
-import org.wso2.carbon.identity.oauth.uma.endpoint.dto.ResourceModelInnerDTO;
 import org.wso2.carbon.identity.oauth.uma.endpoint.exception.PermissionEndpointException;
 import org.wso2.carbon.identity.oauth.uma.service.PermissionService;
 import org.wso2.carbon.identity.oauth.uma.service.UMAConstants;
@@ -40,14 +39,21 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 
 /**
- * PermissionApiServiceImpl is used to request permission ticket.
+ * PermissionApiServiceImpl is used to obtain a permission ticket which represents requested resources with the scopes.
  */
 public class PermissionApiServiceImpl extends PermissionApiService {
 
     private static Log log = LogFactory.getLog(PermissionApiServiceImpl.class);
 
+    /**
+     * Requests a permission ticket.
+     *
+     * @param requestedPermission requested resource ids and their relevant scopes.
+     * @return Response with the status of the creation of a permission ticket.
+     */
     @Override
     public Response requestPermission(ResourceModelDTO requestedPermission) {
+
         PermissionService permissionService = (PermissionService) PrivilegedCarbonContext.getThreadLocalCarbonContext()
                 .getOSGiService(PermissionService.class, null);
         if (requestedPermission == null) {
@@ -59,18 +65,18 @@ public class PermissionApiServiceImpl extends PermissionApiService {
             permissionTicketDO = permissionService.issuePermissionTicket(getPermissionTicketRequest(
                     requestedPermission));
         } catch (UMAResourceException e) {
-            handleErrorResponse(e, false, log);
+            handleErrorResponse(e, false);
         } catch (PermissionDAOException e) {
-            handleErrorResponse(e, true, log);
+            handleErrorResponse(e, true);
         } catch (Throwable throwable) {
-            handleErrorResponse(throwable, true, log);
+            handleErrorResponse(throwable, true);
         }
 
         PermissionTicketResponseDTO permissionTicketResponseDTO = new PermissionTicketResponseDTO();
         permissionTicketResponseDTO.setTicket(permissionTicketDO.getTicket());
 
         if (log.isDebugEnabled()) {
-            if (IdentityUtil.isTokenLoggable("permission ticket")) {
+            if (IdentityUtil.isTokenLoggable("PermissionTicket")) {
                 log.debug("Permission Ticket created: " + permissionTicketResponseDTO.getTicket());
             } else {
                 // Avoid logging token since its a sensitive information.
@@ -81,22 +87,24 @@ public class PermissionApiServiceImpl extends PermissionApiService {
     }
 
     private List<Resource> getPermissionTicketRequest(ResourceModelDTO requestedPermission) {
+
         List<Resource> resourceList = new ArrayList<>();
-        for (ResourceModelInnerDTO resourceModelInnerDTO : requestedPermission) {
+        requestedPermission.forEach(resourceModelInnerDTO -> {
             Resource resource = new Resource();
             resource.setResourceId(resourceModelInnerDTO.getResource_id());
             List<String> resourceScopesList = new ArrayList<>();
-            for (String scopeString : resourceModelInnerDTO.getResource_scopes()) {
-                resourceScopesList.add(scopeString);
-            }
+            resourceModelInnerDTO.getResource_scopes().forEach(resourceScope -> {
+                resourceScopesList.add(resourceScope);
+            });
             resource.setResourceScopes(resourceScopesList);
             resourceList.add(resource);
-        }
+        });
         return resourceList;
     }
 
-    private void handleErrorResponse(Throwable throwable, boolean isServerException, Log log)
+    private void handleErrorResponse(Throwable throwable, boolean isServerException)
             throws PermissionEndpointException {
+
         String code;
         String errorCode = null;
         Response.Status status = Response.Status.INTERNAL_SERVER_ERROR;
@@ -130,6 +138,7 @@ public class PermissionApiServiceImpl extends PermissionApiService {
     private PermissionEndpointException buildPermissionEndpointException(Response.Status status,
                                                                          String errorCode, String description,
                                                                          boolean isStatusOnly) {
+
         if (isStatusOnly) {
             return new PermissionEndpointException(status);
         } else {

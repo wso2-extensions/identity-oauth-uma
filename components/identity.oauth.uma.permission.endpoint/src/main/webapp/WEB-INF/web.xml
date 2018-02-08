@@ -5,14 +5,13 @@
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
 http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
 
-    <display-name>WSO2 Identity Server Recovery REST API</display-name>
-    <description>WSO2 Identity Server Recovery REST API</description>
+    <display-name>WSO2 Identity Server UMA Permission Endpoint REST API</display-name>
+    <description>WSO2 Identity Server UMA Permission Endpoint REST API</description>
 
     <context-param>
         <param-name>contextConfigLocation</param-name>
         <param-value>WEB-INF/beans.xml</param-value>
     </context-param>
-
 
     <listener>
         <listener-class>
@@ -32,13 +31,6 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
         <servlet-name>CXFServlet</servlet-name>
         <url-pattern>/*</url-pattern>
     </servlet-mapping>
-
-    <!--<filter>-->
-    <!--<filter-name>CaptchaFilter</filter-name>-->
-    <!--<filter-class>org.wso2.carbon.identity.captcha.filter.CaptchaFilter</filter-class>-->
-    <!--</filter>-->
-
-
 
     <session-config>
         <session-timeout>60</session-timeout>

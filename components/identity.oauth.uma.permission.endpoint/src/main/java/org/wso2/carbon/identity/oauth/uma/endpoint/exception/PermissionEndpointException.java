@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -29,12 +29,14 @@ import javax.ws.rs.core.Response;
 public class PermissionEndpointException extends WebApplicationException {
 
     public PermissionEndpointException(Response.Status status, ErrorResponseDTO errorResponseDTO) {
+
         super(Response.status(status)
                 .entity(errorResponseDTO)
                 .build());
     }
 
     public PermissionEndpointException(Response.Status status) {
+
         super(Response.status(status)
                 .build());
     }

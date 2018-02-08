@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -59,6 +59,7 @@ public class PermissionApiServiceImplTest extends PowerMockTestCase {
 
     @ObjectFactory
     public IObjectFactory getObjectFactory() {
+
         return new org.powermock.modules.testng.PowerMockObjectFactory();
     }
 
@@ -75,10 +76,12 @@ public class PermissionApiServiceImplTest extends PowerMockTestCase {
 
     @AfterMethod
     public void tearDown() throws Exception {
+
     }
 
     @Test
     public void testRegisterPermission() throws Exception {
+
         PermissionTicketDO permissionTicketDO = new PermissionTicketDO();
         when(mockPermissionService.issuePermissionTicket(anyList())).thenReturn(permissionTicketDO);
         when(mockPermissionTicketDO.getTicket()).thenReturn(anyString());

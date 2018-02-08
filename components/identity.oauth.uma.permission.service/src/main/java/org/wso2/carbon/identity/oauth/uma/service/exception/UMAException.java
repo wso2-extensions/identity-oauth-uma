@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -26,27 +26,33 @@ public class UMAException extends Exception {
     private String code = null;
 
     public UMAException(String message) {
+
         super(message);
     }
 
     public UMAException(Throwable throwable) {
+
         super(throwable);
     }
 
     public UMAException(String message, Throwable throwable) {
+
         super(message, throwable);
     }
 
     public UMAException(String code, String message, Throwable throwable) {
+
         super(message, throwable);
         this.code = code;
     }
 
     public String getCode() {
+
         return code;
     }
 
     public void setCode(String code) {
+
         this.code = code;
     }
 }

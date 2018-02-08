@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -43,13 +43,14 @@ public class ReadPropertiesFile {
      * @param permissionTicketDO Configuration values for permission ticket
      */
     public static void readFileConfigValues(PermissionTicketDO permissionTicketDO) {
+
         String configDirPath = CarbonUtils.getCarbonConfigDirPath();
         String confPath = Paths.get(configDirPath, "uma", UMAConstants.UMA_PERMISSION_ENDPOINT_CONFIG_PATH)
                 .toString();
         File configfile = new File(confPath);
         if (!configfile.exists()) {
             log.warn("File is not present at: " + confPath);
-            permissionTicketDO.setValidityPeriod(1000000);
+            permissionTicketDO.setValidityPeriod(3600000);
         }
 
         Properties prop = new Properties();

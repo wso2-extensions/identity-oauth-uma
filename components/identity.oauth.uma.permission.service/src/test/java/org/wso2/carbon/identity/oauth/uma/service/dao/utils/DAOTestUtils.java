@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -32,7 +32,7 @@ import java.util.Map;
 /**
  * DB Utils.
  */
-public class DAOUtils {
+public class DAOTestUtils {
 
     private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
     private static final String STORE_RESOURCE_QUERY = "INSERT INTO IDN_RESOURCE (ID, RESOURCE_ID, RESOURCE_NAME, " +
@@ -48,6 +48,7 @@ public class DAOUtils {
             "(ID, PT_RESOURCE_ID, PT_SCOPE_ID) VALUES (?, ?, ?)";
 
     protected void initiateH2Base(String databaseName, String scriptPath) throws Exception {
+
         BasicDataSource dataSource = new BasicDataSource();
         dataSource.setDriverClassName("org.h2.Driver");
         dataSource.setUsername("username");
@@ -60,6 +61,7 @@ public class DAOUtils {
     }
 
     protected void closeH2Base(String databaseName) throws Exception {
+
         BasicDataSource dataSource = dataSourceMap.get(databaseName);
         if (dataSource != null) {
             dataSource.close();
@@ -67,6 +69,7 @@ public class DAOUtils {
     }
 
     public static Connection getConnection(String database) throws SQLException {
+
         if (dataSourceMap.get(database) != null) {
             return dataSourceMap.get(database).getConnection();
         }
@@ -74,6 +77,7 @@ public class DAOUtils {
     }
 
     public static String getFilePath(String fileName) {
+
         if (StringUtils.isNotBlank(fileName)) {
             return Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "dbScripts", fileName)
                     .toString();
@@ -82,6 +86,7 @@ public class DAOUtils {
     }
 
     public static BasicDataSource getDatasource(String datasourceName) {
+
         if (dataSourceMap.get(datasourceName) != null) {
             return dataSourceMap.get(datasourceName);
         }
@@ -90,6 +95,7 @@ public class DAOUtils {
 
     protected void createPTTable(String databaseName, long id, String pt, Timestamp timecreated, long period,
                                  String state, long tenantid) throws Exception {
+
         PreparedStatement preparedStatement = null;
         try (Connection connection = getConnection(databaseName)) {
             preparedStatement = connection.prepareStatement(STORE_PT_QUERY);
@@ -108,6 +114,7 @@ public class DAOUtils {
     }
 
     protected void createPTResourceTable(String databaseName, long id, long ptResourceId, long ptId) throws Exception {
+
         PreparedStatement preparedStatement = null;
         try (Connection connection = getConnection(databaseName)) {
             preparedStatement = connection.prepareStatement(STORE_PT_RESOURCE_IDS_QUERY);
@@ -124,6 +131,7 @@ public class DAOUtils {
 
     protected void createPTResourceScopeTable(String databaseName, long id, long ptResourceId, long scopeId) throws
             Exception {
+
         PreparedStatement preparedStatement = null;
         try (Connection connection = getConnection(databaseName)) {
             preparedStatement = connection.prepareStatement(STORE_PT_RESOURCE_SCOPES_QUERY);
@@ -140,6 +148,7 @@ public class DAOUtils {
 
     protected void createResourceTable(String databaseName, long id, String resourceId, String resourceName,
                                        Timestamp timecreated, String resourceOwnerId, long tenantId) throws Exception {
+
         PreparedStatement preparedStatement = null;
         try (Connection connection = getConnection(databaseName)) {
             preparedStatement = connection.prepareStatement(STORE_RESOURCE_QUERY);
@@ -159,6 +168,7 @@ public class DAOUtils {
 
     protected void createResourceScopeTable(String databaseName, long id, long resourceIdentity, String scopeName)
             throws Exception {
+
         PreparedStatement preparedStatement = null;
         try (Connection connection = getConnection(databaseName)) {
             preparedStatement = connection.prepareStatement(STORE_RESOURCE_SCOPE_QUERY);

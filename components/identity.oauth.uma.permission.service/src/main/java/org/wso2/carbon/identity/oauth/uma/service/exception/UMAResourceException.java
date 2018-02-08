@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -26,19 +26,23 @@ import org.wso2.carbon.identity.oauth.uma.service.UMAConstants;
 public class UMAResourceException extends UMAException {
 
     public UMAResourceException(String message) {
+
         super(message);
     }
 
     public UMAResourceException(String message, Throwable throwable) {
+
         super(message, throwable);
     }
 
     public UMAResourceException(UMAConstants.ErrorMessages errorMessage, Throwable throwable) {
+
         super(errorMessage.getMessage(), throwable);
         this.setCode(errorMessage.getCode());
     }
 
     public UMAResourceException(UMAConstants.ErrorMessages errorMessage) {
+
         super(errorMessage.getMessage());
         this.setCode(errorMessage.getCode());
     }

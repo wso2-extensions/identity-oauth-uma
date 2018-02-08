@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -44,24 +44,29 @@ public class PermissionServiceComponentTest {
 
     @BeforeClass
     public void setUp() throws Exception {
+
         initMocks(this);
     }
 
     @AfterMethod
     public void tearDown() throws Exception {
+
     }
 
     @ObjectFactory
     public IObjectFactory getObjectFactory() {
+
         return new org.powermock.modules.testng.PowerMockObjectFactory();
     }
 
     @Test
     public void testActivate() throws Exception {
+
         final String[] serviceName = new String[1];
         doAnswer(new Answer<Object>() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
+
                 PermissionServiceImpl permissionService = (PermissionServiceImpl) invocation.getArguments()[1];
                 serviceName[0] = permissionService.getClass().getName();
                 return null;

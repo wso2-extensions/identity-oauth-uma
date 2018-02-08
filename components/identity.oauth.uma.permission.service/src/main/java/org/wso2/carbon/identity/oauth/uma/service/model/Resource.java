@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -31,18 +31,22 @@ public class Resource {
     private List<String> resourceScopes = new ArrayList<>();
 
     public String getResourceId() {
+
         return resourceId;
     }
 
     public void setResourceId(String resourceId) {
+
         this.resourceId = resourceId;
     }
 
     public List<String> getResourceScopes() {
+
         return resourceScopes;
     }
 
     public void setResourceScopes(List<String> resourceScopes) {
+
         this.resourceScopes = resourceScopes;
     }
 }

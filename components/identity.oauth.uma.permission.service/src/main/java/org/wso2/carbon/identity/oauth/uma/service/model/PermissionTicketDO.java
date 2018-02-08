@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -32,43 +32,52 @@ public class PermissionTicketDO {
     private String tenantId;
 
     public String getTicket() {
+
         return ticket;
     }
 
     public void setTicket(String ticket) {
+
         this.ticket = ticket;
     }
 
     public String getStatus() {
+
         return status;
     }
 
     public void setStatus(String status) {
+
         this.status = status;
     }
 
     public long getValidityPeriod() {
+
         return validityPeriod;
     }
 
     public void setValidityPeriod(long validityPeriod) {
+
         this.validityPeriod = validityPeriod;
     }
 
     public Calendar getCreatedTime() {
+
         return createdTime;
     }
 
     public void setCreatedTime(Calendar createdTime) {
+
         this.createdTime = createdTime;
     }
 
     public String getTenantId() {
+
         return tenantId;
     }
 
     public void setTenantId(String tenantId) {
+
         this.tenantId = tenantId;
     }
-
 }

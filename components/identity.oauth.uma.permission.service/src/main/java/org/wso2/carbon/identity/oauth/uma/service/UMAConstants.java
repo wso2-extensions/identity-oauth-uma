@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -40,20 +40,24 @@ public class UMAConstants {
         private final String message;
 
         ErrorMessages(String code, String message) {
+
             this.code = code;
             this.message = message;
         }
 
         public String getCode() {
+
             return this.code;
         }
 
         public String getMessage() {
+
             return this.message;
         }
 
         @Override
         public String toString() {
+
             return code + " - " + message;
         }
     }

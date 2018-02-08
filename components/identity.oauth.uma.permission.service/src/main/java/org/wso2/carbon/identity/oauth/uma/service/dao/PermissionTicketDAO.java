@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -64,6 +64,7 @@ public class PermissionTicketDAO {
     public static void persistPTandRequestedPermissions(List<Resource> resourceList,
                                                         PermissionTicketDO permissionTicketDO) throws
             UMAResourceException, PermissionDAOException {
+
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
             checkResourceIdsExistence(connection, resourceList);
             checkResourceScopesExistence(connection, resourceList);
@@ -120,6 +121,7 @@ public class PermissionTicketDAO {
 
     private static void checkResourceIdsExistence(Connection connection, List<Resource> resourceList) throws
             UMAResourceException, PermissionDAOException {
+
         for (Resource resource : resourceList) {
             try (PreparedStatement resourceIdStatement = connection.prepareStatement(
                     VALIDATE_REQUESTED_RESOURCE_IDS_WITH_REGISTERED_RESOURCE_IDS)) {
@@ -139,6 +141,7 @@ public class PermissionTicketDAO {
 
     private static void checkResourceScopesExistence(Connection connection, List<Resource> resourceList) throws
             UMAResourceException, PermissionDAOException {
+
         for (Resource resource : resourceList) {
             try (PreparedStatement resourceScopeStatement = connection.prepareStatement(
                     VALIDATE_REQUESTED_RESOURCE_SCOPES_WITH_REGISTERED_RESOURCE_SCOPES)) {

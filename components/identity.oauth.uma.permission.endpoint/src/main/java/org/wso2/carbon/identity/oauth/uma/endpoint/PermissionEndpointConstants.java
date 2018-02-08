@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -27,8 +27,10 @@ import java.util.Map;
  */
 public final class PermissionEndpointConstants {
 
-    public static final Map<String, String[]> RESPONSE_DATA_MAP = new HashMap<String, String[]>() { {
-        put("6001", new String[]{"400", "invalid_resource_id"});
-        put("6002", new String[]{"400", "invalid_scope"});
-    }};
+    public static final Map<String, String[]> RESPONSE_DATA_MAP = new HashMap<String, String[]>() {
+        {
+            put("6001", new String[]{"400", "invalid_resource_id"});
+            put("6002", new String[]{"400", "invalid_scope"});
+        }
+    };
 }
