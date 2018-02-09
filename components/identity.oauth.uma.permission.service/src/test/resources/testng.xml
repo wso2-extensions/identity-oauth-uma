@@ -1,6 +1,6 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 <!--
-  ~ Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~ Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
   ~
   ~ WSO2 Inc. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -21,9 +21,9 @@
 
     <test name="Permission_Endpoint_Unit_Tests">
         <classes>
-            <class name="org.wso2.carbon.identity.oauth.uma.service.dao.PermissionTicketDAOTest"/>
-            <!--<class name="org.wso2.carbon.identity.oauth.uma.service.impl.PermissionServiceImplTest"/>-->
-            <class name="org.wso2.carbon.identity.oauth.uma.service.internal.PermissionServiceComponentTest"/>
+            <class name="org.wso2.carbon.identity.oauth.uma.permission.service.dao.PermissionTicketDAOTest"/>
+            <class name="org.wso2.carbon.identity.oauth.uma.permission.service.impl.PermissionServiceImplTest"/>
+            <class name="org.wso2.carbon.identity.oauth.uma.permission.service.internal.PermissionServiceComponentTest"/>
         </classes>
     </test>
 </suite>
