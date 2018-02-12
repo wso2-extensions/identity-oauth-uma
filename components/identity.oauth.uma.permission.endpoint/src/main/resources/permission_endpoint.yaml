@@ -1,0 +1,92 @@
+swagger: '2.0'
+info:
+  title: Permission Endpoint
+  description: >
+    The resource server requests one or more permissions (resource identifiers
+    and corresponding scopes) with the authorization server on the client's
+    behalf. This process assumes that the client's request at the protected
+    resource had no token (or had an invalid RPT or insufficient permissions
+    associated with the RPT).
+  version: 1.0.0
+schemes:
+  - https
+host: localhost
+basePath: /api/identity/oauth2/uma/v1.0
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /permission:
+    post:
+      operationId: requestPermission
+      summary: Permission Endpoint.
+      description: >
+        This API is used by Resource Server to request permissions on Client's
+        Behalf from Authorization Server.
+      tags:
+        - Requesting permissions
+      parameters:
+        - in: body
+          name: requestedPermission
+          description: The requested permissions.
+          schema:
+            $ref: '#/definitions/ResourceModel'
+      responses:
+        '201':
+          description: Created
+          schema:
+            $ref: '#/definitions/PermissionTicketResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+definitions:
+  PermissionTicketResponse:
+    properties:
+      ticket:
+        type: string
+        description: The created permission ticket.
+        example: 016f84e8-f9b9-11e0-bd6f-0021cc6004de
+    required:
+      - ticket
+  ErrorResponse:
+    properties:
+      error:
+        type: string
+        description: A single error code.
+        example: invalid_resource_id
+      error_description:
+        type: string
+        description: Additional information about the error.
+        example: Permission request failed with bad resource ID.
+    required:
+      - error
+  ResourceModel:
+    type: array
+    items:
+      type: object
+      required:
+        - resource_id
+        - resource_scopes
+      properties:
+        resource_id:
+          type: string
+          example: 7b727369647d
+          description: >
+            The identifier for a resource to which the resource server is
+            requesting permission on behalf of the client. The identifier MUST
+            correspond to a resource that was previously registered.
+        resource_scopes:
+          type: array
+          example:
+            - view
+            - 'http://photoz.example.com/dev/actions/print'
+          description: >
+            An array referencing zero or more identifiers of scopes to which the
+            resource server is requesting access for this resource on behalf of
+            the client. Each scope identifier MUST correspond to a scope that
+            was previously registered by this resource server for the referenced
+            resource.
+          items:
+            type: string
