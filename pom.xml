@@ -40,6 +40,8 @@
     <modules>
         <module>components/identity.oauth.uma.permission.endpoint</module>
         <module>components/identity.oauth.uma.permission.service</module>
+        <module>components/identity.oauth.uma.resource.endpoint</module>
+        <module>components/identity.oauth.uma.resource.service</module>
     </modules>
 
     <repositories>
@@ -257,6 +259,12 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>${mysqldatabase.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.testutil</artifactId>
                 <version>${org.wso2.carbon.identity.testutil.version}</version>
@@ -324,7 +332,11 @@
                 <artifactId>identity.oauth.uma.permission.service</artifactId>
                 <version>${project.version}</version>
             </dependency>
-
+            <dependency>
+            <groupId>identity.oauth.uma</groupId>
+            <artifactId>identity.oauth.uma.resource.service</artifactId>
+            <version>${project.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -341,6 +353,7 @@
         <powermock.version>1.6.6</powermock.version>
         <maven.surefire.plugin.version>2.18.1</maven.surefire.plugin.version>
         <h2database.version>1.0.60</h2database.version>
+        <mysqldatabase.version>5.1.17</mysqldatabase.version>
         <org.wso2.carbon.identity.testutil.version>5.10.25</org.wso2.carbon.identity.testutil.version>
 
         <!-- Orbit dependencies -->

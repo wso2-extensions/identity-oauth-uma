@@ -1,0 +1,302 @@
+swagger: '2.0'
+######################################################
+# Prolog
+######################################################
+info:
+  title: WSO2 Identity Server OAuth2 resource Registration Endpoint
+  description: >-
+    This document specifies a **OAuth2 Resource Registration Endpoint** for WSO2
+    **Identity Server** .
+  version: '1.0.0 It is written with [swagger 2](http://swagger.io/).'
+  contact:
+    name: WSO2
+    url: 'http://wso2.com/identity-and-access-management'
+    email: architecture@wso2.com
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+######################################################
+# The fixed parts of the URLs of the API
+######################################################
+
+# The schemes supported by the API
+
+schemes:
+  - https
+ The domain of the API.
+# This is configured by the customer during deployment.
+# The given host is just an example.
+
+host: localhost
+# The base path of the API.
+# Will be prefixed to all paths.
+
+basePath: /api/identity/oauth2/resourcev1.0
+# The following media types can be passed as input in message bodies of the API.
+# The actual media type must be specified in the Content-Type header field of the request.
+# The default is json, i.e. the Content-Type header is not needed to
+# be set, but supporting it serves extensibility.
+
+consumes:
+  - application/json
+# The following media types may be passed as output in message bodies of the API.
+# The media type(s) consumable by the requestor is specified in the Accept header field
+# of the corresponding request.
+# The actual media type returned will be specfied in the Content-Type header field
+# of the of the response.
+# The default of the Accept header is json, i.e. there is not needed to
+# set the value, but supporting it serves extensibility.
+
+produces:
+  - application/json
+paths:
+  /ResourceRegistration/resource:
+
+   # Endpoint uses to create resource
+    post:
+      tags:
+        - Resource
+      summary: Add a resource
+      description: This method uses to register resources in Authorization server.
+      operationId: registerResource
+      parameters:
+        - in: body
+          name: resource
+          description: >-
+            The resource description which resource owner save in Authorization
+            server.
+          schema:
+            $ref: '#/definitions/ResourceDetails'
+      responses:
+        '201':
+          description: |
+            Resource registered successfully.
+          schema:
+            $ref: '#/definitions/createResource'
+        '400':
+          description: Invalid input.
+          schema:
+            $ref: '#/definitions/error'
+
+    # Endpoint uses to get all the available resources
+
+    get:
+      tags:
+        - Resource
+      summary: Find all resource IDs
+      description: >-
+        This method uses to obtain all resource IDs which was registered on
+        Authorization server under same resource owner.
+      operationId: getResourceIds
+      parameters:
+        - name: resourceOwnerId
+          in: query
+          description: >-
+            The resource owner ID is defined to obtain of the list of resources
+            to be retrieved.
+          required: false
+          type: string
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/listReadResource'
+        '400':
+          description: Invalid input.
+          schema:
+            $ref: '#/definitions/error'
+        '404':
+          description: Resource does not exist.
+          schema:
+            $ref: '#/definitions/error'
+  '/ResourceRegistration/resource/{resourceId}':
+
+    # Endpoint uses to get resource by resource ID
+
+    get:
+      summary: Obtain resource description by ID
+      description: >-
+        This method uses to obtain resource information when resource ID is
+        given
+      operationId: getResource
+      parameters:
+        - $ref: '#/parameters/resourceId'
+      responses:
+        '200':
+          description: 'successful operation. Return Id,name,scopes,icon_uri and type'
+          schema:
+            $ref: '#/definitions/readResource'
+        '400':
+          description: Invalid ID supplied
+          schema:
+            $ref: '#/definitions/error'
+        '404':
+          description: Not Found.Resource does not exist.
+          schema:
+            $ref: '#/definitions/error'
+
+     #   Endpoint uses to delete resource by resource ID
+
+    delete:
+      summary: Delete Resource description by ID
+      description: >-
+        This method uses to delete resource information when resource ID is
+        given
+      operationId: deleteResource
+      parameters:
+        - $ref: '#/parameters/resourceId'
+      responses:
+        '200':
+          description: OK.Resource deleted successfully.
+        '204':
+          description: No content.
+          schema:
+            $ref: '#/definitions/error'
+
+    # Endpoint uses to update a resource using resource ID
+
+    put:
+      summary: Update resource description by ID
+      description: >-
+        This method uses to update resource description information when
+        resource ID is given by the resource owner. 
+      operationId: updateResource
+      parameters:
+        - $ref: '#/parameters/resourceId'
+        - in: body
+          name: updateresource
+          description: >-
+            The resource description which resource owner used to update in
+            Authorization server.
+          schema:
+            $ref: '#/definitions/ResourceDetails'
+      responses:
+        '200':
+          description: Resource updated successfully.
+          schema:
+            $ref: '#/definitions/updateResource'
+        '400':
+          description: Invalid ID supplied.
+          schema:
+            $ref: '#/definitions/error'
+        '404':
+          description: Resource not found
+          schema:
+            $ref: '#/definitions/error'
+definitions:
+  createResource:
+    properties:
+      resourceId:
+        type: string
+        description: ' Returning resource Id after successfull registration.'
+        example: |
+          0f77c1f2-64c3-452d-b622-4519b6906949
+      policy_uri:
+        type: string
+        description: ' Policy_URI used for user access'
+        example: 'http://as.example.com/rs/222/resource/KX3A-39WE/policy'
+  readResource:
+    properties:
+      resourceId:
+        type: string
+        description: ' Returning resource Id after successfull registration.'
+        example: 0f77c1f2-64c3-452d-b622-4519b6906949
+      name:
+        type: string
+        description: ' Returning name after successfull registration.'
+        example: Resource Descripton-1
+      scope:
+        type: string
+        description: ' Returning resource scopes after successfull registration.'
+        example: 'View,Edit,Delete'
+      type:
+        type: string
+        description: ' Returning type after successfull registration.'
+        example: 'http://www.example.com/rs/photoalbum'
+      icon_uri:
+        type: string
+        description: ' Returning icon_uri after successfull registration.'
+        example: 'http://www.example.com/icons/sharesocial.png'
+      description:
+        type: string
+        description: ' Returning description after successfull registration.'
+  updateResource:
+    properties:
+      resourceId:
+        type: string
+        description: ' Returning resource description after successfull updating.'
+  listReadResource:
+    properties:
+      resourceId:
+        type: array
+        description: ' Returning list of resource Id after successfull registration.'
+        items:
+          type: string
+
+#-----------------------------------------------------
+# The Resource Object
+#-----------------------------------------------------
+  ResourceDetails:
+    type: object
+    required:
+      - resource_scopes
+      - icon_uri
+      - name
+      - type
+      - description
+    properties:
+      resource_scopes:
+        type: array
+        example:
+          - view
+          - 'http://photoz.example.com/dev/actions/print'
+        description: |
+          An array of strings indicating the available scopes for this resource.
+        items:
+          type: string
+      icon_uri:
+        type: string
+        description: |
+          A URI for a graphic icon representing the resource.  
+        example: 'http://www.example.com/icons/sky.png'
+      name:
+        type: string
+        example: Resource description sample
+        description: >
+          A human-readable string describing a resource of one or more
+          resources.The authorization server MAY use the name in any user
+          interface it presents to the resource owner.
+      type:
+        type: string
+        example: 'http://www.example.com/rs/photoalbum'
+        description: |
+          A string uniquely identifying the semantics of the resource.
+      description:
+        type: string
+        example: Print out and produce PDF files of photo
+        description: >
+          A human-readable string describing the resource at length. The
+          authorization server MAY use this description in any user interface it
+          presents to a resource owner, for example, for resource protection
+          monitoring or policy setting.
+
+  #-----------------------------------------------------
+  # The Error Response object
+  #-----------------------------------------------------
+  error:
+    type: object
+    properties:
+      error:
+        type: string
+      error_description:
+        type: string
+  #-----------------------------------------------------
+  # The parameters
+  #-----------------------------------------------------
+parameters:
+  resourceId:
+    name: resourceId
+    in: path
+    description: ID ofthe  resource
+    required: true
+    type: string
