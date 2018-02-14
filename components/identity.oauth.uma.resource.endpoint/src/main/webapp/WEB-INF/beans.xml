@@ -7,7 +7,7 @@
     <bean class="org.springframework.beans.factory.config.PreferencesPlaceholderConfigurer"/>
     <jaxrs:server id="services" address="/">
         <jaxrs:serviceBeans>
-            <bean class="org.wso2.carbon.identity.oauth.uma.endpoint.ResourceRegistrationApi"/>
+            <bean class="org.wso2.carbon.identity.oauth.uma.resource.endpoint.ResourceRegistrationApi"/>
             
         </jaxrs:serviceBeans>
         <jaxrs:providers>

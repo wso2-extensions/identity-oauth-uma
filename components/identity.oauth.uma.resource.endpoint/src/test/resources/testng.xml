@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~ Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@
        object-factory="org.powermock.modules.testng.PowerMockObjectFactory">
     <test name="Util-Tests" preserve-order="true" parallel="false">
         <classes>
-            <class name="org.wso2.carbon.identity.oauth.uma.endpoint.impl.impl.ResourceRegistrationApiServiceImplTest" />
-            <class name="org.wso2.carbon.identity.oauth.uma.endpoint.impl.util.ResourceUtilsTest"/>
+            <class name="org.wso2.carbon.identity.oauth.uma.resource.endpoint.impl.ResourceRegistrationApiServiceImplTest" />
+            <class name="org.wso2.carbon.identity.oauth.uma.resource.endpoint.util.ResourceUtilsTest"/>
         </classes>
     </test>
 </suite>
