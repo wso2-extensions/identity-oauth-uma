@@ -54,10 +54,10 @@ public class PermissionTicketDAOTest extends DAOTestUtils {
 
         initiateH2Base(DB_NAME, getFilePath("permission.sql"));
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        createResourceTable(DB_NAME, 1, "1", "photo01", timestamp, "1",
-                1234);
+        createResourceTable(DB_NAME, 1, "1", "photo01", timestamp, "owner1",
+                "1234", "carbon.super");
         createResourceScopeTable(DB_NAME, 1, 1, "scope01");
-        createPTTable(DB_NAME, 1, "12345", timestamp, 3600000, "ACTIVE", 1234);
+        createPTTable(DB_NAME, 1, "12345", timestamp, 3600000, "ACTIVE", "carbon.super");
         createPTResourceTable(DB_NAME, 1, 1, 1);
         createPTResourceScopeTable(DB_NAME, 1, 1, 1);
     }
@@ -89,7 +89,7 @@ public class PermissionTicketDAOTest extends DAOTestUtils {
     /**
      * Test persisting a permission with an invalid resource id.
      */
-    @Test(expectedExceptions = UMAException.class)//(expectedExceptions = ResourceIdDAOException.class)
+    @Test(expectedExceptions = UMAException.class)
     public void testPersistInvalidResourceId() throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
@@ -104,7 +104,7 @@ public class PermissionTicketDAOTest extends DAOTestUtils {
     /**
      * Test persisting a permission with an invalid resource scope.
      */
-    @Test(expectedExceptions = UMAException.class)//(expectedExceptions = ResourceScopeDAOException.class)
+    @Test(expectedExceptions = UMAException.class)
     public void testPersistInvalidResourceScope() throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
@@ -119,7 +119,7 @@ public class PermissionTicketDAOTest extends DAOTestUtils {
     /**
      * Test persisting an empty resource or empty permission ticket
      */
-    @Test(expectedExceptions = UMAException.class)//(expectedExceptions = PermissionAPIException.class)
+    @Test(expectedExceptions = UMAException.class)
     public void testPersistEmptyPermission() throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
@@ -137,6 +137,7 @@ public class PermissionTicketDAOTest extends DAOTestUtils {
         permissionTicketDO.setStatus("ACTIVE");
         permissionTicketDO.setCreatedTime(Calendar.getInstance(TimeZone.getTimeZone("UTC")));
         permissionTicketDO.setValidityPeriod(3600000);
+        permissionTicketDO.setTenantDomain("carbon.super");
         return permissionTicketDO;
     }
 

@@ -39,8 +39,8 @@ public class PermissionServiceImpl implements PermissionService {
     private static final String UTC = "UTC";
 
     @Override
-    public PermissionTicketDO issuePermissionTicket(List<Resource> resourceList) throws UMAResourceException,
-            PermissionDAOException {
+    public PermissionTicketDO issuePermissionTicket(List<Resource> resourceList, String tenantDomain) throws
+            UMAResourceException, PermissionDAOException {
 
         PermissionTicketDO permissionTicketDO = new PermissionTicketDO();
         ReadPropertiesFile.readFileConfigValues(permissionTicketDO);
@@ -50,7 +50,7 @@ public class PermissionServiceImpl implements PermissionService {
         permissionTicketDO.setTicket(ticketString);
         permissionTicketDO.setCreatedTime(Calendar.getInstance(TimeZone.getTimeZone(UTC)));
         permissionTicketDO.setStatus("ACTIVE");
-        permissionTicketDO.setTenantId("1234");
+        permissionTicketDO.setTenantDomain(tenantDomain);
 
         PermissionTicketDAO.persistPTandRequestedPermissions(resourceList, permissionTicketDO);
 

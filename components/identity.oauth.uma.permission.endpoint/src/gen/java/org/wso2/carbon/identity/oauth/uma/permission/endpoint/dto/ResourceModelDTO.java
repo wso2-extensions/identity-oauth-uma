@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 import io.swagger.annotations.*;
 
-
 @ApiModel(description = "")
 public class ResourceModelDTO extends ArrayList<ResourceModelInnerDTO> {
   

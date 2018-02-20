@@ -29,7 +29,7 @@ public class PermissionTicketDO {
     private String status;
     private Calendar createdTime;
     private long validityPeriod;
-    private String tenantId;
+    private String tenantDomain;
 
     public String getTicket() {
 
@@ -71,13 +71,13 @@ public class PermissionTicketDO {
         this.createdTime = createdTime;
     }
 
-    public String getTenantId() {
+    public String getTenantDomain() {
 
-        return tenantId;
+        return tenantDomain;
     }
 
-    public void setTenantId(String tenantId) {
+    public void setTenantDomain(String tenantDomain) {
 
-        this.tenantId = tenantId;
+        this.tenantDomain = tenantDomain;
     }
 }

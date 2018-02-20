@@ -30,6 +30,6 @@ import java.util.List;
  */
 public interface PermissionService {
 
-    PermissionTicketDO issuePermissionTicket(List<Resource> resourceList) throws UMAResourceException,
-            PermissionDAOException;
+    PermissionTicketDO issuePermissionTicket(List<Resource> resourceList, String tenantDomain) throws
+            UMAResourceException, PermissionDAOException;
 }

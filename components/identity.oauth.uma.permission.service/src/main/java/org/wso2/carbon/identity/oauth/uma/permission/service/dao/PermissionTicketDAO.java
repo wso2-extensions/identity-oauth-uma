@@ -33,6 +33,7 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
+
 /**
  * Data Access Layer functionality for Permission Endpoint. This includes storing requested permissions
  * (requested resource ids with their scopes).
@@ -40,7 +41,7 @@ import java.util.List;
 public class PermissionTicketDAO {
 
     private static final String STORE_PT_QUERY = "INSERT INTO IDN_PERMISSION_TICKET " +
-            "(PT, TIME_CREATED, VALIDITY_PERIOD, TICKET_STATE, TENANT_ID) VALUES (?,?,?,?,?)";
+            "(PT, TIME_CREATED, VALIDITY_PERIOD, TICKET_STATE, TENANT_DOMAIN) VALUES (?,?,?,?,?)";
     private static final String STORE_PT_RESOURCE_IDS_QUERY = "INSERT INTO IDN_PT_RESOURCE " +
             "(PT_RESOURCE_ID, PT_ID) VALUES " +
             "((SELECT ID FROM IDN_RESOURCE WHERE RESOURCE_ID = ?), ?)";
@@ -75,7 +76,7 @@ public class PermissionTicketDAO {
                         permissionTicketDO.getCreatedTime());
                 preparedStatement.setLong(3, permissionTicketDO.getValidityPeriod());
                 preparedStatement.setString(4, permissionTicketDO.getStatus());
-                preparedStatement.setString(5, permissionTicketDO.getTenantId());
+                preparedStatement.setString(5, permissionTicketDO.getTenantDomain());
                 preparedStatement.execute();
 
                 // Checking if the PT is persisted in the db.
@@ -160,6 +161,4 @@ public class PermissionTicketDAO {
             }
         }
     }
-
 }
-

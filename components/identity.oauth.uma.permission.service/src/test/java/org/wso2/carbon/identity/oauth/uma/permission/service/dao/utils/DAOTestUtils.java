@@ -36,11 +36,11 @@ public class DAOTestUtils {
 
     private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
     private static final String STORE_RESOURCE_QUERY = "INSERT INTO IDN_RESOURCE (ID, RESOURCE_ID, RESOURCE_NAME, " +
-            "TIME_CREATED, RESOURCE_OWNER_ID, TENANT_ID) VALUES (?,?,?,?,?,?)";
+            "TIME_CREATED, RESOURCE_OWNER_NAME, CONSUMER_KEY, TENANT_DOMAIN) VALUES (?,?,?,?,?,?,?)";
     private static final String STORE_RESOURCE_SCOPE_QUERY = "INSERT INTO IDN_RESOURCE_SCOPE (ID, RESOURCE_IDENTITY, " +
             "SCOPE_NAME) VALUES (?,?,?)";
     private static final String STORE_PT_QUERY = "INSERT INTO IDN_PERMISSION_TICKET " +
-            "(ID, PT, TIME_CREATED, VALIDITY_PERIOD, TICKET_STATE, TENANT_ID) VALUES (?,?,?,?,?,?)";
+            "(ID, PT, TIME_CREATED, VALIDITY_PERIOD, TICKET_STATE, TENANT_DOMAIN) VALUES (?,?,?,?,?,?)";
     private static final String STORE_PT_RESOURCE_IDS_QUERY = "INSERT INTO IDN_PT_RESOURCE " +
             "(ID, PT_RESOURCE_ID, PT_ID) VALUES " +
             "(?, ?, ?)";
@@ -94,7 +94,7 @@ public class DAOTestUtils {
     }
 
     protected void createPTTable(String databaseName, long id, String pt, Timestamp timecreated, long period,
-                                 String state, long tenantid) throws Exception {
+                                 String state, String tenantDomain) throws Exception {
 
         PreparedStatement preparedStatement = null;
         try (Connection connection = getConnection(databaseName)) {
@@ -104,7 +104,7 @@ public class DAOTestUtils {
             preparedStatement.setTimestamp(3, timecreated);
             preparedStatement.setLong(4, period);
             preparedStatement.setString(5, state);
-            preparedStatement.setLong(6, tenantid);
+            preparedStatement.setString(6, tenantDomain);
             preparedStatement.execute();
         } finally {
             if (preparedStatement != null) {
@@ -147,7 +147,8 @@ public class DAOTestUtils {
     }
 
     protected void createResourceTable(String databaseName, long id, String resourceId, String resourceName,
-                                       Timestamp timecreated, String resourceOwnerId, long tenantId) throws Exception {
+                                       Timestamp timecreated, String resourceOwnerName, String consumerKey,
+                                       String tenantDomain) throws Exception {
 
         PreparedStatement preparedStatement = null;
         try (Connection connection = getConnection(databaseName)) {
@@ -156,8 +157,9 @@ public class DAOTestUtils {
             preparedStatement.setString(2, resourceId);
             preparedStatement.setString(3, resourceName);
             preparedStatement.setTimestamp(4, timecreated);
-            preparedStatement.setString(5, resourceOwnerId);
-            preparedStatement.setLong(6, tenantId);
+            preparedStatement.setString(5, resourceOwnerName);
+            preparedStatement.setString(6, consumerKey);
+            preparedStatement.setString(7, tenantDomain);
             preparedStatement.execute();
         } finally {
             if (preparedStatement != null) {

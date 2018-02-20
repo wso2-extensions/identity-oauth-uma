@@ -25,7 +25,7 @@ import java.util.Map;
  * Contains the http status codes and error codes to be sent in body of the response as a JSON Result as specified in
  * spec when an error occurs.
  */
-public final class PermissionEndpointConstants {
+public final class HandleErrorResponseConstants {
 
     public static final Map<String, String[]> RESPONSE_DATA_MAP = new HashMap<String, String[]>() {
         {
