@@ -387,6 +387,7 @@
         </org.wso2.carbon.identity.auth.service.version>
 
         <org.wso2.carbon.identity.oauth.version>5.5.180</org.wso2.carbon.identity.oauth.version>
+        <org.wso2.carbon.identity.oauth.import.version.range>[5.0.0, 6.0.0)</org.wso2.carbon.identity.oauth.import.version.range>
 
     </properties>
 

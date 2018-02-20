@@ -48,7 +48,8 @@ public class PermissionApiServiceImpl extends PermissionApiService {
 
     private static Log log = LogFactory.getLog(PermissionApiServiceImpl.class);
     private final String patScope = "uma_protection";
-    public static String tenantDomain;
+    private final String authContext = "auth-context";
+    private final String oauth2AllowedScopes = "oauth2-allowed-scopes";
 
     /**
      * Requests a permission ticket.
@@ -60,7 +61,7 @@ public class PermissionApiServiceImpl extends PermissionApiService {
     public Response requestPermission(ResourceModelDTO requestedPermission, MessageContext context) {
 
         String[] tokenScopes = (String[]) ((AuthenticationContext) context.getHttpServletRequest()
-                .getAttribute("auth-context")).getParameter("oauth2-allowed-scopes");
+                .getAttribute(authContext)).getParameter(oauth2AllowedScopes);
         if (!ArrayUtils.contains(tokenScopes, patScope)) {
             log.error("Access token doesn't contain valid scope.");
             return Response.status(Response.Status.UNAUTHORIZED).build();
@@ -71,7 +72,7 @@ public class PermissionApiServiceImpl extends PermissionApiService {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        tenantDomain = ((AuthenticationContext) context.getHttpServletRequest().getAttribute("auth-context")).
+        String tenantDomain = ((AuthenticationContext) context.getHttpServletRequest().getAttribute(authContext)).
                 getUser().getTenantDomain();
 
         PermissionService permissionService = (PermissionService) PrivilegedCarbonContext.getThreadLocalCarbonContext()

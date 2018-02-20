@@ -77,6 +77,8 @@
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.wso2.carbon.identity.core.util; version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.utils; version="${carbon.kernel.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.oauth2.*;
+                            version="${org.wso2.carbon.identity.oauth.import.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.oauth.uma.permission.service.internal,
@@ -252,6 +254,11 @@
         <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.osgi.core</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.inbound.auth.oauth2</groupId>
+            <artifactId>org.wso2.carbon.identity.oauth</artifactId>
             <scope>provided</scope>
         </dependency>
     </dependencies>

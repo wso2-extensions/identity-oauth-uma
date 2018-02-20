@@ -57,6 +57,7 @@ public class PermissionApiServiceImplTest extends PowerMockTestCase {
 
     private PermissionApiServiceImpl permissionApiService;
     private ResourceModelDTO resourceModelDTO;
+    private final String patScope = "uma_protection";
 
     @Mock
     private BundleContext mockBundleContext;
@@ -78,9 +79,6 @@ public class PermissionApiServiceImplTest extends PowerMockTestCase {
 
     @Mock
     private HttpServletRequest mockHTTPServletRequest;
-
-    @Mock
-    private ResourceModelDTO mockResourceModelDTO;
 
     @ObjectFactory
     public IObjectFactory getObjectFactory() {
@@ -112,7 +110,7 @@ public class PermissionApiServiceImplTest extends PowerMockTestCase {
 
         when(mockMessageContext.getHttpServletRequest()).thenReturn(mockHTTPServletRequest);
         when(mockHTTPServletRequest.getAttribute(anyString())).thenReturn(mockAuthenticationContext);
-        String[] tokenScopes = new String[]{"uma_protection"};
+        String[] tokenScopes = new String[]{patScope};
         when(mockAuthenticationContext.getParameter(anyString())).thenReturn(tokenScopes);
         when(mockAuthenticationContext.getUser()).thenReturn(new User());
         PermissionTicketDO permissionTicketDO = new PermissionTicketDO();
@@ -127,7 +125,7 @@ public class PermissionApiServiceImplTest extends PowerMockTestCase {
 
         when(mockMessageContext.getHttpServletRequest()).thenReturn(mockHTTPServletRequest);
         when(mockHTTPServletRequest.getAttribute(anyString())).thenReturn(mockAuthenticationContext);
-        String[] tokenScopes = new String[]{"uma_protection"};
+        String[] tokenScopes = new String[]{patScope};
         when(mockAuthenticationContext.getParameter(anyString())).thenReturn(tokenScopes);
         when(mockAuthenticationContext.getUser()).thenReturn(new User());
         doThrow(new PermissionDAOException("Server")).when(mockPermissionService).issuePermissionTicket(anyList(),
@@ -144,7 +142,7 @@ public class PermissionApiServiceImplTest extends PowerMockTestCase {
 
         when(mockMessageContext.getHttpServletRequest()).thenReturn(mockHTTPServletRequest);
         when(mockHTTPServletRequest.getAttribute(anyString())).thenReturn(mockAuthenticationContext);
-        String[] tokenScopes = new String[]{"uma_protection"};
+        String[] tokenScopes = new String[]{patScope};
         when(mockAuthenticationContext.getParameter(anyString())).thenReturn(tokenScopes);
         when(mockAuthenticationContext.getUser()).thenReturn(new User());
         UMAResourceException umaResourceException = new UMAResourceException(UMAConstants
@@ -175,7 +173,7 @@ public class PermissionApiServiceImplTest extends PowerMockTestCase {
 
         when(mockMessageContext.getHttpServletRequest()).thenReturn(mockHTTPServletRequest);
         when(mockHTTPServletRequest.getAttribute(anyString())).thenReturn(mockAuthenticationContext);
-        String[] tokenScopes = new String[]{"uma_protection"};
+        String[] tokenScopes = new String[]{patScope};
         when(mockAuthenticationContext.getParameter(anyString())).thenReturn(tokenScopes);
         ResourceModelDTO requestedPermission = null;
         assertEquals(permissionApiService.requestPermission(requestedPermission, mockMessageContext).getStatus(),
