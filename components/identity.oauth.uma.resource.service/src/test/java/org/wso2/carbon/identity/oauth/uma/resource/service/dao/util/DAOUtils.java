@@ -18,6 +18,7 @@ package org.wso2.carbon.identity.oauth.uma.resource.service.dao.util;
 
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
+
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -31,7 +32,7 @@ public class DAOUtils {
     private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
     public static final String STORE_RESOURCE_DETAILS =
             "INSERT INTO IDN_RESOURCE(RESOURCE_ID,RESOURCE_NAME,TIME_CREATED," +
-                    "RESOUCE_OWNER_ID,TENANT_ID) VALUES (?,?,?,?,?)";
+                    "RESOURCE_OWNER_NAME,TENANT_DOMAIN,CONSUMER_KEY) VALUES (?,?,?,?,?,?)";
 
     public static final String STORE_RESOURCE_META_DETAILS =
             "INSERT INTO IDN_RESOURCE_META_DATA(FK_RESOURCE_ID_META_DATA,PROPERTY_KEY,PROPERTY_VALUE)" +
@@ -53,6 +54,7 @@ public class DAOUtils {
         }
         dataSourceMap.put(databaseName, dataSource);
     }
+
     protected void closeH2Base(String databaseName) throws Exception {
 
         BasicDataSource dataSource = dataSourceMap.get(databaseName);
@@ -79,7 +81,8 @@ public class DAOUtils {
     }
 
     protected void createResourceTable(String databaseName, String resourceId, String resourceName,
-                                       Timestamp timecreated, String resourceOwnerId, long tenantId) throws Exception {
+                                       Timestamp timecreated, String resourceOwnerName, String tenantDomain,
+                                       String consumerKey) throws Exception {
 
         PreparedStatement preparedStatement = null;
         try (Connection connection = getConnection(databaseName)) {
@@ -87,8 +90,9 @@ public class DAOUtils {
             preparedStatement.setString(1, resourceId);
             preparedStatement.setString(2, resourceName);
             preparedStatement.setTimestamp(3, timecreated);
-            preparedStatement.setString(4, resourceOwnerId);
-            preparedStatement.setLong(5, tenantId);
+            preparedStatement.setString(4, resourceOwnerName);
+            preparedStatement.setString(5, tenantDomain);
+            preparedStatement.setString(6, consumerKey);
             preparedStatement.execute();
         } finally {
             if (preparedStatement != null) {

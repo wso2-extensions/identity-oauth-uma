@@ -1,18 +1,3 @@
-/*
- *  Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- */
 package org.wso2.carbon.identity.oauth.uma.resource.endpoint.impl;
 
 import org.apache.cxf.jaxrs.ext.MessageContext;
@@ -27,25 +12,27 @@ import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.internal.OSGiDataHolder;
-import org.wso2.carbon.identity.application.common.model.User;
-import org.wso2.carbon.identity.auth.service.AuthenticationContext;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.TestUtil;
+import org.wso2.carbon.identity.oauth.uma.resource.endpoint.dto.ResourceDetailsDTO;
+
+import org.wso2.carbon.identity.oauth.uma.resource.endpoint.exceptions.ResourceEndpointException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.ResourceService;
+import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.model.Resource;
 import org.wso2.carbon.identity.oauth.uma.resource.service.model.ScopeDataDO;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
 
-import static org.mockito.Matchers.anyString;
+
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
-import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotEquals;
+
 
 @PrepareForTest({BundleContext.class, ServiceTracker.class, PrivilegedCarbonContext.class, ResourceService.class})
-public class ResourceRegistrationApiServiceImplTest extends PowerMockTestCase {
+public class ResourceRegistrationApiServiceImplExceptionTest extends PowerMockTestCase {
 
     private ResourceRegistrationApiServiceImpl resourcesApiService = null;
     private Resource resource;
@@ -62,12 +49,6 @@ public class ResourceRegistrationApiServiceImplTest extends PowerMockTestCase {
     @Mock
     private MessageContext mockMessageContext;
 
-    @Mock
-    private AuthenticationContext mockAuthenticationContext;
-
-    @Mock
-    private HttpServletRequest mockHTTPServletRequest;
-
     @ObjectFactory
     public IObjectFactory getObjectFactory() {
 
@@ -79,9 +60,6 @@ public class ResourceRegistrationApiServiceImplTest extends PowerMockTestCase {
 
         resourcesApiService = new ResourceRegistrationApiServiceImpl();
         resource = new Resource();
-
-        resourcesApiService = new ResourceRegistrationApiServiceImpl();
-        resource = new Resource();
         //Get OSGIservice by starting the tenant flow.
         whenNew(ServiceTracker.class).withAnyArguments().thenReturn(mockServiceTracker);
         TestUtil.startTenantFlow("carbon.super");
@@ -90,7 +68,7 @@ public class ResourceRegistrationApiServiceImplTest extends PowerMockTestCase {
         when(mockServiceTracker.getServices()).thenReturn(services);
         OSGiDataHolder.getInstance().setBundleContext(mockBundleContext);
 
-        resource.setName("photo_albem");
+        resource.setName("photo_albem1");
         List<ScopeDataDO> scopeDataDO = new ArrayList<>();
         ScopeDataDO scopeDataDO1 = new ScopeDataDO();
         scopeDataDO1.setResourceId("67378");
@@ -101,32 +79,63 @@ public class ResourceRegistrationApiServiceImplTest extends PowerMockTestCase {
         resource.setType("http://www.example.com/rsrcs/photoalbum");
     }
 
-    @Test
-    public void testDeleteResource() throws Exception {
-
-        when(resourceService.deleteResource("232e7415-3bcb-4ef9-9527-ac4dacc6aa83")).thenReturn(true);
-        assertEquals(resourcesApiService.deleteResource("232e7415-3bcb-4ef9-9527-ac4dacc6aa83",
-                mockMessageContext).getStatus(), Response.Status.NO_CONTENT.getStatusCode());
-    }
-
-    @Test
-    public void testGetResourceIds() throws Exception {
-
-        when(mockMessageContext.getHttpServletRequest()).thenReturn(mockHTTPServletRequest);
-        when(mockHTTPServletRequest.getAttribute(anyString())).thenReturn(mockAuthenticationContext);
-        when(mockAuthenticationContext.getUser()).thenReturn(new User());
-        List<String> resourceIds = new ArrayList<>();
-        when(resourceService.getResourceIds(anyString(), anyString())).thenReturn(resourceIds);
-        assertEquals(resourcesApiService.getResourceIds(mockMessageContext).getStatus(),
-                Response.Status.OK.getStatusCode());
-    }
-
-    @Test
+   /* @Test
     public void testGetResource() throws Exception {
 
-        when(resourceService.getResourceById("232e7415-3bcb-4ef9-9527-ac4dacc6aa83")).thenReturn(resource);
-        assertEquals(resourcesApiService.getResource("232e7415-3bcb-4ef9-9527-ac4dacc6aa83",
-                mockMessageContext).getStatus(), Response.Status.OK.getStatusCode());
+        try {
+            resourcesApiService.getResource(anyString(), mockMessageContext);
+        } catch (ResourceEndpointException e) {
+            assertNotEquals(e.getResponse().getStatus(), Response.Status.BAD_REQUEST.getStatusCode());
+        }
+    }*/
 
+   /* @Test
+    public void testGetApplicationThrowableException() throws UMAException {
+        //Test for invalid resource id.
+        try {
+            resourcesApiService.getResource(anyString(), mockMessageContext);
+        } catch (ResourceEndpointException e) {
+            assertEquals(e.getResponse().getStatus(), Response.Status.NOT_FOUND.getStatusCode());
+        }
+    }*/
+
+    /*@Test
+    public void testGetResourceIds() throws Exception {
+        try {
+            resourcesApiService.getResourceIds(mockMessageContext);
+        } catch (ResourceEndpointException e) {
+            assertNotEquals(e.getResponse().getStatus(), Response.Status.BAD_REQUEST.getStatusCode());
+        }
+
+    }*/
+    @Test
+    public void testUpdateResource() throws Exception {
+
+        ResourceDetailsDTO updateDetailsDTO = new ResourceDetailsDTO();
+        updateDetailsDTO.setName("photo_albem");
+        List<String> scopes = new ArrayList<>();
+        scopes.add("scope1");
+        updateDetailsDTO.setResource_scopes(scopes);
+        updateDetailsDTO.setDescription("Collection of digital photographs");
+        updateDetailsDTO.setIcon_uri("http://www.example.com/icons/sky.png");
+
+        try {
+            resourcesApiService.updateResource("", updateDetailsDTO, mockMessageContext);
+        } catch (ResourceEndpointException e) {
+            assertNotEquals(e.getResponse().getStatus(), Response.Status.BAD_REQUEST.getStatusCode());
+        }
+
+    }
+
+    @Test
+    public void testUpdateApplicationThrowableException() throws UMAException {
+        //Test for invalid resource id.
+        ResourceDetailsDTO updateRequestDTO = new ResourceDetailsDTO();
+        updateRequestDTO.setName("");
+        try {
+            resourcesApiService.updateResource("ClientID", updateRequestDTO, mockMessageContext);
+        } catch (ResourceEndpointException e) {
+            assertNotEquals(e.getResponse().getStatus(), Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+        }
     }
 }

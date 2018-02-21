@@ -22,6 +22,7 @@
     <test name="Util-Tests" preserve-order="true" parallel="false">
         <classes>
             <class name="org.wso2.carbon.identity.oauth.uma.resource.endpoint.impl.ResourceRegistrationApiServiceImplTest" />
+            <class name="org.wso2.carbon.identity.oauth.uma.resource.endpoint.impl.ResourceRegistrationApiServiceImplExceptionTest" />
             <class name="org.wso2.carbon.identity.oauth.uma.resource.endpoint.util.ResourceUtilsTest"/>
         </classes>
     </test>

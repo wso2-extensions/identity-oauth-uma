@@ -29,15 +29,16 @@ import org.wso2.carbon.identity.oauth.uma.resource.service.dao.util.DAOUtils;
 import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAServiceException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.model.Resource;
+import org.wso2.carbon.identity.oauth.uma.resource.service.model.ScopeDataDO;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
-
 
 @PrepareForTest(IdentityDatabaseUtil.class)
 
@@ -46,14 +47,17 @@ public class ResourceDAOTest extends DAOUtils {
     private static final Log log = LogFactory.getLog(ResourceDAOTest.class);
 
     private static final String DB_NAME = "regdb";
+    private static String tenantDomain = "carbon.user";
+    private static String resourceOwnerName = "carbon";
+    private static String consumerKey = "88999ng-667";
 
     @BeforeClass
     public void setUp() throws Exception {
 
         initiateH2Base(DB_NAME, getFilePath("resource.sql"));
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        createResourceTable(DB_NAME, "1", "PhotoAlbem", timestamp, "1",
-                1234);
+        createResourceTable(DB_NAME, "1", "PhotoAlbem", timestamp, "carbon",
+                "carbon.123", "889988-7888555-7555");
         createResourceMetaDataTable(DB_NAME, "icon_uri",
                 "http://www.example.com/icons/sharesocial.png", (long) 1);
         createResourceScopeTable(DB_NAME, (long) 1, "view");
@@ -78,18 +82,18 @@ public class ResourceDAOTest extends DAOUtils {
         try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             ResourceDAO resourceDAO = new ResourceDAO();
-            resourceDAO.registerResource(storeResources());
+            resourceDAO.registerResource(storeResources(), tenantDomain, resourceOwnerName, consumerKey);
         }
     }
 
     @Test(expectedExceptions = UMAException.class)
-    public void testRetrieveResource() throws Exception {
+    public void testRetrieveResourceWithException() throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             ResourceDAO resourceDAO = new ResourceDAO();
-            resourceDAO.retrieveResource("19");
+            resourceDAO.retrieveResource("1");
         }
     }
 
@@ -100,7 +104,7 @@ public class ResourceDAOTest extends DAOUtils {
         try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             ResourceDAO resourceDAO = new ResourceDAO();
-            resourceDAO.retrieveResourceIDs("7483");
+            resourceDAO.retrieveResourceIDs(resourceOwnerName, consumerKey);
         }
     }
 
@@ -108,11 +112,11 @@ public class ResourceDAOTest extends DAOUtils {
     public void testDeleteResource() throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-            ResourceDAO resourceDAO = new ResourceDAO();
-            resourceDAO.deleteResource("19");
-        }
+        Connection connection = DAOUtils.getConnection(DB_NAME);
+        when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
+        ResourceDAO resourceDAO = new ResourceDAO();
+        resourceDAO.deleteResource("19");
+
     }
 
     @Test
@@ -122,7 +126,7 @@ public class ResourceDAOTest extends DAOUtils {
         try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             ResourceDAO resourceDAO = new ResourceDAO();
-            resourceDAO.updateResource("19", storeResources());
+            resourceDAO.updateResource("1", storeResources());
         }
     }
 
@@ -131,6 +135,11 @@ public class ResourceDAOTest extends DAOUtils {
         Resource resource = new Resource();
         resource.setResourceId("190292");
         resource.setName("photo_albem");
+        ArrayList<String> scopes = new ArrayList<>();
+        scopes.add("scope1");
+        ScopeDataDO scopeDataDO = new ScopeDataDO();
+        scopeDataDO.setScopeName("Scope1");
+        resource.setScopes(scopes);
         resource.setDescription("Collection of digital photographs");
         resource.setIconUri("http://www.example.com/icons/sky.png");
         resource.setType("http://www.example.com/rsrcs/photoalbum");
@@ -143,7 +152,7 @@ public class ResourceDAOTest extends DAOUtils {
         for (Object resource : resources) {
             try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
                 when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-                resourceDAO.registerResource((Resource) resource);
+                resourceDAO.registerResource((Resource) resource, tenantDomain, resourceOwnerName, consumerKey);
 
             }
         }

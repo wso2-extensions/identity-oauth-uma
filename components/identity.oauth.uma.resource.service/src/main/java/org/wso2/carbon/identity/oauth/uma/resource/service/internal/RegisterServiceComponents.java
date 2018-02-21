@@ -25,7 +25,7 @@ import org.wso2.carbon.identity.oauth.uma.resource.service.impl.ResourceServiceI
 /**
 * Service component for UMA resource endpoint.
 */
-@Component(name = "org.wso2.carbon.identity.oauth.uma.resource.service.internal.ResourceRegistrationerviceComponent",
+@Component(name = "org.wso2.carbon.identity.oauth.uma.resource.service.internal.RegisterServiceComponent",
         immediate = true)
 public class RegisterServiceComponents {
 

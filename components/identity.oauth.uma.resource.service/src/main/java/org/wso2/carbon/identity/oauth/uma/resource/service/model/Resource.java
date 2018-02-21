@@ -50,7 +50,7 @@ public class Resource {
 
     private Timestamp timestamp;
 
-    private List<ScopeDataDO> scopeDataDoArr = new ArrayList<>();
+    private List<ScopeDataDO> scopeDataDoArray = new ArrayList<>();
 
     private String resourceOwner;
 
@@ -130,14 +130,14 @@ public class Resource {
         return metaData;
     }
 
-    public List<ScopeDataDO> getScopeDataDOArr() {
+    public List<ScopeDataDO> getScopeDataDOArray() {
 
-        return scopeDataDoArr;
+        return scopeDataDoArray;
     }
 
-    public void setScopeDataDOArr(List<ScopeDataDO> scopeDataDoArr) {
+    public void setScopeDataDOArray(List<ScopeDataDO> scopeDataDoArray) {
 
-        this.scopeDataDoArr = scopeDataDoArr;
+        this.scopeDataDoArray = scopeDataDoArray;
     }
 
     public String getResourceOwner() {
@@ -154,10 +154,6 @@ public class Resource {
 
         this.timestamp = new Timestamp(System.currentTimeMillis());
         this.resourceId = UUID.randomUUID().toString();
-        this.resourceOwnerId = "123";
-        this.resourceOwner = "IS";
-        this.tenentId = "1";
-
     }
 
     public Resource(String name) {

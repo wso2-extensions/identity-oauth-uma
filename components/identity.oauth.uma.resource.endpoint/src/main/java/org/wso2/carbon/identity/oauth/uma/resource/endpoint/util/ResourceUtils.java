@@ -50,7 +50,8 @@ public class ResourceUtils {
         resourceRegistration.setScopes(resourceDetailsDTO.getResource_scopes());
 
         for (String scope : resourceRegistration.getScopes()) {
-            resourceRegistration.getScopeDataDOArr().add(new ScopeDataDO(resourceRegistration.getResourceId(), scope));
+            resourceRegistration.getScopeDataDOArray().add(new ScopeDataDO(resourceRegistration.getResourceId()
+                    , scope));
         }
         if (resourceDetailsDTO.getType() != null && !resourceDetailsDTO.getType().isEmpty()) {
             resourceRegistration.setType(resourceDetailsDTO.getType());
@@ -104,7 +105,8 @@ public class ResourceUtils {
      */
     public static UpdateResourceDTO updateResponse(Resource resourceRegistration) {
 
-        UpdateResourceDTO updateResourceDTO = new UpdateResourceDTO();
+        UpdateResourceDTO updateResourceDTO = new UpdateResourceDTO(resourceRegistration.getResourceId());
+    //    updateResourceDTO.setResourceId(resourceRegistration.getResourceId());
         return updateResourceDTO;
     }
 

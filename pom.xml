@@ -292,6 +292,12 @@
                 <artifactId>org.wso2.carbon.identity.application.common</artifactId>
                 <version>${carbon.identity.framework.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.auth.rest</groupId>
+                <artifactId>org.wso2.carbon.identity.auth.service</artifactId>
+                <version>${carbon.oauth.service.version}</version>
+            </dependency>
+
 
             <!-- Carbon Kernel dependencies -->
             <dependency>
@@ -363,6 +369,7 @@
         <carbon.identity.framework.version>5.8.60</carbon.identity.framework.version>
         <carbon.identity.framework.imp.pkg.version.range>[5.0.0, 6.0.0)
         </carbon.identity.framework.imp.pkg.version.range>
+        <carbon.oauth.service.version>1.1.11</carbon.oauth.service.version>
 
         <!-- Carbon kernel version -->
         <carbon.kernel.version>4.4.16</carbon.kernel.version>

@@ -21,12 +21,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.oauth.uma.resource.service.ResourceService;
 import org.wso2.carbon.identity.oauth.uma.resource.service.dao.ResourceDAO;
-import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAClientException;
-import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAServiceException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.model.Resource;
 
-import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -39,40 +36,42 @@ public class ResourceServiceImpl implements ResourceService {
     private static ResourceDAO resourceDAO = new ResourceDAO();
 
     @Override
-    public Resource registerResource(Resource resourceRegistration) throws
-            UMAException {
+    public Resource registerResource(Resource resourceRegistration, String resourceOwnerName, String tenantDomain,
+                                     String consumerKey) throws UMAServiceException {
 
-        resourceRegistration = resourceDAO.registerResource(resourceRegistration);
+        resourceRegistration = resourceDAO.registerResource(resourceRegistration, resourceOwnerName, tenantDomain,
+                consumerKey);
+        log.info("Resource registered successfully.");
         return resourceRegistration;
     }
 
     /**
      * Retrieve the available Resource list
      *
-     * @param resourceOwnerId To ientify resources belongs to same owner
+     * @param resourceOwnerName To ientify resources belongs to same owner
      * @return resource list
-     * @throws UMAException
+     * @throws UMAServiceException
      */
     @Override
-    public List<String> getResourceIds(String resourceOwnerId) throws UMAException {
+    public List<String> getResourceIds(String resourceOwnerName, String consumerKey) throws UMAServiceException {
 
-        List<String> resourceRegistration = resourceDAO.retrieveResourceIDs(resourceOwnerId);
-
+        List<String> resourceRegistration = resourceDAO.retrieveResourceIDs(resourceOwnerName, consumerKey);
+        log.info("Retrieved resourceId's successfully.");
         return resourceRegistration;
     }
 
     /**
      * @param resourceId resource ID of the resource which need to get retrieved
      * @return Retrieved resource using resource ID
-     * @throws UMAException
+     * @throws UMAServiceException
      */
     @Override
-    public Resource getResourceById(String resourceId)
-            throws UMAServiceException, UMAClientException {
+    public Resource getResourceById(String resourceId) throws UMAServiceException {
 
         Resource resourceRegistration;
 
         resourceRegistration = resourceDAO.retrieveResource(resourceId);
+        log.info("Retrieved resource detail's successfully.");
         return resourceRegistration;
 
     }
@@ -82,14 +81,14 @@ public class ResourceServiceImpl implements ResourceService {
      *
      * @param resourceRegistration details of updated resource
      * @return updated resource
-     * @throws UMAException
+     * @throws UMAServiceException
      */
     @Override
     public Resource updateResource(String resourceId, Resource resourceRegistration)
-            throws SQLException, UMAException {
+            throws  UMAServiceException {
 
         resourceDAO.updateResource(resourceId, resourceRegistration);
-
+        log.info("Resource details updated successfully.");
         return resourceRegistration;
     }
 
@@ -97,12 +96,13 @@ public class ResourceServiceImpl implements ResourceService {
      * Delete the resource for the given resource ID
      *
      * @param resourceId Resource ID of the resource which need to get deleted
-     * @throws UMAException
+     * @throws UMAServiceException
      */
     @Override
-    public boolean deleteResource(String resourceId) throws UMAException, SQLException {
+    public boolean deleteResource(String resourceId) throws UMAServiceException {
 
         Resource resourceRegistration = null;
+        log.info("Resource deleted successfully from the database.");
         return resourceDAO.deleteResource(resourceId);
 
     }

@@ -23,7 +23,7 @@ import org.wso2.carbon.identity.oauth.uma.resource.service.ResourceConstants;
  */
 public class UMAClientException extends UMAException {
 
-    public UMAClientException() {
+    public UMAClientException(String wqgfj) {
 
     }
 

@@ -1,5 +1,22 @@
+/*
+ *  Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package org.wso2.carbon.identity.oauth.uma.resource.endpoint;
 
+import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.dto.ReadResourceDTO;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.factories.ResourceRegistrationApiServiceFactory;
 
@@ -10,6 +27,7 @@ import org.wso2.carbon.identity.oauth.uma.resource.endpoint.dto.CreateResourceDT
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.dto.ResourceDetailsDTO;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.dto.UpdateResourceDTO;
 
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.*;
 
@@ -31,9 +49,9 @@ public class ResourceRegistrationApi  {
 
          @io.swagger.annotations.ApiResponse(code = 204, message = "No content.") })
 
- public Response deleteResource(@ApiParam(value = "ID ofthe  resource",required=true ) @PathParam("resourceId") String resourceId)
+ public Response deleteResource(@ApiParam(value = "ID ofthe  resource",required=true ) @PathParam("resourceId") String resourceId, @Context MessageContext context)
  {
-  return delegate.deleteResource(resourceId);
+  return delegate.deleteResource(resourceId,context);
  }
  @GET
  @Path("/resource/{resourceId}")
@@ -47,9 +65,9 @@ public class ResourceRegistrationApi  {
 
          @io.swagger.annotations.ApiResponse(code = 404, message = "Not Found.Resource does not exist.") })
 
- public Response getResource(@ApiParam(value = "ID ofthe  resource",required=true ) @PathParam("resourceId") String resourceId)
+ public Response getResource(@ApiParam(value = "ID ofthe  resource",required=true ) @PathParam("resourceId") String resourceId,@Context MessageContext context)
  {
-  return delegate.getResource(resourceId);
+  return delegate.getResource(resourceId,context);
  }
  @GET
  @Path("/resource")
@@ -63,9 +81,9 @@ public class ResourceRegistrationApi  {
 
          @io.swagger.annotations.ApiResponse(code = 404, message = "Resource does not exist.") })
 
- public Response getresourceIds(@ApiParam(value = "The resource owner ID is defined to obtain of the list of resources to be retrieved.") @QueryParam("resourceOwnerId") String resourceOwnerId)
+ public Response getresourceIds(@ApiParam(value = "The resource owner ID is defined to obtain of the list of resources to be retrieved.") @Context MessageContext context)
  {
-  return delegate.getResourceIds(resourceOwnerId);
+  return delegate.getResourceIds(context);
  }
  @POST
  @Path("/resource")
@@ -77,9 +95,9 @@ public class ResourceRegistrationApi  {
 
          @io.swagger.annotations.ApiResponse(code = 400, message = "Invalid input.") })
 
- public Response registerResource(@ApiParam(value = "The resource description which resource owner save in Authorization server."  ) ResourceDetailsDTO resource)
+ public Response registerResource(@ApiParam(value = "The resource description which resource owner save in Authorization server."  ) ResourceDetailsDTO resource, @Context MessageContext context)
  {
-  return delegate.registerResource(resource);
+  return delegate.registerResource(resource,context);
  }
  @PUT
  @Path("/resource/{resourceId}")
@@ -94,8 +112,8 @@ public class ResourceRegistrationApi  {
          @io.swagger.annotations.ApiResponse(code = 404, message = "Resource not found") })
 
  public Response updateResource(@ApiParam(value = "ID ofthe  resource",required=true ) @PathParam("resourceId") String resourceId,
-                                @ApiParam(value = "The resource description which resource owner used to update in Authorization server."  ) ResourceDetailsDTO updateresource)
+                                @ApiParam(value = "The resource description which resource owner used to update in Authorization server."  ) ResourceDetailsDTO updateresource, @Context MessageContext context)
  {
-  return delegate.updateResource(resourceId,updateresource);
+  return delegate.updateResource(resourceId,updateresource,context);
  }
 }

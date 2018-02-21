@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.oauth.uma.resource.service.internal;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
 import org.osgi.framework.BundleContext;
 import org.testng.IObjectFactory;
 import org.testng.annotations.AfterMethod;
@@ -65,15 +66,15 @@ public class RegisterServiceComponentsTest {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
 
-                ResourceServiceImpl permissionService = (ResourceServiceImpl) invocation.getArguments()[1];
-                serviceName[0] = permissionService.getClass().getName();
+                ResourceServiceImpl resourceService = (ResourceServiceImpl) invocation.getArguments()[1];
+                serviceName[0] = resourceService.getClass().getName();
                 return null;
             }
         }).when(bundleContext).registerService(anyString(), any(RegisterServiceComponents.class),
                 any(Dictionary.class));
 
-        RegisterServiceComponents permissionServiceComponent = new RegisterServiceComponents();
-        permissionServiceComponent.activate(bundleContext);
+        RegisterServiceComponents registerServiceComponents = new RegisterServiceComponents();
+        registerServiceComponents.activate(bundleContext);
         assertEquals(ResourceServiceImpl.class.getName(), serviceName[0], "error");
     }
 }

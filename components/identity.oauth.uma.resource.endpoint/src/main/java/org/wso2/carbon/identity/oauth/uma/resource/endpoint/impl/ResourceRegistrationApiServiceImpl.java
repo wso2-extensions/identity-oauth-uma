@@ -18,12 +18,16 @@ package org.wso2.carbon.identity.oauth.uma.resource.endpoint.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.oauth.uma.resource.endpoint.ResourceEndpointConstants;
+import org.apache.cxf.jaxrs.ext.MessageContext;
+import org.wso2.carbon.identity.auth.service.AuthenticationContext;
+import org.wso2.carbon.identity.oauth.uma.resource.endpoint.HandleErrorResponseConstants;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.ResourceRegistrationApiService;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.dto.CreateResourceDTO;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.dto.ErrorDTO;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.dto.ReadResourceDTO;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.dto.ResourceDetailsDTO;
+import org.wso2.carbon.identity.oauth.uma.resource.endpoint.dto.UpdateResourceDTO;
+
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.exceptions.ResourceEndpointException;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.util.ResourceUtils;
 
@@ -38,12 +42,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.ws.rs.core.Response;
 
+
 /**
  * ResourceRegistrationApiServiceImpl is used to handling resource management.
  */
 public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiService {
 
     private static final Log log = LogFactory.getLog(ResourceRegistrationApiServiceImpl.class);
+    private static String tenantDomain = null;
+    private static String resourceOwnerName = null;
+    private static String consumerKey = null;
 
     /**
      * Register a resource with resource details
@@ -52,7 +60,16 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
      * @return Response with the status of the registration
      */
     @Override
-    public Response registerResource(ResourceDetailsDTO requestedResource) {
+    public Response registerResource(ResourceDetailsDTO requestedResource, MessageContext context) {
+
+        tenantDomain = ((AuthenticationContext) context.getHttpServletRequest().getAttribute("auth-context"))
+                .getUser().getTenantDomain();
+        ;
+        resourceOwnerName = ((AuthenticationContext) context.getHttpServletRequest().getAttribute("auth-context"))
+                .getUser().getUserName();
+        consumerKey = (String) ((AuthenticationContext) context.getHttpServletRequest().getAttribute("auth-context"))
+                .getParameter("consumer-key");
+        Response response = null;
 
         if (requestedResource == null) {
             log.error("Request body cannot be empty.");
@@ -60,20 +77,21 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
         }
         try {
             Resource registerResource = ResourceUtils.getResourceService()
-                    .registerResource(ResourceUtils.getResource(requestedResource));
+                    .registerResource(ResourceUtils.getResource(requestedResource), resourceOwnerName, tenantDomain
+                            , consumerKey);
             CreateResourceDTO createResourceDTO = ResourceUtils.createResponse(registerResource);
             return Response.status(Response.Status.CREATED).entity(createResourceDTO).build();
+
         } catch (UMAServiceException e) {
             handleErrorResponse(e, log);
         } catch (UMAClientException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("Client error when registering resource in resource server.", e);
-            }
             handleErrorResponse(e, log);
+            log.error("Client error when retrieving resource from the resource server.", e);
         } catch (Throwable throwable) {
+            handleErrorResponse((UMAException) throwable, log);
             log.error("Internal server error occurred. ", throwable);
         }
-        return null;
+        return response;
     }
 
     /**
@@ -83,12 +101,12 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
      * @return Response with the retrieved resource/ retrieval status
      */
     @Override
-    public Response getResource(String resourceId) {
+    public Response getResource(String resourceId, MessageContext context) {
 
         Response response = null;
 
         try {
-            if (!isResourceId(resourceId)) {
+            if (isResourceId(resourceId)) {
                 try {
                     Resource resourceRegistration = ResourceUtils.getResourceService().getResourceById
                             (resourceId);
@@ -96,15 +114,17 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
                     return Response.status(Response.Status.OK).entity(readResourceDTO).build();
                 } catch (UMAServiceException e) {
                     handleErrorResponse(e, log);
+
                 } catch (Throwable throwable) {
-                    log.error("Internal server error occurred. ", throwable);
+                    handleErrorResponse((UMAException) throwable, log);
                 }
+            } else {
+                throw new UMAClientException(ResourceConstants.ErrorMessages.ERROR_CODE_NOT_FOUND_RESOURCE_ID);
             }
         } catch (UMAClientException e) {
             handleErrorResponse(e, log);
-            if (log.isDebugEnabled()) {
-                log.debug("Client error when retrieving resource from the resource server.", e);
-            }
+            log.error("Client error when retrieving resource from the resource server.", e);
+
         }
         return response;
     }
@@ -112,16 +132,20 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
     /**
      * Retrieve the available resourceId list
      *
-     * @param resourceOwnerId
+     * @param context
      * @return Response with the retrieved resourceId's/ retrieval status
      */
     @Override
-    public Response getResourceIds(String resourceOwnerId) {
+    public Response getResourceIds(MessageContext context) {
 
-        // For testing purpose currently resource owner id is taken to validate pat access token.
-        resourceOwnerId = "123";
+        resourceOwnerName = ((AuthenticationContext) context.getHttpServletRequest().getAttribute("auth-context"))
+                .getUser().getUserName();
+        consumerKey = (String) ((AuthenticationContext) context.getHttpServletRequest().getAttribute("auth-context"))
+                .getParameter("consumer-key");
+
         try {
-            List<String> resourceRegistration = ResourceUtils.getResourceService().getResourceIds(resourceOwnerId);
+            List<String> resourceRegistration = ResourceUtils.getResourceService().getResourceIds(resourceOwnerName,
+                    consumerKey);
             Response response = Response.ok().entity(resourceRegistration).build();
             return response;
         } catch (UMAClientException e) {
@@ -137,34 +161,38 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
      * Update a resource
      *
      * @param updatedResource details of the resource to be updated
-     * @param resourceId ID of the resource to be updated
+     * @param resourceId      ID of the resource to be updated
      * @return Response with the updated resource
      */
     @Override
-    public Response updateResource(String resourceId, ResourceDetailsDTO updatedResource) {
+    public Response updateResource(String resourceId, ResourceDetailsDTO updatedResource, MessageContext context) {
 
         Response response = null;
         try {
-            if (!isResourceId(resourceId)) {
+            if (isResourceId(resourceId)) {
 
                 try {
                     Resource resourceRegistration = ResourceUtils.getResourceService().updateResource(resourceId,
                             ResourceUtils.
                                     getResource(updatedResource));
-                    return Response.status(Response.Status.CREATED).entity(updatedResource).build();
+                    resourceRegistration.setResourceId(resourceId);
+                    UpdateResourceDTO updateResourceDTO = ResourceUtils.updateResponse(resourceRegistration);
+                    return Response.status(Response.Status.CREATED).entity(updateResourceDTO).build();
                 } catch (UMAServiceException e) {
                     handleErrorResponse(e, log);
                     log.error("Invalid request.Request with valid resource Id to update the resource. ", e);
 
                 } catch (Throwable throwable) {
+                    handleErrorResponse((UMAException) throwable, log);
                     log.error("Internal server error occurred. ", throwable);
                 }
+            } else {
+                throw new UMAClientException(ResourceConstants.ErrorMessages.ERROR_CODE_NOT_FOUND_RESOURCE_ID);
             }
         } catch (UMAClientException e) {
             handleErrorResponse(e, log);
-            if (log.isDebugEnabled()) {
-                log.debug("Client error when retrieving resource from the resource server.", e);
-            }
+            log.error("Client error when retrieving resource from the resource server.", e);
+
         }
         return response;
     }
@@ -176,10 +204,12 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
      * @return Response with the status of resource deletion
      */
     @Override
-    public Response deleteResource(String resourceId) {
+    public Response deleteResource(String resourceId, MessageContext messageContext) {
+
+        Response response = null;
 
         try {
-            if (!isResourceId(resourceId)) {
+            if (isResourceId(resourceId)) {
 
                 try {
                     if (ResourceUtils.getResourceService().deleteResource(resourceId)) {
@@ -189,31 +219,35 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
                 } catch (UMAServiceException e) {
                     handleErrorResponse(e, log);
                     log.error("Invalid request. ", e);
+
                 } catch (Throwable throwable) {
+                    handleErrorResponse((UMAException) throwable, log);
                     log.error("Internal server error occurred. ", throwable);
                 }
+            } else {
+                throw new UMAClientException(ResourceConstants.ErrorMessages.ERROR_CODE_NOT_FOUND_RESOURCE_ID);
             }
         } catch (UMAClientException e) {
             handleErrorResponse(e, log);
-            if (log.isDebugEnabled()) {
-                log.debug("Client error when retrieving resource from the resource server.", e);
-            }
+            log.error("Client error when retrieving resource from the resource server.", e);
+
         }
-        return null;
+        return response;
+
     }
 
     /**
-     * Validate resourceId
+     * Handle error responses.
      *
      * @param umaException exception that should pass to handle error.
      */
     public static void handleErrorResponse(UMAException umaException, Log log) throws ResourceEndpointException {
 
-        ResourceEndpointConstants resourceEndpointConstants = new ResourceEndpointConstants();
-        if (resourceEndpointConstants.getResponseMap().containsKey(umaException.getErrorCode())) {
-            String statusCode = resourceEndpointConstants.getResponseMap().get(umaException.getErrorCode())[0];
+        HandleErrorResponseConstants handleErrorResponseConstants = new HandleErrorResponseConstants();
+        if (handleErrorResponseConstants.getResponseMap().containsKey(umaException.getErrorCode())) {
+            String statusCode = handleErrorResponseConstants.getResponseMap().get(umaException.getErrorCode())[0];
             Response.Status status = Response.Status.fromStatusCode(Integer.parseInt(statusCode));
-            String errorCode = resourceEndpointConstants.getResponseMap().get(umaException.getErrorCode())[1];
+            String errorCode = handleErrorResponseConstants.getResponseMap().get(umaException.getErrorCode())[1];
 
             throw buildResourceEndpointException(status, errorCode, umaException.getMessage());
         }
@@ -236,16 +270,14 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
      */
     public boolean isResourceId(String resourceId) throws UMAClientException {
 
-        boolean validator = true;
-        String pattern = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$";
-        Pattern pat = Pattern.compile(pattern);
-        Matcher match = pat.matcher(resourceId);
+        String validPattern = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$";
+        Pattern pattern = Pattern.compile(validPattern);
+        Matcher match = pattern.matcher(resourceId);
 
         if (match.find()) {
-            validator = false;
+            return true;
         } else {
-            throw new UMAClientException(ResourceConstants.ErrorMessages.ERROR_CODE_NOT_FOUND_RESOURCE_ID);
+            return false;
         }
-        return validator;
     }
 }

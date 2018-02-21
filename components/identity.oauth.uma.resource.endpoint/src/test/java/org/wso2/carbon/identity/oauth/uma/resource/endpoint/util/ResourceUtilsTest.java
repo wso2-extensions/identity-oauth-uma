@@ -67,13 +67,13 @@ public class ResourceUtilsTest {
         ScopeDataDO scopeDataDO1 = new ScopeDataDO();
         scopeDataDO1.setResourceId("67378");
         scopeDataDO.add(scopeDataDO1);
-        resource.setScopeDataDOArr(scopeDataDO);
+        resource.setScopeDataDOArray(scopeDataDO);
         resource.setIconUri("http://www.example.com/icons/sky.png");
         resource.setDescription("Collection of digital photographs");
         resource.setType("http://www.example.com/rsrcs/photoalbum");
 
         ReadResourceDTO readResourceDTO = ResourceUtils.readResponse(resource);
-        assertNotEquals(readResourceDTO.getResource_scope(), resource.getScopeDataDOArr(), "Actual scopes " +
+        assertNotEquals(readResourceDTO.getResource_scope(), resource.getScopeDataDOArray(), "Actual scopes " +
                 "are not match for expected scopes");
         assertEquals(readResourceDTO.getIcon_uri(), resource.getIconUri(), "Actual IconUri  match for" +
                 " expected IconUri");

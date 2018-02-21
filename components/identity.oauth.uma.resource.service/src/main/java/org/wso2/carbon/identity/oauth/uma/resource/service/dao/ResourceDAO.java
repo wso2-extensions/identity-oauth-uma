@@ -21,7 +21,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.oauth.uma.resource.service.ResourceConstants;
-import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAServiceException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.model.Resource;
 import org.wso2.carbon.identity.oauth.uma.resource.service.model.ScopeDataDO;
@@ -55,7 +54,8 @@ public class ResourceDAO {
      * @return resourceId of registered resource description
      * @throws UMAServiceException ResourceException
      */
-    public static Resource registerResource(Resource resource) throws UMAServiceException {
+    public static Resource registerResource(Resource resource, String resourceOwnerName, String tenantDomain,
+                                            String consumerKey) throws UMAServiceException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection();
 
@@ -67,8 +67,9 @@ public class ResourceDAO {
             preparedStatement.setString(1, resource.getResourceId());
             preparedStatement.setString(2, resource.getName());
             preparedStatement.setTimestamp(3, resource.getTimecreated());
-            preparedStatement.setString(4, resource.getResourceOwnerId());
-            preparedStatement.setString(5, resource.getTenentId());
+            preparedStatement.setString(4, resourceOwnerName);
+            preparedStatement.setString(5, tenantDomain);
+            preparedStatement.setString(6, consumerKey);
             preparedStatement.execute();
 
             try (ResultSet resultSet1 = preparedStatement.getGeneratedKeys()) {
@@ -77,9 +78,9 @@ public class ResourceDAO {
                     id = resultSet1.getLong(1);
                 }
                 mapMetaDataWithResource(connection, id, resource);
-                mapScopeWithResource(connection, id, resource.getScopeDataDOArr());
+                mapScopeWithResource(connection, id, resource.getScopeDataDOArray());
                 connection.commit();
-                log.info("Successfully added the resource details to the database");
+                log.info("Successfully added the resource details to the database.");
             } catch (SQLException e) {
                 try {
                     connection.rollback(savepoint);
@@ -170,19 +171,10 @@ public class ResourceDAO {
                 resourceRegistration.setResourceId(null);
                 throw new UMAServiceException(ResourceConstants.ErrorMessages.ERROR_CODE_NOT_FOUND_RESOURCE_ID, null);
             } else {
-                if (resultSet.first()) {
-                    if (resultSet.getString(5) != null) {
-                        String scopeResult = resultSet.getString(5);
-                        if (!resourceRegistration.getScopes().contains(scopeResult)) {
-                            for (String split : scopeResult.split(",")) {
-                                resourceRegistration.getScopes().add(split);
-                            }
-                        }
-                    }
-                }
-
-                resultSet.beforeFirst();
                 while (resultSet.next()) {
+                    if (!resourceRegistration.getScopes().contains(resultSet.getString(5))) {
+                        resourceRegistration.getScopes().add(resultSet.getString(5));
+                    }
 
                     if (resultSet.getString(1) != null) {
                         resourceRegistration.setResourceId(resultSet.getString(1));
@@ -201,12 +193,13 @@ public class ResourceDAO {
                     }
                 }
             }
-
+            log.info("Successfully retrieved the resource details from the database.");
         } catch (SQLException e) {
             log.error("Error when retrieving the resource description. ");
             throw new UMAServiceException(ResourceConstants.ErrorMessages.ERROR_CODE_NOT_FOUND_RESOURCE_ID,
                     "Database" +
-                    "error.Could not get resource.Resource Id can not be found in data base. - " + e.getMessage(), e);
+                            "error.Could not get resource.Resource Id can not be found in data base. - " +
+                            e.getMessage(), e);
 
         }
         return resourceRegistration;
@@ -215,16 +208,18 @@ public class ResourceDAO {
     /**
      * Get all available resources
      *
-     * @param resourceOwnerId ResourceOwner ID
+     * @param resourceOwnerName ResourceOwner name
      * @return available resource list
      * @throws UMAServiceException
      */
-    public static List<String> retrieveResourceIDs(String resourceOwnerId) throws UMAServiceException {
+    public static List<String> retrieveResourceIDs(String resourceOwnerName, String consumerKey)
+            throws UMAServiceException {
 
         List<String> resourceSetIdList = new ArrayList<>();
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
             try (PreparedStatement preparedStatement = connection.prepareStatement(SQLQueries.GET_ALL_RESOURCES)) {
-                preparedStatement.setString(1, resourceOwnerId);
+                preparedStatement.setString(1, resourceOwnerName);
+                preparedStatement.setString(2, consumerKey);
 
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
 
@@ -235,6 +230,7 @@ public class ResourceDAO {
                 }
             }
             connection.commit();
+            log.info("Successfully listed the resourceID's in the database.");
         } catch (SQLException e) {
             log.error("Database error. Could not delete resource category. - " + e.getMessage(), e);
             throw new UMAServiceException(ResourceConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE, "Database " +
@@ -250,7 +246,7 @@ public class ResourceDAO {
      * @param resourceId Resource ID of the resource
      * @throws UMAServiceException
      */
-    public static boolean deleteResource(String resourceId) throws SQLException, UMAException {
+    public static boolean deleteResource(String resourceId) throws UMAServiceException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection();
         try {
@@ -264,7 +260,7 @@ public class ResourceDAO {
             preparedStatement.setString(1, resourceId);
             int rowsAffected = preparedStatement.executeUpdate();
             connection.commit();
-
+            log.info("Successfully deleted the resource details from the database.");
             return rowsAffected > 0;
 
         } catch (SQLException e) {
@@ -282,49 +278,48 @@ public class ResourceDAO {
      * @throws UMAServiceException
      */
     public static boolean updateResource(String resourceId, Resource resourceRegistration)
-            throws SQLException, UMAException {
+            throws UMAServiceException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection();
         Savepoint savepoint = null;
         try {
             connection.setAutoCommit(false);
             savepoint = connection.setSavepoint();
-            PreparedStatement preparedStatement = connection.prepareStatement(SQLQueries.UPDATE_SCOPE);
-            preparedStatement = connection.prepareStatement(SQLQueries.GET_SCOPES, ResultSet.TYPE_SCROLL_INSENSITIVE,
-                    ResultSet.CONCUR_UPDATABLE);
+            PreparedStatement preparedStatement = connection.prepareStatement(SQLQueries.DELETESCOPES);
             preparedStatement.setString(1, resourceId);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            int i = 0;
-            while (resultSet.next()) {
-                resultSet.updateString("SCOPE_NAME", resourceRegistration.getScopes().get(i++));
-                log.info("Scope" + resultSet.getString("SCOPE_NAME"));
-                resultSet.updateRow();
+            preparedStatement.execute();
+            preparedStatement = connection.prepareStatement(SQLQueries.UPDATESCOPES);
+            preparedStatement.setString(1, resourceId);
+            for (String scopes : resourceRegistration.getScopes()) {
+                preparedStatement.setString(2, scopes);
+                preparedStatement.execute();
             }
 
             preparedStatement = connection.prepareStatement(SQLQueries.UPDATE_METADATA);
             preparedStatement.setString(2, resourceId);
             if (resourceRegistration.getDescription() != null && !resourceRegistration.getDescription().isEmpty()) {
-                preparedStatement.setString(3, "description");
+                preparedStatement.setString(3, DESCRIPTION);
                 preparedStatement.setString(1, resourceRegistration.getDescription());
                 preparedStatement.execute();
             }
             if (resourceRegistration.getType() != null && !resourceRegistration.getType().isEmpty()) {
-                preparedStatement.setString(3, "type");
+                preparedStatement.setString(3, TYPE);
                 preparedStatement.setString(1, resourceRegistration.getType());
                 preparedStatement.execute();
             }
             if (resourceRegistration.getIconUri() != null && !resourceRegistration.getIconUri().isEmpty()) {
-                preparedStatement.setString(3, "icon_uri");
+                preparedStatement.setString(3, ICON_URI);
                 preparedStatement.setString(1, resourceRegistration.getIconUri());
                 preparedStatement.execute();
             }
             preparedStatement = connection.prepareStatement(SQLQueries.UPDATE_RESOURCE);
             preparedStatement.setString(2, resourceId);
             preparedStatement.setString(1, resourceRegistration.getName());
+            preparedStatement.execute();
 
             connection.commit();
 
-            log.info("Successfully added the resource details to the database");
+            log.info("Successfully updated the resource details to the database.");
         } catch (SQLException e) {
             try {
                 connection.rollback(savepoint);

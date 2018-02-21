@@ -17,12 +17,10 @@
 package org.wso2.carbon.identity.oauth.uma.resource.service;
 
 import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAClientException;
-import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAServiceException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.model.Resource;
 
 
-import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -31,16 +29,17 @@ import java.util.List;
 
 public interface ResourceService {
 
-    public boolean deleteResource(String resourceId) throws UMAException, SQLException;
+    public boolean deleteResource(String resourceId) throws UMAServiceException;
 
-    public List<String> getResourceIds(String resourceOwnerId) throws UMAException;
+    public List<String> getResourceIds(String resourceOwnerName, String consumerKey) throws UMAServiceException
+            , UMAClientException;
 
-    public Resource registerResource(Resource resourceRegistration)
-            throws UMAException;
+    public Resource registerResource(Resource resourceRegistration, String resourceOwnerName, String tenantDomain,
+                                     String consumerKey) throws UMAServiceException, UMAClientException;
 
     public Resource getResourceById(String resourceId)
             throws UMAServiceException, UMAClientException;
 
     public Resource updateResource(String resourceId, Resource resourceRegistration)
-            throws SQLException, UMAException;
+            throws UMAServiceException;
 }

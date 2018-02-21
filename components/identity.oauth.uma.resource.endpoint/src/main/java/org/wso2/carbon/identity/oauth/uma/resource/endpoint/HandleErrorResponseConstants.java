@@ -20,24 +20,23 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * ResourceEndpointConstants class is used to handle exceptions in the endpoint layer.
+ * HandleErrorResponseConstants class is used to handle exceptions in the endpoint layer.
  * */
-public class ResourceEndpointConstants {
+public class HandleErrorResponseConstants {
 
     private String code;
     private Map<String, String[]> map;
 
-    public ResourceEndpointConstants() {
-
-        this.code = "";
+    public HandleErrorResponseConstants() {
+        this.code = null;
         this.map = initializeMapping();
     }
 
     private Map<String, String[]> initializeMapping() {
 
         Map<String, String[]> map = new HashMap<>();
-        map.put("60001", new String[]{"400", "invalid_resource_id"});
-        map.put("60002", new String[]{"404", "invalid_resource_id"});
+        map.put("60001", new String[]{"400", "invalid_request"});
+        map.put("60002", new String[]{"404", "not_found"});
         return map;
     }
 
