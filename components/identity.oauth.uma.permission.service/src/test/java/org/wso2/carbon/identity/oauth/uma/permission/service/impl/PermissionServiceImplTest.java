@@ -54,7 +54,8 @@ public class PermissionServiceImplTest {
 
         mockStatic(ReadPropertiesFile.class);
         mockStatic(PermissionTicketDAO.class);
-        assertNotNull(permissionService.issuePermissionTicket(anyList()), "Expected a not null object");
+        assertNotNull(permissionService.issuePermissionTicket(anyList(), -1234),
+                "Expected a not null object");
     }
 
 }

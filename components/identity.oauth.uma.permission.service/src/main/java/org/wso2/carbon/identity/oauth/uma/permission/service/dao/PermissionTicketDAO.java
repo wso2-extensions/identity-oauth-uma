@@ -22,8 +22,9 @@ import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.oauth.uma.permission.service.UMAConstants;
 import org.wso2.carbon.identity.oauth.uma.permission.service.exception.PermissionDAOException;
 import org.wso2.carbon.identity.oauth.uma.permission.service.exception.UMAResourceException;
-import org.wso2.carbon.identity.oauth.uma.permission.service.model.PermissionTicketDO;
+import org.wso2.carbon.identity.oauth.uma.permission.service.model.PermissionTicketModel;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.Resource;
+import org.wso2.carbon.identity.oauth2.util.NamedPreparedStatement;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -40,42 +41,51 @@ import java.util.List;
 public class PermissionTicketDAO {
 
     private static final String STORE_PT_QUERY = "INSERT INTO IDN_PERMISSION_TICKET " +
-            "(PT, TIME_CREATED, VALIDITY_PERIOD, TICKET_STATE, TENANT_ID) VALUES (?,?,?,?,?)";
+            "(PT, TIME_CREATED, VALIDITY_PERIOD, TICKET_STATE, TENANT_ID) VALUES " +
+            "(:" + UMAConstants.SQLPlaceholders.PERMISSION_TICKET + ";,:" + UMAConstants.SQLPlaceholders.TIME_CREATED +
+            ";,:" + UMAConstants.SQLPlaceholders.VALIDITY_PERIOD + ";,:" + UMAConstants.SQLPlaceholders.STATE + ";,:" +
+            UMAConstants.SQLPlaceholders.TENANT_ID + ";)";
     private static final String STORE_PT_RESOURCE_IDS_QUERY = "INSERT INTO IDN_PT_RESOURCE " +
             "(PT_RESOURCE_ID, PT_ID) VALUES " +
-            "((SELECT ID FROM IDN_RESOURCE WHERE RESOURCE_ID = ?), ?)";
+            "((SELECT ID FROM IDN_RESOURCE WHERE RESOURCE_ID = :" + UMAConstants.SQLPlaceholders.RESOURCE_ID + ";),:"
+            + UMAConstants.SQLPlaceholders.ID + ";)";
     private static final String STORE_PT_RESOURCE_SCOPES_QUERY = "INSERT INTO IDN_PT_RESOURCE_SCOPE " +
-            "(PT_RESOURCE_ID, PT_SCOPE_ID) VALUES (?, " +
-            "(SELECT ID FROM IDN_RESOURCE_SCOPE WHERE SCOPE_NAME = ?))";
+            "(PT_RESOURCE_ID, PT_SCOPE_ID) VALUES (:" + UMAConstants.SQLPlaceholders.ID + ";, " +
+            "(SELECT ID FROM IDN_RESOURCE_SCOPE WHERE SCOPE_NAME = :" + UMAConstants.SQLPlaceholders.RESOURCE_SCOPE
+            + ";))";
     private static final String VALIDATE_REQUESTED_RESOURCE_IDS_WITH_REGISTERED_RESOURCE_IDS = "SELECT ID " +
-            "FROM IDN_RESOURCE WHERE RESOURCE_ID = ?";
+            "FROM IDN_RESOURCE WHERE RESOURCE_ID = :" + UMAConstants.SQLPlaceholders.RESOURCE_ID + ";";
     private static final String VALIDATE_REQUESTED_RESOURCE_SCOPES_WITH_REGISTERED_RESOURCE_SCOPES = "SELECT ID FROM " +
-            "IDN_RESOURCE_SCOPE WHERE SCOPE_NAME = ?";
+            "IDN_RESOURCE_SCOPE WHERE SCOPE_NAME = :" + UMAConstants.SQLPlaceholders.RESOURCE_SCOPE + ";";
 
     /**
      * Issue a permission ticket. Permission ticket represents the resources requested by the resource server on
      * client's behalf
      *
-     * @param resourceList       A list with the resource ids and the corresponding scopes.
-     * @param permissionTicketDO Model class for permission ticket values.
+     * @param resourceList          A list with the resource ids and the corresponding scopes.
+     * @param permissionTicketModel Model class for permission ticket values.
      * @throws PermissionDAOException Exception thrown when there is a database issue.
      * @throws UMAResourceException   Exception thrown when there is an invalid resource ID/scope.
      */
     public static void persistPTandRequestedPermissions(List<Resource> resourceList,
-                                                        PermissionTicketDO permissionTicketDO) throws
+                                                        PermissionTicketModel permissionTicketModel) throws
             UMAResourceException, PermissionDAOException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
             checkResourceIdsExistence(connection, resourceList);
             checkResourceScopesExistence(connection, resourceList);
             connection.setAutoCommit(false);
-            try (PreparedStatement preparedStatement = connection.prepareStatement(STORE_PT_QUERY)) {
-                preparedStatement.setString(1, permissionTicketDO.getTicket());
-                preparedStatement.setTimestamp(2, new Timestamp(new Date().getTime()),
-                        permissionTicketDO.getCreatedTime());
-                preparedStatement.setLong(3, permissionTicketDO.getValidityPeriod());
-                preparedStatement.setString(4, permissionTicketDO.getStatus());
-                preparedStatement.setString(5, permissionTicketDO.getTenantId());
+            NamedPreparedStatement ptNamedPreparedStatement = new NamedPreparedStatement(connection, STORE_PT_QUERY);
+            ptNamedPreparedStatement.setString(UMAConstants.SQLPlaceholders.PERMISSION_TICKET,
+                    permissionTicketModel.getTicket());
+            ptNamedPreparedStatement.setTimeStamp(UMAConstants.SQLPlaceholders.TIME_CREATED,
+                    new Timestamp(new Date().getTime()), permissionTicketModel.getCreatedTime());
+            ptNamedPreparedStatement.setLong(UMAConstants.SQLPlaceholders.VALIDITY_PERIOD,
+                    permissionTicketModel.getValidityPeriod());
+            ptNamedPreparedStatement.setString(UMAConstants.SQLPlaceholders.STATE, permissionTicketModel.getStatus());
+            ptNamedPreparedStatement.setLong(UMAConstants.SQLPlaceholders.TENANT_ID,
+                    permissionTicketModel.getTenantId());
+            try (PreparedStatement preparedStatement = ptNamedPreparedStatement.getPreparedStatement()) {
                 preparedStatement.execute();
 
                 // Checking if the PT is persisted in the db.
@@ -88,22 +98,29 @@ public class PermissionTicketDAO {
                                 .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_PT);
                     }
                 }
-                for (Resource resource : resourceList) {
-                    try (PreparedStatement resourceIdStatement = connection.prepareStatement(
-                            STORE_PT_RESOURCE_IDS_QUERY)) {
-                        resourceIdStatement.setString(1, resource.getResourceId());
-                        resourceIdStatement.setLong(2, id);
-                        resourceIdStatement.execute();
 
+                for (Resource resource : resourceList) {
+                    NamedPreparedStatement resourceNamedPreparedStatement = new NamedPreparedStatement(connection,
+                            STORE_PT_RESOURCE_IDS_QUERY);
+                    resourceNamedPreparedStatement.setString(UMAConstants.SQLPlaceholders.RESOURCE_ID,
+                            resource.getResourceId());
+                    resourceNamedPreparedStatement.setLong(UMAConstants.SQLPlaceholders.ID, id);
+                    try (PreparedStatement resourceIdStatement =
+                                 resourceNamedPreparedStatement.getPreparedStatement()) {
+                        resourceIdStatement.execute();
                         try (ResultSet resultSet = resourceIdStatement.getGeneratedKeys()) {
                             if (resultSet.next()) {
-                                try (PreparedStatement resourceScopeStatement = connection.prepareStatement
-                                        (STORE_PT_RESOURCE_SCOPES_QUERY)) {
-                                    long resourceId = resultSet.getLong(1);
+                                long resourceId = resultSet.getLong(1);
+                                NamedPreparedStatement scopeNamedPreparedStatement = new NamedPreparedStatement
+                                        (connection, STORE_PT_RESOURCE_SCOPES_QUERY);
+                                try (PreparedStatement resourceScopeStatement =
+                                             scopeNamedPreparedStatement.getPreparedStatement()) {
                                     for (String scope : resource.getResourceScopes()) {
-                                        resourceScopeStatement.setLong(1, resourceId);
-                                        resourceScopeStatement.setString(2, scope);
-                                        resourceScopeStatement.addBatch();
+                                        scopeNamedPreparedStatement.setLong(UMAConstants.SQLPlaceholders.ID,
+                                                resourceId);
+                                        scopeNamedPreparedStatement.setString(
+                                                UMAConstants.SQLPlaceholders.RESOURCE_SCOPE, scope);
+                                        scopeNamedPreparedStatement.getPreparedStatement().addBatch();
                                     }
                                     resourceScopeStatement.executeBatch();
                                 }
@@ -123,13 +140,17 @@ public class PermissionTicketDAO {
             UMAResourceException, PermissionDAOException {
 
         for (Resource resource : resourceList) {
-            try (PreparedStatement resourceIdStatement = connection.prepareStatement(
-                    VALIDATE_REQUESTED_RESOURCE_IDS_WITH_REGISTERED_RESOURCE_IDS)) {
-                resourceIdStatement.setString(1, resource.getResourceId());
-                try (ResultSet resultSet = resourceIdStatement.executeQuery()) {
-                    if (!resultSet.next()) {
-                        throw new UMAResourceException(UMAConstants.ErrorMessages
-                                .ERROR_BAD_REQUEST_INVALID_RESOURCE_ID);
+            try {
+                NamedPreparedStatement resourceIdNamedPreparedStatement = new NamedPreparedStatement(connection,
+                        VALIDATE_REQUESTED_RESOURCE_IDS_WITH_REGISTERED_RESOURCE_IDS);
+                resourceIdNamedPreparedStatement.setString(UMAConstants.SQLPlaceholders.RESOURCE_ID,
+                        resource.getResourceId());
+                try (PreparedStatement resourceIdStatement = resourceIdNamedPreparedStatement.getPreparedStatement()) {
+                    try (ResultSet resultSet = resourceIdStatement.executeQuery()) {
+                        if (!resultSet.next()) {
+                            throw new UMAResourceException(UMAConstants.ErrorMessages
+                                    .ERROR_BAD_REQUEST_INVALID_RESOURCE_ID);
+                        }
                     }
                 }
             } catch (SQLException e) {
@@ -143,16 +164,23 @@ public class PermissionTicketDAO {
             UMAResourceException, PermissionDAOException {
 
         for (Resource resource : resourceList) {
-            try (PreparedStatement resourceScopeStatement = connection.prepareStatement(
-                    VALIDATE_REQUESTED_RESOURCE_SCOPES_WITH_REGISTERED_RESOURCE_SCOPES)) {
-                for (String scope : resource.getResourceScopes()) {
-                    resourceScopeStatement.setString(1, scope);
-                    try (ResultSet resultSet = resourceScopeStatement.executeQuery()) {
-                        if (!resultSet.next()) {
-                            throw new UMAResourceException(UMAConstants.ErrorMessages
-                                    .ERROR_BAD_REQUEST_INVALID_RESOURCE_SCOPE);
+            try {
+                NamedPreparedStatement scopeNamedPreparedStatement = new NamedPreparedStatement
+                        (connection, VALIDATE_REQUESTED_RESOURCE_SCOPES_WITH_REGISTERED_RESOURCE_SCOPES);
+                try (PreparedStatement resourceScopeStatement =
+                             scopeNamedPreparedStatement.getPreparedStatement()) {
+                    for (String scope : resource.getResourceScopes()) {
+                        scopeNamedPreparedStatement.setString(
+                                UMAConstants.SQLPlaceholders.RESOURCE_SCOPE, scope);
+                        try (ResultSet resultSet = resourceScopeStatement.executeQuery()) {
+                            if (!resultSet.next()) {
+                                throw new UMAResourceException(UMAConstants.ErrorMessages
+                                        .ERROR_BAD_REQUEST_INVALID_RESOURCE_SCOPE);
+                            }
                         }
+
                     }
+
                 }
             } catch (SQLException e) {
                 throw new PermissionDAOException(UMAConstants.ErrorMessages
@@ -162,4 +190,3 @@ public class PermissionTicketDAO {
     }
 
 }
-

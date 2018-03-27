@@ -23,7 +23,7 @@ import org.wso2.carbon.identity.oauth.uma.permission.service.ReadPropertiesFile;
 import org.wso2.carbon.identity.oauth.uma.permission.service.dao.PermissionTicketDAO;
 import org.wso2.carbon.identity.oauth.uma.permission.service.exception.PermissionDAOException;
 import org.wso2.carbon.identity.oauth.uma.permission.service.exception.UMAResourceException;
-import org.wso2.carbon.identity.oauth.uma.permission.service.model.PermissionTicketDO;
+import org.wso2.carbon.identity.oauth.uma.permission.service.model.PermissionTicketModel;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.Resource;
 
 import java.util.Calendar;
@@ -39,21 +39,21 @@ public class PermissionServiceImpl implements PermissionService {
     private static final String UTC = "UTC";
 
     @Override
-    public PermissionTicketDO issuePermissionTicket(List<Resource> resourceList) throws UMAResourceException,
-            PermissionDAOException {
+    public PermissionTicketModel issuePermissionTicket(List<Resource> resourceList, int tenantId) throws
+            UMAResourceException, PermissionDAOException {
 
-        PermissionTicketDO permissionTicketDO = new PermissionTicketDO();
-        ReadPropertiesFile.readFileConfigValues(permissionTicketDO);
+        PermissionTicketModel permissionTicketModel = new PermissionTicketModel();
+        ReadPropertiesFile.readFileConfigValues(permissionTicketModel);
 
         //TODO: Make this an extension point.
         String ticketString = UUID.randomUUID().toString();
-        permissionTicketDO.setTicket(ticketString);
-        permissionTicketDO.setCreatedTime(Calendar.getInstance(TimeZone.getTimeZone(UTC)));
-        permissionTicketDO.setStatus("ACTIVE");
-        permissionTicketDO.setTenantId("1234");
+        permissionTicketModel.setTicket(ticketString);
+        permissionTicketModel.setCreatedTime(Calendar.getInstance(TimeZone.getTimeZone(UTC)));
+        permissionTicketModel.setStatus("ACTIVE");
+        permissionTicketModel.setTenantId(tenantId);
 
-        PermissionTicketDAO.persistPTandRequestedPermissions(resourceList, permissionTicketDO);
+        PermissionTicketDAO.persistPTandRequestedPermissions(resourceList, permissionTicketModel);
 
-        return permissionTicketDO;
+        return permissionTicketModel;
     }
 }

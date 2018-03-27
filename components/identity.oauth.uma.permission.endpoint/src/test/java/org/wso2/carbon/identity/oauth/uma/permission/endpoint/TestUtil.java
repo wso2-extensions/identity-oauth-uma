@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.oauth.uma.permission.endpoint;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 
-
 public class TestUtil {
 
     public static void startTenantFlow(String tenantDomain) {

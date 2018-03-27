@@ -61,4 +61,19 @@ public class UMAConstants {
             return code + " - " + message;
         }
     }
+
+    /**
+     * SQL Placeholders
+     */
+    public static final class SQLPlaceholders {
+
+        public static final String PERMISSION_TICKET = "permission_ticket";
+        public static final String TIME_CREATED = "time_created";
+        public static final String VALIDITY_PERIOD = "validity_period";
+        public static final String STATE = "state";
+        public static final String TENANT_ID = "tenant_id";
+        public static final String RESOURCE_ID = "resource_id";
+        public static final String RESOURCE_SCOPE = "resource_scope";
+        public static final String ID = "id";
+    }
 }

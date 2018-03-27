@@ -1,15 +1,17 @@
 package org.wso2.carbon.identity.oauth.uma.permission.endpoint;
 
-import io.swagger.annotations.ApiParam;
-import org.wso2.carbon.identity.oauth.uma.permission.endpoint.dto.PermissionTicketResponseDTO;
-import org.wso2.carbon.identity.oauth.uma.permission.endpoint.dto.ResourceModelDTO;
 import org.wso2.carbon.identity.oauth.uma.permission.endpoint.factories.PermissionApiServiceFactory;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import io.swagger.annotations.ApiParam;
+
+import org.wso2.carbon.identity.oauth.uma.permission.endpoint.dto.PermissionTicketResponseDTO;
+import org.wso2.carbon.identity.oauth.uma.permission.endpoint.dto.ResourceModelDTO;
+
+import org.apache.cxf.jaxrs.ext.MessageContext;
+
 import javax.ws.rs.core.Response;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 
 @Path("/permission")
 @Consumes({ "application/json" })
@@ -29,9 +31,9 @@ public class PermissionApi  {
         
         @io.swagger.annotations.ApiResponse(code = 400, message = "Bad Request") })
 
-    public Response requestPermission(@ApiParam(value = "The requested permissions." ) ResourceModelDTO requestedPermission)
+    public Response requestPermission(@ApiParam(value = "The requested permissions."  ) ResourceModelDTO requestedPermission, @Context MessageContext context)
     {
-    return delegate.requestPermission(requestedPermission);
+    return delegate.requestPermission(requestedPermission,context);
     }
 }
 
