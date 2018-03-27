@@ -24,6 +24,7 @@ import java.util.Map;
 /**
  * Contains the http status codes and error codes to be sent in body of the response as a JSON Result as specified in
  * spec when an error occurs.
+ * https://docs.kantarainitiative.org/uma/wg/oauth-uma-federated-authz-2.0-09.html#rfc.section.4.3
  */
 public final class HandleErrorResponseConstants {
 

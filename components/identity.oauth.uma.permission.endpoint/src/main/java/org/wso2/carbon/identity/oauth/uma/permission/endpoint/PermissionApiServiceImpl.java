@@ -34,7 +34,7 @@ import org.wso2.carbon.identity.oauth.uma.permission.service.UMAConstants;
 import org.wso2.carbon.identity.oauth.uma.permission.service.exception.PermissionDAOException;
 import org.wso2.carbon.identity.oauth.uma.permission.service.exception.UMAException;
 import org.wso2.carbon.identity.oauth.uma.permission.service.exception.UMAResourceException;
-import org.wso2.carbon.identity.oauth.uma.permission.service.model.PermissionTicketDO;
+import org.wso2.carbon.identity.oauth.uma.permission.service.model.PermissionTicketModel;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.Resource;
 
 import java.util.ArrayList;
@@ -60,28 +60,22 @@ public class PermissionApiServiceImpl extends PermissionApiService {
     @Override
     public Response requestPermission(ResourceModelDTO requestedPermission, MessageContext context) {
 
-        String[] tokenScopes = (String[]) ((AuthenticationContext) context.getHttpServletRequest()
-                .getAttribute(authContext)).getParameter(oauth2AllowedScopes);
-        if (!ArrayUtils.contains(tokenScopes, patScope)) {
+        if (!validateTokenScope(context)) {
             log.error("Access token doesn't contain valid scope.");
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
-
         if (requestedPermission == null) {
             log.error("Empty request body.");
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        String tenantDomain = ((AuthenticationContext) context.getHttpServletRequest().getAttribute(authContext)).
-                getUser().getTenantDomain();
-
         PermissionService permissionService = (PermissionService) PrivilegedCarbonContext.getThreadLocalCarbonContext()
                 .getOSGiService(PermissionService.class, null);
 
-        PermissionTicketDO permissionTicketDO = null;
+        PermissionTicketModel permissionTicketModel = null;
         try {
-            permissionTicketDO = permissionService.issuePermissionTicket(getPermissionTicketRequest(
-                    requestedPermission), tenantDomain);
+            permissionTicketModel = permissionService.issuePermissionTicket(getPermissionTicketRequest(
+                    requestedPermission), getTenantIdFromCarbonContext());
         } catch (UMAResourceException e) {
             handleErrorResponse(e, false);
         } catch (PermissionDAOException e) {
@@ -91,7 +85,7 @@ public class PermissionApiServiceImpl extends PermissionApiService {
         }
 
         PermissionTicketResponseDTO permissionTicketResponseDTO = new PermissionTicketResponseDTO();
-        permissionTicketResponseDTO.setTicket(permissionTicketDO.getTicket());
+        permissionTicketResponseDTO.setTicket(permissionTicketModel.getTicket());
 
         if (log.isDebugEnabled()) {
             if (IdentityUtil.isTokenLoggable("PermissionTicket")) {
@@ -102,6 +96,18 @@ public class PermissionApiServiceImpl extends PermissionApiService {
             }
         }
         return Response.status(Response.Status.CREATED).entity(permissionTicketResponseDTO).build();
+    }
+
+    private static int getTenantIdFromCarbonContext() {
+
+        return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
+    }
+
+    private boolean validateTokenScope(MessageContext context) {
+
+        String[] tokenScopes = (String[]) ((AuthenticationContext) context.getHttpServletRequest()
+                .getAttribute(authContext)).getParameter(oauth2AllowedScopes);
+        return ArrayUtils.contains(tokenScopes, patScope);
     }
 
     private List<Resource> getPermissionTicketRequest(ResourceModelDTO requestedPermission) {

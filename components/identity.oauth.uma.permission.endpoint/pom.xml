@@ -99,6 +99,15 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco.version}</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/dto/*</exclude>
+                        <exclude>**/factories/*</exclude>
+                        <exclude>**/Api*.class</exclude>
+                        <exclude>**/PermissionApi.class</exclude>
+                        <exclude>**/PermissionApiService.class</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <id>default-prepare-agent</id>

@@ -344,6 +344,12 @@
             </dependency>
 
             <dependency>
+                <groupId>org.wso2.carbon.utils</groupId>
+                <artifactId>org.wso2.carbon.database.utils</artifactId>
+                <version>${carbon.database.utils.version}</version>
+            </dependency>
+
+            <dependency>
             <groupId>identity.oauth.uma</groupId>
             <artifactId>identity.oauth.uma.resource.service</artifactId>
             <version>${project.version}</version>
@@ -400,8 +406,16 @@
         <org.wso2.carbon.identity.auth.service.version>1.1.11
         </org.wso2.carbon.identity.auth.service.version>
 
-        <org.wso2.carbon.identity.oauth.version>5.5.180</org.wso2.carbon.identity.oauth.version>
+        <!--<org.wso2.carbon.identity.oauth.version>5.5.180</org.wso2.carbon.identity.oauth.version>-->
+        <org.wso2.carbon.identity.oauth.version>5.6.46</org.wso2.carbon.identity.oauth.version>
         <org.wso2.carbon.identity.oauth.import.version.range>[5.0.0, 6.0.0)</org.wso2.carbon.identity.oauth.import.version.range>
+
+        <carbon.database.utils.version>2.0.6</carbon.database.utils.version>
+
+        <org.wso2.carbon.database.utils.version.range>[2.0.0,2.1.0)</org.wso2.carbon.database.utils.version.range>
+
+        <!-- Axiom Version -->
+        <axiom.osgi.version.range>[1.2.11, 2.0.0)</axiom.osgi.version.range>
 
     </properties>
 

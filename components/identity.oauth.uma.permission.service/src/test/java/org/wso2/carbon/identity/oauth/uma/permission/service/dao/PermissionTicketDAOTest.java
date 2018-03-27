@@ -27,7 +27,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.oauth.uma.permission.service.dao.utils.DAOTestUtils;
 import org.wso2.carbon.identity.oauth.uma.permission.service.exception.UMAException;
-import org.wso2.carbon.identity.oauth.uma.permission.service.model.PermissionTicketDO;
+import org.wso2.carbon.identity.oauth.uma.permission.service.model.PermissionTicketModel;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.Resource;
 
 import java.sql.Connection;
@@ -55,9 +55,9 @@ public class PermissionTicketDAOTest extends DAOTestUtils {
         initiateH2Base(DB_NAME, getFilePath("permission.sql"));
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         createResourceTable(DB_NAME, 1, "1", "photo01", timestamp, "owner1",
-                "1234", "carbon.super");
+                "1234", -1234, "PRIMARY");
         createResourceScopeTable(DB_NAME, 1, 1, "scope01");
-        createPTTable(DB_NAME, 1, "12345", timestamp, 3600000, "ACTIVE", "carbon.super");
+        createPTTable(DB_NAME, 1, "12345", timestamp, 3600000, "ACTIVE", -1234);
         createPTResourceTable(DB_NAME, 1, 1, 1);
         createPTResourceScopeTable(DB_NAME, 1, 1, 1);
     }
@@ -126,19 +126,19 @@ public class PermissionTicketDAOTest extends DAOTestUtils {
         try (Connection connection = DAOTestUtils.getConnection(DB_NAME)) {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             List<Resource> list = new ArrayList<>();
-            PermissionTicketDAO.persistPTandRequestedPermissions(list, new PermissionTicketDO());
+            PermissionTicketDAO.persistPTandRequestedPermissions(list, new PermissionTicketModel());
         }
     }
 
-    private PermissionTicketDO getPermissionTicketDO() {
+    private PermissionTicketModel getPermissionTicketDO() {
 
-        PermissionTicketDO permissionTicketDO = new PermissionTicketDO();
-        permissionTicketDO.setTicket(UUID.randomUUID().toString());
-        permissionTicketDO.setStatus("ACTIVE");
-        permissionTicketDO.setCreatedTime(Calendar.getInstance(TimeZone.getTimeZone("UTC")));
-        permissionTicketDO.setValidityPeriod(3600000);
-        permissionTicketDO.setTenantDomain("carbon.super");
-        return permissionTicketDO;
+        PermissionTicketModel permissionTicketModel = new PermissionTicketModel();
+        permissionTicketModel.setTicket(UUID.randomUUID().toString());
+        permissionTicketModel.setStatus("ACTIVE");
+        permissionTicketModel.setCreatedTime(Calendar.getInstance(TimeZone.getTimeZone("UTC")));
+        permissionTicketModel.setValidityPeriod(3600000);
+        permissionTicketModel.setTenantId(-1234);
+        return permissionTicketModel;
     }
 
     private Resource getResource() {

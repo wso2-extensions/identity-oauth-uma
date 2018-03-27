@@ -21,15 +21,15 @@ package org.wso2.carbon.identity.oauth.uma.permission.service.model;
 import java.util.Calendar;
 
 /**
- * PermissionTicketDO holds all permission ticket related parameters.
+ * PermissionTicketModel holds all permission ticket related parameters.
  */
-public class PermissionTicketDO {
+public class PermissionTicketModel {
 
     private String ticket;
     private String status;
     private Calendar createdTime;
     private long validityPeriod;
-    private String tenantDomain;
+    private int tenantId;
 
     public String getTicket() {
 
@@ -71,13 +71,13 @@ public class PermissionTicketDO {
         this.createdTime = createdTime;
     }
 
-    public String getTenantDomain() {
+    public int getTenantId() {
 
-        return tenantDomain;
+        return tenantId;
     }
 
-    public void setTenantDomain(String tenantDomain) {
+    public void setTenantId(int tenantId) {
 
-        this.tenantDomain = tenantDomain;
+        this.tenantId = tenantId;
     }
 }

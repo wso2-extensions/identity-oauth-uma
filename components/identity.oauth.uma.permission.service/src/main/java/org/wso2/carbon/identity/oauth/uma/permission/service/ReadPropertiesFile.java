@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.oauth.uma.permission.service;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.oauth.uma.permission.service.model.PermissionTicketDO;
+import org.wso2.carbon.identity.oauth.uma.permission.service.model.PermissionTicketModel;
 import org.wso2.carbon.utils.CarbonUtils;
 
 import java.io.File;
@@ -40,9 +40,9 @@ public class ReadPropertiesFile {
     private static Log log = LogFactory.getLog(ReadPropertiesFile.class);
 
     /**
-     * @param permissionTicketDO Configuration values for permission ticket
+     * @param permissionTicketModel Configuration values for permission ticket
      */
-    public static void readFileConfigValues(PermissionTicketDO permissionTicketDO) {
+    public static void readFileConfigValues(PermissionTicketModel permissionTicketModel) {
 
         String configDirPath = CarbonUtils.getCarbonConfigDirPath();
         String confPath = Paths.get(configDirPath, "uma", UMAConstants.UMA_PERMISSION_ENDPOINT_CONFIG_PATH)
@@ -50,7 +50,7 @@ public class ReadPropertiesFile {
         File configfile = new File(confPath);
         if (!configfile.exists()) {
             log.warn("File is not present at: " + confPath);
-            permissionTicketDO.setValidityPeriod(3600000);
+            permissionTicketModel.setValidityPeriod(3600000);
         }
 
         Properties prop = new Properties();
@@ -60,7 +60,7 @@ public class ReadPropertiesFile {
             input = new FileInputStream(confPath);
             prop.load(input);
             long validityTimePeriod = Long.parseLong(prop.getProperty("validityperiod"));
-            permissionTicketDO.setValidityPeriod(validityTimePeriod);
+            permissionTicketModel.setValidityPeriod(validityTimePeriod);
         } catch (IOException e) {
             log.error("Configuration values for permission ticket not found in the properties file. ", e);
         } finally {
