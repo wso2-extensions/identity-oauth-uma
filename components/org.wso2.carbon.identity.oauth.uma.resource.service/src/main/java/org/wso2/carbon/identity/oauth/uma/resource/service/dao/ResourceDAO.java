@@ -54,7 +54,7 @@ public class ResourceDAO {
      * @return resourceId of registered resource description
      * @throws UMAServiceException ResourceException
      */
-    public static Resource registerResource(Resource resource, String resourceOwnerName, String tenantDomain,
+    public static Resource registerResource(Resource resource, String resourceOwnerName, int tenantId,
                                             String consumerKey) throws UMAServiceException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection();
@@ -68,7 +68,7 @@ public class ResourceDAO {
             preparedStatement.setString(2, resource.getName());
             preparedStatement.setTimestamp(3, resource.getTimecreated());
             preparedStatement.setString(4, resourceOwnerName);
-            preparedStatement.setString(5, tenantDomain);
+            preparedStatement.setInt(5, tenantId);
             preparedStatement.setString(6, consumerKey);
             preparedStatement.execute();
 

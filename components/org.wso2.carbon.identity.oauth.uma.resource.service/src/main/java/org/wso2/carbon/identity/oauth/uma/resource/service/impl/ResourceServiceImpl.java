@@ -36,10 +36,10 @@ public class ResourceServiceImpl implements ResourceService {
     private static ResourceDAO resourceDAO = new ResourceDAO();
 
     @Override
-    public Resource registerResource(Resource resourceRegistration, String resourceOwnerName, String tenantDomain,
+    public Resource registerResource(Resource resourceRegistration, String resourceOwnerName, int tenantId,
                                      String consumerKey) throws UMAServiceException {
 
-        resourceRegistration = resourceDAO.registerResource(resourceRegistration, resourceOwnerName, tenantDomain,
+        resourceRegistration = resourceDAO.registerResource(resourceRegistration, resourceOwnerName, tenantId,
                 consumerKey);
         log.info("Resource registered successfully.");
         return resourceRegistration;

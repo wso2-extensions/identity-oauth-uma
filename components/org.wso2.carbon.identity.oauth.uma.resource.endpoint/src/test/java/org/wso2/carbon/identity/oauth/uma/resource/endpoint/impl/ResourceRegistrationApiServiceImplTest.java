@@ -49,6 +49,7 @@ public class ResourceRegistrationApiServiceImplTest extends PowerMockTestCase {
 
     private ResourceRegistrationApiServiceImpl resourcesApiService = null;
     private Resource resource;
+    private final String patScope = "uma_protection";
 
     @Mock
     private ResourceService resourceService;
@@ -104,6 +105,10 @@ public class ResourceRegistrationApiServiceImplTest extends PowerMockTestCase {
     @Test
     public void testDeleteResource() throws Exception {
 
+        when(mockMessageContext.getHttpServletRequest()).thenReturn(mockHTTPServletRequest);
+        when(mockHTTPServletRequest.getAttribute(anyString())).thenReturn(mockAuthenticationContext);
+        String[] tokenScopes = new String[]{patScope};
+        when(mockAuthenticationContext.getParameter(anyString())).thenReturn(tokenScopes);
         when(resourceService.deleteResource("232e7415-3bcb-4ef9-9527-ac4dacc6aa83")).thenReturn(true);
         assertEquals(resourcesApiService.deleteResource("232e7415-3bcb-4ef9-9527-ac4dacc6aa83",
                 mockMessageContext).getStatus(), Response.Status.NO_CONTENT.getStatusCode());
@@ -118,15 +123,18 @@ public class ResourceRegistrationApiServiceImplTest extends PowerMockTestCase {
         List<String> resourceIds = new ArrayList<>();
         when(resourceService.getResourceIds(anyString(), anyString())).thenReturn(resourceIds);
         assertEquals(resourcesApiService.getResourceIds(mockMessageContext).getStatus(),
-                Response.Status.OK.getStatusCode());
+                Response.Status.UNAUTHORIZED.getStatusCode());
     }
 
     @Test
     public void testGetResource() throws Exception {
 
+        when(mockMessageContext.getHttpServletRequest()).thenReturn(mockHTTPServletRequest);
+        when(mockHTTPServletRequest.getAttribute(anyString())).thenReturn(mockAuthenticationContext);
+        String[] tokenScopes = new String[]{patScope};
+        when(mockAuthenticationContext.getParameter(anyString())).thenReturn(tokenScopes);
         when(resourceService.getResourceById("232e7415-3bcb-4ef9-9527-ac4dacc6aa83")).thenReturn(resource);
         assertEquals(resourcesApiService.getResource("232e7415-3bcb-4ef9-9527-ac4dacc6aa83",
                 mockMessageContext).getStatus(), Response.Status.OK.getStatusCode());
-
     }
 }
