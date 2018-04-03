@@ -27,8 +27,8 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>identity.oauth.uma</groupId>
-    <artifactId>identity-oauth-uma</artifactId>
+    <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
+    <artifactId>org-wso2-carbon-identity-oauth-uma</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>UMA 2.0</name>
@@ -38,10 +38,10 @@
     </scm>
 
     <modules>
-        <module>components/identity.oauth.uma.permission.endpoint</module>
-        <module>components/identity.oauth.uma.permission.service</module>
-        <module>components/identity.oauth.uma.resource.endpoint</module>
-        <module>components/identity.oauth.uma.resource.service</module>
+        <module>components/org.wso2.carbon.identity.oauth.uma.permission.endpoint</module>
+        <module>components/org.wso2.carbon.identity.oauth.uma.permission.service</module>
+        <module>components/org.wso2.carbon.identity.oauth.uma.resource.endpoint</module>
+        <module>components/org.wso2.carbon.identity.oauth.uma.resource.service</module>
     </modules>
 
     <repositories>
@@ -350,9 +350,9 @@
             </dependency>
 
             <dependency>
-            <groupId>identity.oauth.uma</groupId>
-            <artifactId>identity.oauth.uma.resource.service</artifactId>
-            <version>${project.version}</version>
+                <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
+                <artifactId>org.wso2.carbon.identity.oauth.uma.resource.service</artifactId>
+                <version>${project.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -408,7 +408,8 @@
 
         <!--<org.wso2.carbon.identity.oauth.version>5.5.180</org.wso2.carbon.identity.oauth.version>-->
         <org.wso2.carbon.identity.oauth.version>5.6.46</org.wso2.carbon.identity.oauth.version>
-        <org.wso2.carbon.identity.oauth.import.version.range>[5.0.0, 6.0.0)</org.wso2.carbon.identity.oauth.import.version.range>
+        <org.wso2.carbon.identity.oauth.import.version.range>[5.0.0, 6.0.0)
+        </org.wso2.carbon.identity.oauth.import.version.range>
 
         <carbon.database.utils.version>2.0.6</carbon.database.utils.version>
 
