@@ -419,6 +419,7 @@
         <org.wso2.carbon.identity.oauth.import.version.range>[5.0.0, 6.0.0)</org.wso2.carbon.identity.oauth.import.version.range>
 
         <carbon.database.utils.version>2.0.6</carbon.database.utils.version>
+
         <org.wso2.carbon.database.utils.version.range>[2.0.0,2.1.0)</org.wso2.carbon.database.utils.version.range>
 
         <!-- Axiom Version -->
