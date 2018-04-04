@@ -27,8 +27,8 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>identity.oauth.uma</groupId>
-    <artifactId>identity-oauth-uma</artifactId>
+    <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
+    <artifactId>org-wso2-carbon-identity-oauth-uma</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>UMA 2.0</name>
@@ -40,8 +40,8 @@
     <modules>
         <module>components/identity.oauth.uma.permission.endpoint</module>
         <module>components/identity.oauth.uma.permission.service</module>
-        <module>components/identity.oauth.uma.resource.endpoint</module>
-        <module>components/identity.oauth.uma.resource.service</module>
+        <module>components/org.wso2.carbon.identity.oauth.uma.resource.endpoint</module>
+        <module>components/org.wso2.carbon.identity.oauth.uma.resource.service</module>
     </modules>
 
     <repositories>
@@ -350,8 +350,8 @@
             </dependency>
 
             <dependency>
-            <groupId>identity.oauth.uma</groupId>
-            <artifactId>identity.oauth.uma.resource.service</artifactId>
+            <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
+            <artifactId>org.wso2.carbon.identity.oauth.uma.resource.service</artifactId>
             <version>${project.version}</version>
             </dependency>
         </dependencies>

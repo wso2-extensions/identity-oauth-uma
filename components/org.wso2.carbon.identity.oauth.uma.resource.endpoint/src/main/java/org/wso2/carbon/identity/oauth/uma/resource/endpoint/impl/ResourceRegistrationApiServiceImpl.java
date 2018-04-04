@@ -62,7 +62,7 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
     @Override
     public Response registerResource(ResourceDetailsDTO requestedResource, MessageContext context) {
 
-        tenantDomain = ((AuthenticationContext) context.getHttpServletRequest().getAttribute("auth-context"))
+        tenantDomain =  ((AuthenticationContext) context.getHttpServletRequest().getAttribute("auth-context"))
                 .getUser().getTenantDomain();
         ;
         resourceOwnerName = ((AuthenticationContext) context.getHttpServletRequest().getAttribute("auth-context"))
