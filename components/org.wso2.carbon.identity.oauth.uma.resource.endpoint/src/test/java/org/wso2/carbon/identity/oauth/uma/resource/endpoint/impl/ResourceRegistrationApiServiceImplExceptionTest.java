@@ -91,7 +91,8 @@ public class ResourceRegistrationApiServiceImplExceptionTest extends PowerMockTe
         resource.setDescription("Collection of digital photographs");
         resource.setType("http://www.example.com/rsrcs/photoalbum");
     }
-    
+
+
     @Test
     public void testUpdateResource() throws Exception {
 
@@ -99,9 +100,9 @@ public class ResourceRegistrationApiServiceImplExceptionTest extends PowerMockTe
         updateDetailsDTO.setName("photo_albem");
         List<String> scopes = new ArrayList<>();
         scopes.add("scope1");
-        updateDetailsDTO.setResource_scopes(scopes);
+        updateDetailsDTO.setResourceScopes(scopes);
         updateDetailsDTO.setDescription("Collection of digital photographs");
-        updateDetailsDTO.setIcon_uri("http://www.example.com/icons/sky.png");
+        updateDetailsDTO.setIconUri("http://www.example.com/icons/sky.png");
 
         try {
             when(mockMessageContext.getHttpServletRequest()).thenReturn(mockHTTPServletRequest);

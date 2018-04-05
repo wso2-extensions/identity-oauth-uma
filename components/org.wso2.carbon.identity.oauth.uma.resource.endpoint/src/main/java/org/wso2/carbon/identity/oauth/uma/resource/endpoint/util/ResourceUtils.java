@@ -47,7 +47,7 @@ public class ResourceUtils {
 
         Resource resourceRegistration = new Resource();
         resourceRegistration.setName(resourceDetailsDTO.getName());
-        resourceRegistration.setScopes(resourceDetailsDTO.getResource_scopes());
+        resourceRegistration.setScopes(resourceDetailsDTO.getResourceScopes());
 
         for (String scope : resourceRegistration.getScopes()) {
             resourceRegistration.getScopeDataDOArray().add(new ScopeDataDO(resourceRegistration.getResourceId()
@@ -59,8 +59,8 @@ public class ResourceUtils {
         if (resourceDetailsDTO.getDescription() != null && !resourceDetailsDTO.getDescription().isEmpty()) {
             resourceRegistration.setDescription(resourceDetailsDTO.getDescription());
         }
-        if (resourceDetailsDTO.getIcon_uri() != null && !resourceDetailsDTO.getIcon_uri().isEmpty()) {
-            resourceRegistration.setIconUri(resourceDetailsDTO.getIcon_uri());
+        if (resourceDetailsDTO.getIconUri() != null && !resourceDetailsDTO.getIconUri().isEmpty()) {
+            resourceRegistration.setIconUri(resourceDetailsDTO.getIconUri());
         }
         return resourceRegistration;
     }
