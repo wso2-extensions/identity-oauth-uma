@@ -28,7 +28,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
-    <artifactId>org-wso2-carbon-identity-oauth-uma</artifactId>
+    <artifactId>identity-oauth-uma</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>UMA 2.0</name>
@@ -38,10 +38,11 @@
     </scm>
 
     <modules>
-        <module>components/identity.oauth.uma.permission.endpoint</module>
-        <module>components/identity.oauth.uma.permission.service</module>
+        <module>components/org.wso2.carbon.identity.oauth.uma.permission.endpoint</module>
+        <module>components/org.wso2.carbon.identity.oauth.uma.permission.service</module>
         <module>components/org.wso2.carbon.identity.oauth.uma.resource.endpoint</module>
         <module>components/org.wso2.carbon.identity.oauth.uma.resource.service</module>
+        <module>features/org.wso2.carbon.identity.oauth.uma.server.feature</module>
     </modules>
 
     <repositories>
@@ -328,8 +329,8 @@
             </dependency>
 
             <dependency>
-                <groupId>identity.oauth.uma</groupId>
-                <artifactId>identity.oauth.uma.permission.service</artifactId>
+                <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
+                <artifactId>org.wso2.carbon.identity.oauth.uma.permission.service</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -350,9 +351,15 @@
             </dependency>
 
             <dependency>
-            <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
-            <artifactId>org.wso2.carbon.identity.oauth.uma.resource.service</artifactId>
-            <version>${project.version}</version>
+                <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
+                <artifactId>org.wso2.carbon.identity.oauth.uma.resource.service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
+                <artifactId>org.wso2.carbon.identity.oauth.uma.server.feature</artifactId>
+                <version>${project.version}</version>
+                <type>zip</type>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -394,6 +401,7 @@
         <maven.scr.plugin.version>1.20.0</maven.scr.plugin.version>
         <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
         <maven.compiler.plugin.version>2.3.1</maven.compiler.plugin.version>
+        <carbon.p2.plugin.version>1.5.3</carbon.p2.plugin.version>
 
         <!-- Commons -->
         <commons-logging.osgi.version.range>[1.2,2.0)</commons-logging.osgi.version.range>
