@@ -51,9 +51,9 @@ import javax.ws.rs.core.Response;
 public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiService {
 
     private static final Log log = LogFactory.getLog(ResourceRegistrationApiServiceImpl.class);
-    private final String patScope = "uma_protection";
-    private final String authContext = "auth-context";
-    private final String oauth2AllowedScopes = "oauth2-allowed-scopes";
+    private static final String PATSCOPE = "uma_protection";
+    private static final String AUTHCONTEXT = "auth-context";
+    private static final String OAUTH2_ALLOWED_SCOPES = "oauth2-allowed-scopes";
 
     /**
      * Register a resource with resource details
@@ -66,8 +66,8 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
 
         Response response = null;
 
-        if (validateTokenScope(context)) {
-            if (requestedResource.getResource_scopes() == null || requestedResource.getResource_scopes().isEmpty()) {
+        if (!isValidateToken(context)) {
+            if (requestedResource.getResourceScopes() == null || requestedResource.getResourceScopes().isEmpty()) {
                 log.error("Request body cannot be empty and should consist with scopes.");
                 return Response.status(Response.Status.BAD_REQUEST).build();
             }
@@ -81,7 +81,7 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
             } catch (UMAServiceException e) {
                 handleErrorResponse(e, true);
             } catch (UMAClientException e) {
-                handleErrorResponse(e, true);
+                handleErrorResponse(e, false);
                 log.error("Client error when retrieving resource from the resource server.", e);
             } catch (Throwable throwable) {
                 handleErrorResponse((UMAException) throwable, true);
@@ -104,9 +104,9 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
     public Response getResource(String resourceId, MessageContext context) {
 
         Response response = null;
-        if (validateTokenScope(context)) {
+        if (!isValidateToken(context)) {
             try {
-                if (isResourceId(resourceId)) {
+                if (isResourceIdValid(resourceId)) {
                     try {
                         Resource resourceRegistration = ResourceUtils.getResourceService().getResourceById
                                 (resourceId);
@@ -122,7 +122,7 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
                     throw new UMAClientException(ResourceConstants.ErrorMessages.ERROR_CODE_NOT_FOUND_RESOURCE_ID);
                 }
             } catch (UMAClientException e) {
-                handleErrorResponse(e, true);
+                handleErrorResponse(e, false);
                 log.error("Client error when retrieving resource from the resource server.", e);
             }
             return response;
@@ -142,14 +142,14 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
     public Response getResourceIds(MessageContext context) {
 
         Response response = null;
-        if (validateTokenScope(context)) {
+        if (!isValidateToken(context)) {
             try {
                 List<String> resourceRegistration = ResourceUtils.getResourceService()
                         .getResourceIds(getResourceOwner(context), getConsumerKey(context));
                 response = Response.ok().entity(resourceRegistration).build();
                 return response;
             } catch (UMAClientException e) {
-                handleErrorResponse(e, true);
+                handleErrorResponse(e, false);
                 log.error("Invalid request.Request with valid resource Id to update the resource. ", e);
             } catch (UMAException e) {
                 return Response.status(Response.Status.BAD_REQUEST).build();
@@ -172,9 +172,9 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
     public Response updateResource(String resourceId, ResourceDetailsDTO updatedResource, MessageContext context) {
 
         Response response = null;
-        if (validateTokenScope(context)) {
+        if (!isValidateToken(context)) {
             try {
-                if (isResourceId(resourceId)) {
+                if (isResourceIdValid(resourceId)) {
 
                     try {
                         Resource resourceRegistration = ResourceUtils.getResourceService().updateResource(resourceId,
@@ -195,7 +195,7 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
                     throw new UMAClientException(ResourceConstants.ErrorMessages.ERROR_CODE_NOT_FOUND_RESOURCE_ID);
                 }
             } catch (UMAClientException e) {
-                handleErrorResponse(e, true);
+                handleErrorResponse(e, false);
                 log.error("Client error when retrieving resource from the resource server.", e);
             }
             return response;
@@ -215,9 +215,9 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
     public Response deleteResource(String resourceId, MessageContext context) {
 
         Response response = null;
-        if (validateTokenScope(context)) {
+        if (!isValidateToken(context)) {
             try {
-                if (isResourceId(resourceId)) {
+                if (isResourceIdValid(resourceId)) {
 
                     try {
                         if (ResourceUtils.getResourceService().deleteResource(resourceId)) {
@@ -236,7 +236,7 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
                     throw new UMAClientException(ResourceConstants.ErrorMessages.ERROR_CODE_NOT_FOUND_RESOURCE_ID);
                 }
             } catch (UMAClientException e) {
-                handleErrorResponse(e, true);
+                handleErrorResponse(e, false);
                 log.error("Client error when retrieving resource from the resource server.", e);
             }
             return response;
@@ -268,21 +268,19 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
                 log.error(status.getReasonPhrase());
             } else {
                 log.error(status.getReasonPhrase(), throwable);
-                log.error("Client error when incorrect resource id submitted.", throwable);
-
-                HandleErrorResponseConstants handleErrorResponseConstants = new HandleErrorResponseConstants();
-                if (handleErrorResponseConstants.getResponseMap().containsKey(code)) {
-                    String statusCode = handleErrorResponseConstants.getResponseMap().get(code)[0];
-                    status = Response.Status.fromStatusCode(Integer.parseInt(statusCode));
-                    errorCode = handleErrorResponseConstants.getResponseMap().get(code)[1];
-                    isStatusOnly = false;
-
-                }
             }
+        } else {
 
-            throw buildResourceEndpointException(status, errorCode, throwable == null ? "" : throwable.getMessage(),
-                    isStatusOnly);
+            HandleErrorResponseConstants handleErrorResponseConstants = new HandleErrorResponseConstants();
+            if (handleErrorResponseConstants.getResponseMap().containsKey(code)) {
+                String statusCode = handleErrorResponseConstants.getResponseMap().get(code)[0];
+                status = Response.Status.fromStatusCode(Integer.parseInt(statusCode));
+                errorCode = handleErrorResponseConstants.getResponseMap().get(code)[1];
+                isStatusOnly = false;
+            }
         }
+        throw buildResourceEndpointException(status, errorCode, throwable == null ? "" : throwable.getMessage(),
+                isStatusOnly);
     }
 
     private ResourceEndpointException buildResourceEndpointException(Response.Status status,
@@ -305,7 +303,7 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
      * @param resourceId resourceId of the resource which need to get deleted
      * @return validator obtain
      */
-    private static final boolean isResourceId(String resourceId) throws UMAClientException {
+    private static final boolean isResourceIdValid(String resourceId) throws UMAClientException {
 
         String validPattern = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$";
         Pattern pattern = Pattern.compile(validPattern);
@@ -320,7 +318,7 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
 
     /**
      * Retrieve tenantId
-     * */
+     */
     private static int getTenantIdFromCarbonContext() {
 
         return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
@@ -334,10 +332,9 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
      */
     private String getResourceOwner(MessageContext context) {
 
-        String resourceOwnerName = ((AuthenticationContext) context.getHttpServletRequest().getAttribute(authContext))
+        String resourceOwnerName = ((AuthenticationContext) context.getHttpServletRequest().getAttribute(AUTHCONTEXT))
                 .getUser().getUserName();
         return resourceOwnerName;
-
     }
 
     /**
@@ -348,7 +345,7 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
      */
     private String getConsumerKey(MessageContext context) {
 
-        String clientId = (String) ((AuthenticationContext) context.getHttpServletRequest().getAttribute(authContext))
+        String clientId = (String) ((AuthenticationContext) context.getHttpServletRequest().getAttribute(AUTHCONTEXT))
                 .getParameter("consumer-key");
         return clientId;
     }
@@ -359,21 +356,15 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
      * @param context message context
      * @return scopes
      */
-    private boolean getTokenScope(MessageContext context) {
+    private boolean isValidateToken(MessageContext context) {
 
         String[] tokenScopes = (String[]) ((AuthenticationContext) context.getHttpServletRequest()
-                .getAttribute(authContext)).getParameter(oauth2AllowedScopes);
-        return ArrayUtils.contains(tokenScopes, patScope);
-    }
-
-    private boolean validateTokenScope(MessageContext context) {
-
-        if (!getTokenScope(context)) {
+                .getAttribute(AUTHCONTEXT)).getParameter(OAUTH2_ALLOWED_SCOPES);
+        if (!ArrayUtils.contains(tokenScopes, PATSCOPE)) {
             log.error("Access token doesn't contain valid scope.");
-            return false;
-        } else {
             return true;
+        } else {
+            return false;
         }
-
     }
 }

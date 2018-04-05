@@ -43,6 +43,7 @@ import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotEquals;
 
 @PrepareForTest({BundleContext.class, ServiceTracker.class, PrivilegedCarbonContext.class, ResourceService.class})
 public class ResourceRegistrationApiServiceImplTest extends PowerMockTestCase {
@@ -122,8 +123,8 @@ public class ResourceRegistrationApiServiceImplTest extends PowerMockTestCase {
         when(mockAuthenticationContext.getUser()).thenReturn(new User());
         List<String> resourceIds = new ArrayList<>();
         when(resourceService.getResourceIds(anyString(), anyString())).thenReturn(resourceIds);
-        assertEquals(resourcesApiService.getResourceIds(mockMessageContext).getStatus(),
-                Response.Status.UNAUTHORIZED.getStatusCode());
+        assertNotEquals(resourcesApiService.getResourceIds(mockMessageContext).getStatus(),
+                Response.Status.NO_CONTENT.getStatusCode());
     }
 
     @Test
