@@ -40,11 +40,8 @@ import java.util.List;
 public class ResourceDAO {
 
     private static final String ICON_URI = "icon_uri";
-
     private static final String DESCRIPTION = "description";
-
     private static final String TYPE = "type";
-
     private static final Log log = LogFactory.getLog(ResourceDAO.class);
 
     /**
