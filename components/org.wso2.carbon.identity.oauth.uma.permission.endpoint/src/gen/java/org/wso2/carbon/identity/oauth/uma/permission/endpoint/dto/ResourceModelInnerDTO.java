@@ -28,10 +28,10 @@ public class ResourceModelInnerDTO  {
    **/
   @ApiModelProperty(required = true, value = "An array referencing zero or more identifiers of scopes to which the resource server is requesting access for this resource on behalf of the client. Each scope identifier MUST correspond to a scope that was previously registered by this resource server for the referenced resource.\n")
   @JsonProperty("resource_scopes")
-  public List<String> getResourceScopes() {
+  public List<String> getResource_scopes() {
     return resource_scopes;
   }
-  public void setResourceScopes(List<String> resource_scopes) {
+  public void setResource_scopes(List<String> resource_scopes) {
     this.resource_scopes = resource_scopes;
   }
 
@@ -41,10 +41,10 @@ public class ResourceModelInnerDTO  {
    **/
   @ApiModelProperty(required = true, value = "The identifier for a resource to which the resource server is requesting permission on behalf of the client. The identifier MUST correspond to a resource that was previously registered.\n")
   @JsonProperty("resource_id")
-  public String getResourceId() {
+  public String getResource_id() {
     return resource_id;
   }
-  public void setResourceId(String resource_id) {
+  public void setResource_id(String resource_id) {
     this.resource_id = resource_id;
   }
 

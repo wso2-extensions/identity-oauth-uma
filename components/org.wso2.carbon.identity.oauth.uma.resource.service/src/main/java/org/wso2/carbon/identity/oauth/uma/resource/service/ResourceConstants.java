@@ -28,7 +28,8 @@ public class ResourceConstants {
 
         ERROR_CODE_FAIL_TO_GET_RESOURCE("60001", "Error occurred while retrieving Resource."),
         ERROR_CODE_NOT_FOUND_RESOURCE_ID("60002", "Resource id is not found."),
-        ERROR_CODE_UNEXPECTED("60003", "Unexpected error");
+        ERROR_CODE_INVALID_RESOURCE_ID("60003", "Invalid resourceId is found."),
+        ERROR_CODE_UNEXPECTED("60005", "Unexpected error");
 
         private final String code;
         private final String message;

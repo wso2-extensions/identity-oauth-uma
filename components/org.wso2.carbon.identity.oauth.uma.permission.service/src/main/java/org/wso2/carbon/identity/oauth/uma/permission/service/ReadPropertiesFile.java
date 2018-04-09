@@ -45,7 +45,7 @@ public class ReadPropertiesFile {
     public static void readFileConfigValues(PermissionTicketModel permissionTicketModel) {
 
         String configDirPath = CarbonUtils.getCarbonConfigDirPath();
-        String confPath = Paths.get(configDirPath, "identity", UMAConstants.UMA_PERMISSION_ENDPOINT_CONFIG_PATH)
+        String confPath = Paths.get(configDirPath, "uma", UMAConstants.UMA_PERMISSION_ENDPOINT_CONFIG_PATH)
                 .toString();
         File configfile = new File(confPath);
         if (!configfile.exists()) {

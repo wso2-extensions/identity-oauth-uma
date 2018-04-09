@@ -23,7 +23,7 @@ package org.wso2.carbon.identity.oauth.uma.permission.service;
  */
 public class UMAConstants {
 
-    public static final String UMA_PERMISSION_ENDPOINT_CONFIG_PATH = "uma.properties";
+    public static final String UMA_PERMISSION_ENDPOINT_CONFIG_PATH = "ptDetails.properties";
 
     /**
      * error descriptions

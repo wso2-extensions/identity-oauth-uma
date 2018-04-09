@@ -12,20 +12,25 @@ import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.internal.OSGiDataHolder;
+import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.auth.service.AuthenticationContext;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.TestUtil;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.dto.ResourceDetailsDTO;
 
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.exceptions.ResourceEndpointException;
+import org.wso2.carbon.identity.oauth.uma.resource.service.ResourceConstants;
 import org.wso2.carbon.identity.oauth.uma.resource.service.ResourceService;
+import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAClientException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.model.Resource;
 import org.wso2.carbon.identity.oauth.uma.resource.service.model.ScopeDataDO;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
 
-
+import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 import static org.testng.Assert.assertNotEquals;
@@ -36,6 +41,7 @@ public class ResourceRegistrationApiServiceImplExceptionTest extends PowerMockTe
 
     private ResourceRegistrationApiServiceImpl resourcesApiService = null;
     private Resource resource;
+    private final String patScope = "uma_protection";
 
     @Mock
     private ResourceService resourceService;
@@ -48,6 +54,13 @@ public class ResourceRegistrationApiServiceImplExceptionTest extends PowerMockTe
 
     @Mock
     private MessageContext mockMessageContext;
+
+    @Mock
+    private AuthenticationContext mockAuthenticationContext;
+
+    @Mock
+    private HttpServletRequest mockHTTPServletRequest;
+
 
     @ObjectFactory
     public IObjectFactory getObjectFactory() {
@@ -79,35 +92,7 @@ public class ResourceRegistrationApiServiceImplExceptionTest extends PowerMockTe
         resource.setType("http://www.example.com/rsrcs/photoalbum");
     }
 
-   /* @Test
-    public void testGetResource() throws Exception {
 
-        try {
-            resourcesApiService.getResource(anyString(), mockMessageContext);
-        } catch (ResourceEndpointException e) {
-            assertNotEquals(e.getResponse().getStatus(), Response.Status.BAD_REQUEST.getStatusCode());
-        }
-    }*/
-
-   /* @Test
-    public void testGetApplicationThrowableException() throws UMAException {
-        //Test for invalid resource id.
-        try {
-            resourcesApiService.getResource(anyString(), mockMessageContext);
-        } catch (ResourceEndpointException e) {
-            assertEquals(e.getResponse().getStatus(), Response.Status.NOT_FOUND.getStatusCode());
-        }
-    }*/
-
-    /*@Test
-    public void testGetResourceIds() throws Exception {
-        try {
-            resourcesApiService.getResourceIds(mockMessageContext);
-        } catch (ResourceEndpointException e) {
-            assertNotEquals(e.getResponse().getStatus(), Response.Status.BAD_REQUEST.getStatusCode());
-        }
-
-    }*/
     @Test
     public void testUpdateResource() throws Exception {
 
@@ -115,14 +100,21 @@ public class ResourceRegistrationApiServiceImplExceptionTest extends PowerMockTe
         updateDetailsDTO.setName("photo_albem");
         List<String> scopes = new ArrayList<>();
         scopes.add("scope1");
-        updateDetailsDTO.setResource_scopes(scopes);
+        updateDetailsDTO.setResourceScopes(scopes);
         updateDetailsDTO.setDescription("Collection of digital photographs");
-        updateDetailsDTO.setIcon_uri("http://www.example.com/icons/sky.png");
+        updateDetailsDTO.setIconUri("http://www.example.com/icons/sky.png");
 
         try {
-            resourcesApiService.updateResource("", updateDetailsDTO, mockMessageContext);
+            when(mockMessageContext.getHttpServletRequest()).thenReturn(mockHTTPServletRequest);
+            when(mockHTTPServletRequest.getAttribute(anyString())).thenReturn(mockAuthenticationContext);
+            String[] tokenScopes = new String[]{patScope};
+            when(mockAuthenticationContext.getParameter(anyString())).thenReturn(tokenScopes);
+            when(mockAuthenticationContext.getUser()).thenReturn(new User());
+            UMAClientException umaClientException = new UMAClientException(ResourceConstants.
+                    ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE);
+            resourcesApiService.updateResource("78uyggggiu", updateDetailsDTO, mockMessageContext);
         } catch (ResourceEndpointException e) {
-            assertNotEquals(e.getResponse().getStatus(), Response.Status.BAD_REQUEST.getStatusCode());
+            assertNotEquals(e.getResponse().getStatus(), Response.Status.UNAUTHORIZED.getStatusCode());
         }
 
     }
@@ -133,6 +125,10 @@ public class ResourceRegistrationApiServiceImplExceptionTest extends PowerMockTe
         ResourceDetailsDTO updateRequestDTO = new ResourceDetailsDTO();
         updateRequestDTO.setName("");
         try {
+            when(mockMessageContext.getHttpServletRequest()).thenReturn(mockHTTPServletRequest);
+            when(mockHTTPServletRequest.getAttribute(anyString())).thenReturn(mockAuthenticationContext);
+            String[] tokenScopes = new String[]{patScope};
+            when(mockAuthenticationContext.getParameter(anyString())).thenReturn(tokenScopes);
             resourcesApiService.updateResource("ClientID", updateRequestDTO, mockMessageContext);
         } catch (ResourceEndpointException e) {
             assertNotEquals(e.getResponse().getStatus(), Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());

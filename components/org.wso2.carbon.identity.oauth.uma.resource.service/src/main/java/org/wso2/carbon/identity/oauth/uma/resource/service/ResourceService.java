@@ -34,7 +34,7 @@ public interface ResourceService {
     public List<String> getResourceIds(String resourceOwnerName, String consumerKey) throws UMAServiceException
             , UMAClientException;
 
-    public Resource registerResource(Resource resourceRegistration, String resourceOwnerName, String tenantDomain,
+    public Resource registerResource(Resource resourceRegistration, String resourceOwnerName, int tenantId,
                                      String consumerKey) throws UMAServiceException, UMAClientException;
 
     public Resource getResourceById(String resourceId)

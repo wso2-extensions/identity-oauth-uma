@@ -32,14 +32,14 @@ public class DAOUtils {
     private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
     public static final String STORE_RESOURCE_DETAILS =
             "INSERT INTO IDN_RESOURCE(RESOURCE_ID,RESOURCE_NAME,TIME_CREATED," +
-                    "RESOURCE_OWNER_NAME,TENANT_DOMAIN,CONSUMER_KEY) VALUES (?,?,?,?,?,?)";
+                    "RESOURCE_OWNER_NAME,TENANT_ID,CLIENT_ID) VALUES (?,?,?,?,?,?)";
 
     public static final String STORE_RESOURCE_META_DETAILS =
-            "INSERT INTO IDN_RESOURCE_META_DATA(FK_RESOURCE_ID_META_DATA,PROPERTY_KEY,PROPERTY_VALUE)" +
+            "INSERT INTO IDN_RESOURCE_META_DATA(RESOURCE_IDENTITY,PROPERTY_KEY,PROPERTY_VALUE)" +
                     "VALUES ((SELECT ID FROM IDN_RESOURCE WHERE ID = ?),?,?);";
 
     public static final String STORE_SCOPES =
-            "INSERT INTO IDN_RESOURCE_SCOPE(FK_RESOURCE_ID,SCOPE_NAME) VALUES ((SELECT ID FROM IDN_RESOURCE WHERE " +
+            "INSERT INTO IDN_RESOURCE_SCOPE(RESOURCE_IDENTITY,SCOPE_NAME) VALUES ((SELECT ID FROM IDN_RESOURCE WHERE " +
                     "ID = ?),?)";
 
     protected void initiateH2Base(String databaseName, String scriptPath) throws Exception {
@@ -81,7 +81,7 @@ public class DAOUtils {
     }
 
     protected void createResourceTable(String databaseName, String resourceId, String resourceName,
-                                       Timestamp timecreated, String resourceOwnerName, String tenantDomain,
+                                       Timestamp timecreated, String resourceOwnerName, int tenantId,
                                        String consumerKey) throws Exception {
 
         PreparedStatement preparedStatement = null;
@@ -91,7 +91,7 @@ public class DAOUtils {
             preparedStatement.setString(2, resourceName);
             preparedStatement.setTimestamp(3, timecreated);
             preparedStatement.setString(4, resourceOwnerName);
-            preparedStatement.setString(5, tenantDomain);
+            preparedStatement.setInt(5, tenantId);
             preparedStatement.setString(6, consumerKey);
             preparedStatement.execute();
         } finally {

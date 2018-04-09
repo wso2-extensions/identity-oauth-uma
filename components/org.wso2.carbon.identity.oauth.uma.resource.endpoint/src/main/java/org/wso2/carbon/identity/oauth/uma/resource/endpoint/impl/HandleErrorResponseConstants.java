@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package org.wso2.carbon.identity.oauth.uma.resource.endpoint;
+package org.wso2.carbon.identity.oauth.uma.resource.endpoint.impl;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,6 +37,7 @@ public class HandleErrorResponseConstants {
         Map<String, String[]> map = new HashMap<>();
         map.put("60001", new String[]{"400", "invalid_request"});
         map.put("60002", new String[]{"404", "not_found"});
+        map.put("60003", new String[]{"404", "not_found"});
         return map;
     }
 

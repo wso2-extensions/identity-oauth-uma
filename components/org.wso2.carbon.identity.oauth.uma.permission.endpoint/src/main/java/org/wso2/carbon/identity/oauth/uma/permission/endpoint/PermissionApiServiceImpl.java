@@ -60,7 +60,7 @@ public class PermissionApiServiceImpl extends PermissionApiService {
     @Override
     public Response requestPermission(ResourceModelDTO requestedPermission, MessageContext context) {
 
-        if (!isValidTokenScope(context)) {
+        if (!validateTokenScope(context)) {
             log.error("Access token doesn't contain valid scope.");
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
@@ -75,7 +75,7 @@ public class PermissionApiServiceImpl extends PermissionApiService {
         PermissionTicketModel permissionTicketModel = null;
         try {
             permissionTicketModel = permissionService.issuePermissionTicket(getPermissionTicketRequest(
-                    requestedPermission), PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
+                    requestedPermission), getTenantIdFromCarbonContext());
         } catch (UMAResourceException e) {
             handleErrorResponse(e, false);
         } catch (PermissionDAOException e) {
@@ -98,7 +98,12 @@ public class PermissionApiServiceImpl extends PermissionApiService {
         return Response.status(Response.Status.CREATED).entity(permissionTicketResponseDTO).build();
     }
 
-    private boolean isValidTokenScope(MessageContext context) {
+    private static int getTenantIdFromCarbonContext() {
+
+        return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
+    }
+
+    private boolean validateTokenScope(MessageContext context) {
 
         String[] tokenScopes = (String[]) ((AuthenticationContext) context.getHttpServletRequest()
                 .getAttribute(authContext)).getParameter(oauth2AllowedScopes);
@@ -110,9 +115,9 @@ public class PermissionApiServiceImpl extends PermissionApiService {
         List<Resource> resourceList = new ArrayList<>();
         requestedPermission.forEach(resourceModelInnerDTO -> {
             Resource resource = new Resource();
-            resource.setResourceId(resourceModelInnerDTO.getResourceId());
+            resource.setResourceId(resourceModelInnerDTO.getResource_id());
             List<String> resourceScopesList = new ArrayList<>();
-            resourceModelInnerDTO.getResourceScopes().forEach(resourceScope -> {
+            resourceModelInnerDTO.getResource_scopes().forEach(resourceScope -> {
                 resourceScopesList.add(resourceScope);
             });
             resource.setResourceScopes(resourceScopesList);
