@@ -28,10 +28,8 @@ import org.wso2.carbon.identity.oauth.uma.resource.endpoint.dto.ErrorDTO;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.dto.ReadResourceDTO;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.dto.ResourceDetailsDTO;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.dto.UpdateResourceDTO;
-
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.exceptions.ResourceEndpointException;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.util.ResourceUtils;
-
 import org.wso2.carbon.identity.oauth.uma.resource.service.ResourceConstants;
 import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAClientException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAException;
@@ -46,9 +44,9 @@ import javax.ws.rs.core.Response;
 /**
  * ResourceRegistrationApiServiceImpl is used to handling resource management.
  */
-public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiService {
+public class ResourceRegistrationApiServiceImplCopy extends ResourceRegistrationApiService {
 
-    private static final Log log = LogFactory.getLog(ResourceRegistrationApiServiceImpl.class);
+    private static final Log log = LogFactory.getLog(ResourceRegistrationApiServiceImplCopy.class);
     private static final String PAT_SCOPE = "uma_protection";
     private static final String AUTH_CONTEXT = "auth-context";
     private static final String OAUTH2_ALLOWED_SCOPES = "oauth2-allowed-scopes";
@@ -62,7 +60,8 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
     @Override
     public Response registerResource(ResourceDetailsDTO requestedResource, MessageContext context) {
 
-        if (isValideToken(context)) {
+        Response response = null;
+        if (!isValidateToken(context)) {
             if (requestedResource.getResourceScopes() == null || requestedResource.getResourceScopes().isEmpty()) {
                 log.error("Request body cannot be empty and should consist with scopes.");
                 return Response.status(Response.Status.BAD_REQUEST).build();
@@ -70,22 +69,24 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
             try {
                 Resource registerResource = ResourceUtils.getResourceService()
                         .registerResource(ResourceUtils.getResource(requestedResource),
-                                getResourceOwner(context), PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                                        .getTenantId(), getConsumerKey(context));
+                                getResourceOwner(context), getTenantIdFromCarbonContext(), getConsumerKey(context));
                 CreateResourceDTO createResourceDTO = ResourceUtils.createResponse(registerResource);
                 return Response.status(Response.Status.CREATED).entity(createResourceDTO).build();
 
             } catch (UMAServiceException e) {
                 handleErrorResponse(e, true);
             } catch (UMAClientException e) {
-                log.error("Client error when retrieving resource from the resource server.", e);
                 handleErrorResponse(e, false);
+                log.error("Client error when retrieving resource from the resource server.", e);
+            } catch (Throwable throwable) {
+                handleErrorResponse((UMAException) throwable, true);
+                log.error("Internal server error occurred. ", throwable);
             }
+        } else {
+            response = Response.status(Response.Status.UNAUTHORIZED).build();
         }
-        log.error("Resource can not be retrieved due to client side error.");
-        return Response.status(Response.Status.UNAUTHORIZED).entity(getErrorDTO()).build();
+        return response;
     }
-
     /**
      * Retrieve the resource of the given resourceId
      *
@@ -95,21 +96,33 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
     @Override
     public Response getResource(String resourceId, MessageContext context) {
 
-        try {
-            if (isValideToken(context) && isResourceIdValid(resourceId)) {
-                Resource resourceRegistration = ResourceUtils.getResourceService().getResourceById
-                        (resourceId);
-                ReadResourceDTO readResourceDTO = ResourceUtils.readResponse(resourceRegistration);
-                return Response.status(Response.Status.OK).entity(readResourceDTO).build();
+        Response response = null;
+        if (!isValidateToken(context)) {
+            try {
+                if (isResourceIdValid(resourceId)) {
+                    try {
+                        Resource resourceRegistration = ResourceUtils.getResourceService().getResourceById
+                                (resourceId);
+                        ReadResourceDTO readResourceDTO = ResourceUtils.readResponse(resourceRegistration);
+                        return Response.status(Response.Status.OK).entity(readResourceDTO).build();
+                    } catch (UMAServiceException e) {
+                        handleErrorResponse(e, true);
+
+                    } catch (Throwable throwable) {
+                        handleErrorResponse((UMAException) throwable, true);
+                    }
+                } else {
+                    throw new UMAClientException(ResourceConstants.ErrorMessages.ERROR_CODE_NOT_FOUND_RESOURCE_ID);
+                }
+            } catch (UMAClientException e) {
+                handleErrorResponse(e, false);
+                log.error("Client error when retrieving resource from the resource server.", e);
             }
-        } catch (UMAClientException e) {
-            log.error("Client error when retrieving resource from the resource server.", e);
-            handleErrorResponse(e, false);
-        } catch (UMAServiceException e) {
-            handleErrorResponse(e, true);
+            return response;
+        } else {
+            response = Response.status(Response.Status.UNAUTHORIZED).build();
         }
-        log.error("Resource can not be retrieved due to client side error.");
-        return Response.status(Response.Status.UNAUTHORIZED).entity(getErrorDTO()).build();
+        return response;
     }
 
     /**
@@ -121,20 +134,24 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
     @Override
     public Response getResourceIds(MessageContext context) {
 
-        if (isValideToken(context)) {
+        Response response = null;
+        if (!isValidateToken(context)) {
             try {
                 List<String> resourceRegistration = ResourceUtils.getResourceService()
                         .getResourceIds(getResourceOwner(context), getConsumerKey(context));
-                return Response.ok().entity(resourceRegistration).build();
-
+                response = Response.ok().entity(resourceRegistration).build();
+                return response;
             } catch (UMAClientException e) {
-                log.error("Invalid request.Request with valid resource Id to update the resource. ", e);
                 handleErrorResponse(e, false);
+                log.error("Invalid request.Request with valid resource Id to update the resource. ", e);
             } catch (UMAServiceException e) {
                 handleErrorResponse(e, true);
             }
+            return response;
+        } else {
+            response = Response.status(Response.Status.UNAUTHORIZED).build();
         }
-        return Response.status(Response.Status.UNAUTHORIZED).entity(getErrorDTO()).build();
+        return response;
     }
 
     /**
@@ -147,25 +164,38 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
     @Override
     public Response updateResource(String resourceId, ResourceDetailsDTO updatedResource, MessageContext context) {
 
-        try {
-            if (isValideToken(context) && isResourceIdValid(resourceId)) {
+        Response response = null;
+        if (!isValidateToken(context)) {
+            try {
+                if (isResourceIdValid(resourceId)) {
 
-                Resource resourceRegistration = ResourceUtils.getResourceService().updateResource(resourceId,
-                        ResourceUtils.
-                                getResource(updatedResource));
-                resourceRegistration.setResourceId(resourceId);
-                UpdateResourceDTO updateResourceDTO = ResourceUtils.updateResponse(resourceRegistration);
-                return Response.status(Response.Status.CREATED).entity(updateResourceDTO).build();
+                    try {
+                        Resource resourceRegistration = ResourceUtils.getResourceService().updateResource(resourceId,
+                                ResourceUtils.
+                                        getResource(updatedResource));
+                        resourceRegistration.setResourceId(resourceId);
+                        UpdateResourceDTO updateResourceDTO = ResourceUtils.updateResponse(resourceRegistration);
+                        return Response.status(Response.Status.CREATED).entity(updateResourceDTO).build();
+                    } catch (UMAServiceException e) {
+                        handleErrorResponse(e, true);
+                        log.error("Invalid request.Request with valid resource Id to update the resource. ", e);
+
+                    } catch (Throwable throwable) {
+                        handleErrorResponse((UMAException) throwable, true);
+                        log.error("Internal server error occurred. ", throwable);
+                    }
+                } else {
+                    throw new UMAClientException(ResourceConstants.ErrorMessages.ERROR_CODE_NOT_FOUND_RESOURCE_ID);
+                }
+            } catch (UMAClientException e) {
+                handleErrorResponse(e, false);
+                log.error("Client error when retrieving resource from the resource server.", e);
             }
-        } catch (UMAClientException e) {
-            log.error("Client error when retrieving resource from the resource server.", e);
-            handleErrorResponse(e, false);
-        } catch (UMAServiceException e) {
-            log.error("Invalid request.Request with valid resource Id to update the resource. ", e);
-            handleErrorResponse(e, true);
+            return response;
+        } else {
+            response = Response.status(Response.Status.UNAUTHORIZED).build();
         }
-        log.error("Resource can not be retrieved due to client side error.");
-        return Response.status(Response.Status.UNAUTHORIZED).entity(getErrorDTO()).build();
+        return response;
     }
 
     /**
@@ -174,27 +204,39 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
      * @param resourceId resourceId of the resource which need to get deleted
      * @return Response with the status of resource deletion
      */
-
-    //to
     @Override
     public Response deleteResource(String resourceId, MessageContext context) {
 
-        try {
-            if (isValideToken(context) && isResourceIdValid(resourceId)) {
-                if (ResourceUtils.getResourceService().deleteResource(resourceId)) {
-                    return Response.status(Response.Status.NO_CONTENT).build();
-                }
-            }
-        } catch (UMAServiceException e) {
-            log.error("Invalid request.", e);
-            handleErrorResponse(e, true);
+        Response response = null;
+        if (!isValidateToken(context)) {
+            try {
+                if (isResourceIdValid(resourceId)) {
 
-        } catch (UMAClientException e) {
-            log.error("Client error when retrieving resource from the resource server.", e);
-            handleErrorResponse(e, false);
+                    try {
+                        if (ResourceUtils.getResourceService().deleteResource(resourceId)) {
+                            return Response.status(Response.Status.NO_CONTENT).build();
+                        }
+
+                    } catch (UMAServiceException e) {
+                        handleErrorResponse(e, true);
+                        log.error("Invalid request. ", e);
+
+                    } catch (Throwable throwable) {
+                        handleErrorResponse((UMAException) throwable, true);
+                        log.error("Internal server error occurred. ", throwable);
+                    }
+                } else {
+                    throw new UMAClientException(ResourceConstants.ErrorMessages.ERROR_CODE_NOT_FOUND_RESOURCE_ID);
+                }
+            } catch (UMAClientException e) {
+                handleErrorResponse(e, false);
+                log.error("Client error when retrieving resource from the resource server.", e);
+            }
+            return response;
+        } else {
+            response = Response.status(Response.Status.UNAUTHORIZED).build();
         }
-        log.error("Resource can not be retrieved due to client side error.");
-        return Response.status(Response.Status.UNAUTHORIZED).entity(getErrorDTO()).build();
+        return response;
     }
 
     /**
@@ -221,6 +263,7 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
                 log.error(status.getReasonPhrase(), throwable);
             }
         } else {
+
             HandleErrorResponseConstants handleErrorResponseConstants = new HandleErrorResponseConstants();
             if (handleErrorResponseConstants.getResponseMap().containsKey(code)) {
                 String statusCode = handleErrorResponseConstants.getResponseMap().get(code)[0];
@@ -233,9 +276,9 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
                 isStatusOnly);
     }
 
-    public ResourceEndpointException buildResourceEndpointException(Response.Status status, String errorCode,
-                                                                    String description, boolean isStatusOnly) {
-
+    private ResourceEndpointException buildResourceEndpointException(Response.Status status,
+                                                                     String errorCode, String description,
+                                                                     boolean isStatusOnly) {
         if (isStatusOnly) {
             return new ResourceEndpointException(status);
         } else {
@@ -257,12 +300,20 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
         String validPattern = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$";
         Pattern pattern = Pattern.compile(validPattern);
         Matcher match = pattern.matcher(resourceId);
+
         if (match.find()) {
             return true;
         } else {
-            log.error("Invalid ResourceId.");
-            throw new UMAClientException(ResourceConstants.ErrorMessages.ERROR_CODE_INVALID_RESOURCE_ID);
+            return false;
         }
+    }
+
+    /**
+     * Retrieve tenantId
+     */
+    private static int getTenantIdFromCarbonContext() {
+
+        return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
     }
 
     /**
@@ -297,22 +348,15 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
      * @param context message context
      * @return scopes
      */
-    private boolean isValideToken(MessageContext context) {
+    private boolean isValidateToken(MessageContext context) {
 
         String[] tokenScopes = (String[]) ((AuthenticationContext) context.getHttpServletRequest()
                 .getAttribute(AUTH_CONTEXT)).getParameter(OAUTH2_ALLOWED_SCOPES);
-        return ArrayUtils.contains(tokenScopes, PAT_SCOPE);
-    }
-
-    /**
-     * Making errorDTO
-     * @return errorDTO
-     */
-    private ErrorDTO getErrorDTO() {
-
-        ErrorDTO errorDTO = new ErrorDTO();
-        errorDTO.setCode("Invalid_request");
-        errorDTO.setDescription("Error occured in the client side.");
-        return errorDTO;
+        if (!ArrayUtils.contains(tokenScopes, PAT_SCOPE)) {
+            log.error("Access token doesn't contain valid scope.");
+            return true;
+        } else {
+            return false;
+        }
     }
 }
