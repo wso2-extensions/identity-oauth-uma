@@ -53,8 +53,8 @@ public class ResourceDetailsDTO {
         return resource_scopes;
     }
 
-    public void setResourceScopes(List<String> resource_scopes) {
-        this.resource_scopes = resource_scopes;
+    public void setResourceScopes(List<String> resourceScopes) {
+        this.resource_scopes = resourceScopes;
     }
 
 
@@ -67,8 +67,8 @@ public class ResourceDetailsDTO {
         return icon_uri;
     }
 
-    public void setIconUri(String icon_uri) {
-        this.icon_uri = icon_uri;
+    public void setIconUri(String iconUri) {
+        this.icon_uri = iconUri;
     }
 
 

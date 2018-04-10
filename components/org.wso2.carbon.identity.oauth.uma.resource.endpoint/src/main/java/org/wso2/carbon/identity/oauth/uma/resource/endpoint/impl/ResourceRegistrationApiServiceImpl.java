@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.oauth.uma.resource.endpoint.impl;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.cxf.common.util.CollectionUtils;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.auth.service.AuthenticationContext;
@@ -49,7 +50,9 @@ import javax.ws.rs.core.Response;
 public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiService {
 
     private static final Log log = LogFactory.getLog(ResourceRegistrationApiServiceImpl.class);
+    // The variable related to PAT_SCOPE ("uma_protection") is defined in the UMA 2.o speacification.
     private static final String PAT_SCOPE = "uma_protection";
+    // This variables are asigning from auth-rest valve.
     private static final String AUTH_CONTEXT = "auth-context";
     private static final String OAUTH2_ALLOWED_SCOPES = "oauth2-allowed-scopes";
 
@@ -62,8 +65,9 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
     @Override
     public Response registerResource(ResourceDetailsDTO requestedResource, MessageContext context) {
 
-        if (isValideToken(context)) {
-            if (requestedResource.getResourceScopes() == null || requestedResource.getResourceScopes().isEmpty()) {
+        if (isValidToken(context)) {
+            if (requestedResource.getResourceScopes() == null ||
+                    CollectionUtils.isEmpty(requestedResource.getResourceScopes())) {
                 log.error("Request body cannot be empty and should consist with scopes.");
                 return Response.status(Response.Status.BAD_REQUEST).build();
             }
@@ -83,7 +87,8 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
             }
         }
         log.error("Resource can not be retrieved due to client side error.");
-        return Response.status(Response.Status.UNAUTHORIZED).entity(getErrorDTO()).build();
+        return Response.status(Response.Status.UNAUTHORIZED).entity(getErrorDTO
+                ("invalid request", "Error occurred in client side.")).build();
     }
 
     /**
@@ -96,7 +101,7 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
     public Response getResource(String resourceId, MessageContext context) {
 
         try {
-            if (isValideToken(context) && isResourceIdValid(resourceId)) {
+            if (isValidToken(context) && isResourceIdValid(resourceId)) {
                 Resource resourceRegistration = ResourceUtils.getResourceService().getResourceById
                         (resourceId);
                 ReadResourceDTO readResourceDTO = ResourceUtils.readResponse(resourceRegistration);
@@ -109,7 +114,8 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
             handleErrorResponse(e, true);
         }
         log.error("Resource can not be retrieved due to client side error.");
-        return Response.status(Response.Status.UNAUTHORIZED).entity(getErrorDTO()).build();
+        return Response.status(Response.Status.UNAUTHORIZED).entity(getErrorDTO
+                ("invalid request", "Error occurred in client side.")).build();
     }
 
     /**
@@ -121,7 +127,7 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
     @Override
     public Response getResourceIds(MessageContext context) {
 
-        if (isValideToken(context)) {
+        if (isValidToken(context)) {
             try {
                 List<String> resourceRegistration = ResourceUtils.getResourceService()
                         .getResourceIds(getResourceOwner(context), getConsumerKey(context));
@@ -134,7 +140,8 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
                 handleErrorResponse(e, true);
             }
         }
-        return Response.status(Response.Status.UNAUTHORIZED).entity(getErrorDTO()).build();
+        return Response.status(Response.Status.UNAUTHORIZED).entity(getErrorDTO
+                ("invalid request", "Error occurred in client side.")).build();
     }
 
     /**
@@ -148,7 +155,7 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
     public Response updateResource(String resourceId, ResourceDetailsDTO updatedResource, MessageContext context) {
 
         try {
-            if (isValideToken(context) && isResourceIdValid(resourceId)) {
+            if (isValidToken(context) && isResourceIdValid(resourceId)) {
 
                 Resource resourceRegistration = ResourceUtils.getResourceService().updateResource(resourceId,
                         ResourceUtils.
@@ -165,7 +172,8 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
             handleErrorResponse(e, true);
         }
         log.error("Resource can not be retrieved due to client side error.");
-        return Response.status(Response.Status.UNAUTHORIZED).entity(getErrorDTO()).build();
+        return Response.status(Response.Status.UNAUTHORIZED).entity(getErrorDTO
+                ("invalid request", "Error occurred in client side.")).build();
     }
 
     /**
@@ -175,12 +183,11 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
      * @return Response with the status of resource deletion
      */
 
-    //to
     @Override
     public Response deleteResource(String resourceId, MessageContext context) {
 
         try {
-            if (isValideToken(context) && isResourceIdValid(resourceId)) {
+            if (isValidToken(context) && isResourceIdValid(resourceId)) {
                 if (ResourceUtils.getResourceService().deleteResource(resourceId)) {
                     return Response.status(Response.Status.NO_CONTENT).build();
                 }
@@ -194,7 +201,8 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
             handleErrorResponse(e, false);
         }
         log.error("Resource can not be retrieved due to client side error.");
-        return Response.status(Response.Status.UNAUTHORIZED).entity(getErrorDTO()).build();
+        return Response.status(Response.Status.UNAUTHORIZED).entity(getErrorDTO
+                ("invalid request", "Error occurred in client side.")).build();
     }
 
     /**
@@ -242,7 +250,7 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
             ErrorDTO errorDTO = new ErrorDTO();
             errorDTO.setCode(errorCode);
             errorDTO.setDescription(description);
-            return new ResourceEndpointException(status, errorDTO);
+            return new ResourceEndpointException(status, getErrorDTO(errorCode, description));
         }
     }
 
@@ -257,6 +265,7 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
         String validPattern = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$";
         Pattern pattern = Pattern.compile(validPattern);
         Matcher match = pattern.matcher(resourceId);
+
         if (match.find()) {
             return true;
         } else {
@@ -286,9 +295,9 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
      */
     private String getConsumerKey(MessageContext context) {
 
-        String clientId = (String) ((AuthenticationContext) context.getHttpServletRequest().getAttribute(AUTH_CONTEXT))
-                .getParameter("consumer-key");
-        return clientId;
+        String consumerKey = (String) ((AuthenticationContext) context.getHttpServletRequest()
+                .getAttribute(AUTH_CONTEXT)).getParameter("consumer-key");
+        return consumerKey;
     }
 
     /**
@@ -297,7 +306,7 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
      * @param context message context
      * @return scopes
      */
-    private boolean isValideToken(MessageContext context) {
+    private boolean isValidToken(MessageContext context) {
 
         String[] tokenScopes = (String[]) ((AuthenticationContext) context.getHttpServletRequest()
                 .getAttribute(AUTH_CONTEXT)).getParameter(OAUTH2_ALLOWED_SCOPES);
@@ -306,13 +315,14 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
 
     /**
      * Making errorDTO
+     *
      * @return errorDTO
      */
-    private ErrorDTO getErrorDTO() {
+    private ErrorDTO getErrorDTO(String errorCode, String description) {
 
         ErrorDTO errorDTO = new ErrorDTO();
-        errorDTO.setCode("Invalid_request");
-        errorDTO.setDescription("Error occured in the client side.");
+        errorDTO.setCode(errorCode);
+        errorDTO.setDescription(description);
         return errorDTO;
     }
 }
