@@ -52,11 +52,14 @@ public class PermissionTicketDAO {
     private static final String STORE_PT_RESOURCE_SCOPES_QUERY = "INSERT INTO IDN_PT_RESOURCE_SCOPE " +
             "(PT_RESOURCE_ID, PT_SCOPE_ID) VALUES (:" + UMAConstants.SQLPlaceholders.ID + ";, " +
             "(SELECT ID FROM IDN_RESOURCE_SCOPE WHERE SCOPE_NAME = :" + UMAConstants.SQLPlaceholders.RESOURCE_SCOPE
-            + ";))";
+            + "; AND RESOURCE_IDENTITY = (SELECT ID FROM IDN_RESOURCE WHERE RESOURCE_ID = :" +
+            UMAConstants.SQLPlaceholders.RESOURCE_ID + ";)))";
     private static final String VALIDATE_REQUESTED_RESOURCE_IDS_WITH_REGISTERED_RESOURCE_IDS = "SELECT ID " +
             "FROM IDN_RESOURCE WHERE RESOURCE_ID = :" + UMAConstants.SQLPlaceholders.RESOURCE_ID + ";";
-    private static final String VALIDATE_REQUESTED_RESOURCE_SCOPES_WITH_REGISTERED_RESOURCE_SCOPES = "SELECT ID FROM " +
-            "IDN_RESOURCE_SCOPE WHERE SCOPE_NAME = :" + UMAConstants.SQLPlaceholders.RESOURCE_SCOPE + ";";
+    private static final String VALIDATE_REQUESTED_RESOURCE_SCOPES_WITH_REGISTERED_RESOURCE_SCOPES = "SELECT ID FROM" +
+            " IDN_RESOURCE_SCOPE WHERE SCOPE_NAME = :" + UMAConstants.SQLPlaceholders.RESOURCE_SCOPE + "; AND " +
+            "RESOURCE_IDENTITY = (SELECT ID FROM IDN_RESOURCE WHERE RESOURCE_ID = :" +
+            UMAConstants.SQLPlaceholders.RESOURCE_ID + ";)";
 
     /**
      * Issue a permission ticket. Permission ticket represents the resources requested by the resource server on
@@ -113,11 +116,13 @@ public class PermissionTicketDAO {
                                 long resourceId = resultSet.getLong(1);
                                 NamedPreparedStatement scopeNamedPreparedStatement = new NamedPreparedStatement
                                         (connection, STORE_PT_RESOURCE_SCOPES_QUERY);
+                                scopeNamedPreparedStatement.setLong(UMAConstants.SQLPlaceholders.ID,
+                                        resourceId);
                                 try (PreparedStatement resourceScopeStatement =
                                              scopeNamedPreparedStatement.getPreparedStatement()) {
                                     for (String scope : resource.getResourceScopes()) {
-                                        scopeNamedPreparedStatement.setLong(UMAConstants.SQLPlaceholders.ID,
-                                                resourceId);
+                                        scopeNamedPreparedStatement.setString(UMAConstants.SQLPlaceholders.RESOURCE_ID,
+                                                resource.getResourceId());
                                         scopeNamedPreparedStatement.setString(
                                                 UMAConstants.SQLPlaceholders.RESOURCE_SCOPE, scope);
                                         scopeNamedPreparedStatement.getPreparedStatement().addBatch();
@@ -167,6 +172,8 @@ public class PermissionTicketDAO {
             try {
                 NamedPreparedStatement scopeNamedPreparedStatement = new NamedPreparedStatement
                         (connection, VALIDATE_REQUESTED_RESOURCE_SCOPES_WITH_REGISTERED_RESOURCE_SCOPES);
+                scopeNamedPreparedStatement.setString(UMAConstants.SQLPlaceholders.RESOURCE_ID,
+                        resource.getResourceId());
                 try (PreparedStatement resourceScopeStatement =
                              scopeNamedPreparedStatement.getPreparedStatement()) {
                     for (String scope : resource.getResourceScopes()) {
