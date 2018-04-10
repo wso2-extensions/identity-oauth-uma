@@ -42,14 +42,14 @@ public class ResourceUtilsTest {
         resourceDetailsDTO.setName("photo_albem");
         List<String> scopes = new ArrayList<>();
         scopes.add("scope1");
-        resourceDetailsDTO.setResourceScopes(scopes);
+        resourceDetailsDTO.setResource_Scopes(scopes);
         resourceDetailsDTO.setDescription("Collection of digital photographs");
-        resourceDetailsDTO.setIconUri("http://www.example.com/icons/sky.png");
+        resourceDetailsDTO.setIcon_Uri("http://www.example.com/icons/sky.png");
         resourceDetailsDTO.setType("http://www.example.com/rsrcs/photoalbum");
         Resource resource = ResourceUtils.getResource(resourceDetailsDTO);
-        assertEquals(resource.getScopes(), resourceDetailsDTO.getResourceScopes(), "Actual scopes are not " +
+        assertEquals(resource.getScopes(), resourceDetailsDTO.getResource_Scopes(), "Actual scopes are not " +
                 "match for expected scopes");
-        assertEquals(resource.getIconUri(), resourceDetailsDTO.getIconUri(), "Actual IconUri  match " +
+        assertEquals(resource.getIconUri(), resourceDetailsDTO.getIcon_Uri(), "Actual IconUri  match " +
                 "for expected IconUri");
         assertEquals(resource.getType(), resourceDetailsDTO.getType(), "Actual type  match for expected type");
         assertEquals(resource.getDescription(), resourceDetailsDTO.getDescription(), "Actual description" +

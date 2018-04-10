@@ -49,11 +49,11 @@ public class ResourceDetailsDTO {
      **/
     @ApiModelProperty(required = true, value = "An array of strings indicating the available scopes for this resource.\n")
     @JsonProperty("resource_scope")
-    public List<String> getResourceScopes() {
+    public List<String> getResource_Scopes() {
         return resource_scopes;
     }
 
-    public void setResourceScopes(List<String> resourceScopes) {
+    public void setResource_Scopes(List<String> resourceScopes) {
         this.resource_scopes = resourceScopes;
     }
 
@@ -63,11 +63,11 @@ public class ResourceDetailsDTO {
      **/
     @ApiModelProperty(required = true, value = "A URI for a graphic icon representing the resource.  \n")
     @JsonProperty("icon_uri")
-    public String getIconUri() {
+    public String getIcon_Uri() {
         return icon_uri;
     }
 
-    public void setIconUri(String iconUri) {
+    public void setIcon_Uri(String iconUri) {
         this.icon_uri = iconUri;
     }
 

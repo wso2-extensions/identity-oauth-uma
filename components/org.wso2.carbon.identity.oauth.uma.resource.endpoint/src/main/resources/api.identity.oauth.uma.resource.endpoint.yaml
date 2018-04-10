@@ -27,7 +27,7 @@ info:
   contact:
     name: WSO2
     url: 'http://wso2.com/identity-and-access-management'
-    email: architecture@wso2.com
+    email: architecture@wso2.org
   license:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
@@ -39,7 +39,7 @@ info:
 
 schemes:
   - https
- The domain of the API.
+# The domain of the API.
 # This is configured by the customer during deployment.
 # The given host is just an example.
 
@@ -66,7 +66,7 @@ consumes:
 produces:
   - application/json
 paths:
-  /ResourceRegistration/resource:
+  /resource:
 
    # Endpoint uses to create resource
     post:
@@ -89,6 +89,10 @@ paths:
             Resource registered successfully.
           schema:
             $ref: '#/definitions/createResource'
+          headers:
+            Location:
+              type: 'string'
+              description: 'Location of the newly created resourceId.'
         '400':
           description: Invalid input.
           schema:
@@ -117,7 +121,7 @@ paths:
           description: Resource does not exist.
           schema:
             $ref: '#/definitions/error'
-  '/ResourceRegistration/resource/{resourceId}':
+  '/resource/{resourceId}':
 
     # Endpoint uses to get resource by resource ID
 

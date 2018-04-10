@@ -17,10 +17,12 @@
 package org.wso2.carbon.identity.oauth.uma.resource.service.dao;
 
 import com.mysql.jdbc.Statement;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.oauth.uma.resource.service.ResourceConstants;
+import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAClientException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAServiceException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.model.Resource;
 import org.wso2.carbon.identity.oauth.uma.resource.service.model.ScopeDataDO;
@@ -52,51 +54,50 @@ public class ResourceDAO {
      * @throws UMAServiceException ResourceException
      */
     public static Resource registerResource(Resource resource, String resourceOwnerName, int tenantId,
-                                            String consumerKey) throws UMAServiceException {
+                                            String consumerKey) throws UMAServiceException, UMAClientException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
-
-        try {
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
             connection.setAutoCommit(false);
             Savepoint savepoint = connection.setSavepoint();
-            PreparedStatement preparedStatement = connection.prepareStatement(SQLQueries.STORE_RESOURCE_DETAILS,
-                    Statement.RETURN_GENERATED_KEYS);
-            preparedStatement.setString(1, resource.getResourceId());
-            preparedStatement.setString(2, resource.getName());
-            preparedStatement.setTimestamp(3, resource.getTimecreated());
-            preparedStatement.setString(4, resourceOwnerName);
-            preparedStatement.setInt(5, tenantId);
-            preparedStatement.setString(6, consumerKey);
-            preparedStatement.execute();
+            if (checkExsistanceOfSameResourceName(resourceOwnerName, resource.getName())) {
+                throw new UMAClientException(ResourceConstants.
+                        ErrorMessages.ERROR_CODE_RESOURCE_NAME_DUPLICATE, null);
+            } else {
+                PreparedStatement preparedStatement = connection.prepareStatement(SQLQueries.STORE_RESOURCE_DETAILS,
+                        Statement.RETURN_GENERATED_KEYS);
+                preparedStatement.setString(1, resource.getResourceId());
+                preparedStatement.setString(2, resource.getName());
+                preparedStatement.setTimestamp(3, resource.getTimecreated());
+                preparedStatement.setString(4, resourceOwnerName);
+                preparedStatement.setInt(5, tenantId);
+                preparedStatement.setString(6, consumerKey);
+                preparedStatement.execute();
 
-            try (ResultSet resultSet1 = preparedStatement.getGeneratedKeys()) {
-                long id = 0;
-                if (resultSet1.next()) {
-                    id = resultSet1.getLong(1);
-                }
-                mapMetaDataWithResource(connection, id, resource);
-                mapScopeWithResource(connection, id, resource.getScopeDataDOArray());
-                connection.commit();
-                log.info("Successfully added the resource details to the database.");
-            } catch (SQLException e) {
-                try {
-                    connection.rollback(savepoint);
-                } catch (SQLException e1) {
-                    log.error("Rollback error. Could not rollback resource adding. - " + e.getMessage());
+                try (ResultSet resultSet1 = preparedStatement.getGeneratedKeys()) {
+                    long id = 0;
+                    if (resultSet1.next()) {
+                        id = resultSet1.getLong(1);
+                    }
+                    mapMetaDataWithResource(connection, id, resource);
+                    mapScopeWithResource(connection, id, resource.getScopeDataDOArray());
+                    connection.commit();
+                    if (log.isDebugEnabled()) {
+                        log.debug("Successfully added the resource details to the database.");
+                    }
+                } catch (SQLException e) {
+                    try {
+                        connection.rollback(savepoint);
+                    } catch (SQLException e1) {
+                        throw new UMAServiceException(ResourceConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE,
+                                "Rollback error. Could not rollback purpose adding.", e);
+                    }
                     throw new UMAServiceException(ResourceConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE,
-                            "Rollback error. Could not rollback purpose adding. - " + e
-                                    .getMessage(), e);
+                            "Database error. Could not add resource details.", e);
                 }
-                log.error("Database error. Could not add resource details. - " + e.getMessage(), e);
-                throw new UMAServiceException(ResourceConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE,
-                        "Database error. Could not add resource details. - " + e.getMessage(),
-                        e);
             }
         } catch (SQLException e) {
-            log.error("Database error. Could not add resource details. - " + e.getMessage(), e);
             throw new UMAServiceException(ResourceConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE,
-                    "Database error. Could not add resource details. - " + e.getMessage(),
-                    e);
+                    "Database error. Could not add resource details.", e);
         }
         return resource;
     }
@@ -107,26 +108,24 @@ public class ResourceDAO {
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(SQLQueries.STORE_RESOURCE_META_DETAILS);
             preparedStatement.setLong(1, id);
-            if (resourceRegistation.getDescription() != null && !resourceRegistation.getDescription().isEmpty()) {
+            if (StringUtils.isNotEmpty(resourceRegistation.getDescription())) {
                 preparedStatement.setString(2, DESCRIPTION);
                 preparedStatement.setString(3, resourceRegistation.getDescription());
                 preparedStatement.execute();
             }
-            if (resourceRegistation.getType() != null && !resourceRegistation.getType().isEmpty()) {
+            if (StringUtils.isNotEmpty(resourceRegistation.getType())) {
                 preparedStatement.setString(2, TYPE);
                 preparedStatement.setString(3, resourceRegistation.getType());
                 preparedStatement.execute();
             }
-            if (resourceRegistation.getIconUri() != null && !resourceRegistation.getIconUri().isEmpty()) {
+            if (StringUtils.isNotEmpty(resourceRegistation.getIconUri())) {
                 preparedStatement.setString(2, ICON_URI);
                 preparedStatement.setString(3, resourceRegistation.getDescription());
                 preparedStatement.execute();
             }
 
         } catch (SQLException e) {
-            log.error("Database error. Could not map metadata to resource. - " + e.getMessage(), e);
-            throw new UMAServiceException("Database error. Could not map metadata to resource. - " + e
-                    .getMessage(), e);
+            throw new UMAServiceException("Database error. Could not map metadata to resource.", e);
         }
     }
 
@@ -141,10 +140,7 @@ public class ResourceDAO {
                 preparedStatement.execute();
             }
         } catch (SQLException e) {
-            log.error("Database error. Could not map scope to resource. - " + e
-                    .getMessage(), e);
-            throw new UMAServiceException("Database error. Could not map scope to resource. " +
-                    "- " + e.getMessage(), e);
+            throw new UMAServiceException("Database error. Could not map scope to resource.", e);
         }
     }
 
@@ -155,20 +151,19 @@ public class ResourceDAO {
      * @return resource description for the provided ID
      * @throws UMAServiceException
      */
-    public static Resource retrieveResource(String resourceid) throws UMAServiceException {
+    public static Resource retrieveResource(String resourceid) throws UMAServiceException, UMAClientException {
 
-        Resource resourceRegistration = new Resource();
-
+        Resource resourceRegistration = null;
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(SQLQueries.RETRIEVE_RESOURCES_BY_ID);
             preparedStatement.setString(1, resourceid);
             ResultSet resultSet = preparedStatement.executeQuery();
 
             if (!resultSet.next()) {
-                resourceRegistration.setResourceId(null);
-                throw new UMAServiceException(ResourceConstants.ErrorMessages.ERROR_CODE_NOT_FOUND_RESOURCE_ID, null);
+                throw new UMAClientException(ResourceConstants.ErrorMessages.ERROR_CODE_NOT_FOUND_RESOURCE_ID, null);
             } else {
-                while (resultSet.next()) {
+                resourceRegistration = new Resource();
+                do {
                     if (!resourceRegistration.getScopes().contains(resultSet.getString(5))) {
                         resourceRegistration.getScopes().add(resultSet.getString(5));
                     }
@@ -188,15 +183,14 @@ public class ResourceDAO {
                     if (resultSet.getString("PROPERTY_KEY").equals(DESCRIPTION)) {
                         resourceRegistration.setDescription(resultSet.getString("PROPERTY_VALUE"));
                     }
-                }
+                } while (resultSet.next());
             }
-            log.info("Successfully retrieved the resource details from the database.");
+            if (log.isDebugEnabled()) {
+                log.debug("Successfully retrieved the resource details from the database.");
+            }
         } catch (SQLException e) {
-            log.error("Error when retrieving the resource description. ");
-            throw new UMAServiceException(ResourceConstants.ErrorMessages.ERROR_CODE_NOT_FOUND_RESOURCE_ID,
-                    "Database" +
-                            "error.Could not get resource.Resource Id can not be found in data base. - " +
-                            e.getMessage(), e);
+            throw new UMAServiceException(ResourceConstants.ErrorMessages.ERROR_CODE_NOT_FOUND_RESOURCE_ID, "Database" +
+                    "error.Could not get resource.Resource Id can not be found in data base: " + resourceid, e);
 
         }
         return resourceRegistration;
@@ -227,12 +221,12 @@ public class ResourceDAO {
                 }
             }
             connection.commit();
-            log.info("Successfully listed the resourceID's in the database.");
+            if (log.isDebugEnabled()) {
+                log.debug("Successfully listed the resourceID's in the database.");
+            }
         } catch (SQLException e) {
-            log.error("Database error. Could not delete resource category. - " + e.getMessage(), e);
             throw new UMAServiceException(ResourceConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE, "Database " +
-                    "error.Could not obtain resource List. - " + e.getMessage
-                    (), e);
+                    "error.Could not obtain resource List.", e);
         }
         return resourceSetIdList;
     }
@@ -245,8 +239,7 @@ public class ResourceDAO {
      */
     public static boolean deleteResource(String resourceId) throws UMAServiceException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
-        try {
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(SQLQueries.DELETE_RESOURCE_SCOPES);
             preparedStatement.setString(1, resourceId);
             preparedStatement.executeUpdate();
@@ -257,13 +250,14 @@ public class ResourceDAO {
             preparedStatement.setString(1, resourceId);
             int rowsAffected = preparedStatement.executeUpdate();
             connection.commit();
-            log.info("Successfully deleted the resource details from the database.");
+            if (log.isDebugEnabled()) {
+                log.debug("Successfully deleted the resource details from the database.");
+            }
             return rowsAffected > 0;
 
         } catch (SQLException e) {
-            log.error("Database error. Could not delete resource category. - " + e.getMessage(), e);
             throw new UMAServiceException(ResourceConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE,
-                    "Database error. Could not delete resource categories. - " + e.getMessage(), e);
+                    "Database error. Could not delete resource categories:", e);
         }
     }
 
@@ -277,61 +271,85 @@ public class ResourceDAO {
     public static boolean updateResource(String resourceId, Resource resourceRegistration)
             throws UMAServiceException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
-        Savepoint savepoint = null;
-        try {
-            connection.setAutoCommit(false);
-            savepoint = connection.setSavepoint();
-            PreparedStatement preparedStatement = connection.prepareStatement(SQLQueries.DELETESCOPES);
-            preparedStatement.setString(1, resourceId);
-            preparedStatement.execute();
-            preparedStatement = connection.prepareStatement(SQLQueries.UPDATESCOPES);
-            preparedStatement.setString(1, resourceId);
-            for (String scopes : resourceRegistration.getScopes()) {
-                preparedStatement.setString(2, scopes);
-                preparedStatement.execute();
-            }
-
-            preparedStatement = connection.prepareStatement(SQLQueries.UPDATE_METADATA);
-            preparedStatement.setString(2, resourceId);
-            if (resourceRegistration.getDescription() != null && !resourceRegistration.getDescription().isEmpty()) {
-                preparedStatement.setString(3, DESCRIPTION);
-                preparedStatement.setString(1, resourceRegistration.getDescription());
-                preparedStatement.execute();
-            }
-            if (resourceRegistration.getType() != null && !resourceRegistration.getType().isEmpty()) {
-                preparedStatement.setString(3, TYPE);
-                preparedStatement.setString(1, resourceRegistration.getType());
-                preparedStatement.execute();
-            }
-            if (resourceRegistration.getIconUri() != null && !resourceRegistration.getIconUri().isEmpty()) {
-                preparedStatement.setString(3, ICON_URI);
-                preparedStatement.setString(1, resourceRegistration.getIconUri());
-                preparedStatement.execute();
-            }
-            preparedStatement = connection.prepareStatement(SQLQueries.UPDATE_RESOURCE);
-            preparedStatement.setString(2, resourceId);
-            preparedStatement.setString(1, resourceRegistration.getName());
-            preparedStatement.execute();
-
-            connection.commit();
-
-            log.info("Successfully updated the resource details to the database.");
-        } catch (SQLException e) {
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+            Savepoint savepoint = null;
             try {
-                connection.rollback(savepoint);
-                ;
-            } catch (SQLException e1) {
-                log.error("Rollback error. Could not rollback resource adding. - " + e.getMessage());
+                connection.setAutoCommit(false);
+                savepoint = connection.setSavepoint();
+                PreparedStatement preparedStatement = connection.prepareStatement(SQLQueries.DELETE_SCOPES);
+                preparedStatement.setString(1, resourceId);
+                preparedStatement.execute();
+                preparedStatement = connection.prepareStatement(SQLQueries.UPDATE_SCOPES);
+                preparedStatement.setString(1, resourceId);
+                for (String scopes : resourceRegistration.getScopes()) {
+                    preparedStatement.setString(2, scopes);
+                    preparedStatement.execute();
+                }
+
+                preparedStatement = connection.prepareStatement(SQLQueries.UPDATE_METADATA);
+                preparedStatement.setString(2, resourceId);
+                if (StringUtils.isNotEmpty(resourceRegistration.getDescription())) {
+                    preparedStatement.setString(3, DESCRIPTION);
+                    preparedStatement.setString(1, resourceRegistration.getDescription());
+                    preparedStatement.execute();
+                }
+                if (StringUtils.isNotEmpty(resourceRegistration.getType())) {
+                    preparedStatement.setString(3, TYPE);
+                    preparedStatement.setString(1, resourceRegistration.getType());
+                    preparedStatement.execute();
+                }
+                if (StringUtils.isNotEmpty(resourceRegistration.getIconUri())) {
+                    preparedStatement.setString(3, ICON_URI);
+                    preparedStatement.setString(1, resourceRegistration.getIconUri());
+                    preparedStatement.execute();
+                }
+                preparedStatement = connection.prepareStatement(SQLQueries.UPDATE_RESOURCE);
+                preparedStatement.setString(2, resourceId);
+                preparedStatement.setString(1, resourceRegistration.getName());
+                preparedStatement.execute();
+
+                connection.commit();
+                if (log.isDebugEnabled()) {
+                    log.debug("Successfully updated the resource details to the database.");
+                }
+            } catch (SQLException e) {
+                try {
+                    connection.rollback(savepoint);
+                } catch (SQLException e1) {
+                    throw new UMAServiceException(ResourceConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE,
+                            "Rollback error. Could not rollback purpose adding.", e);
+                }
                 throw new UMAServiceException(ResourceConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE,
-                        "Rollback error. Could not rollback purpose adding. - " + e
-                                .getMessage(), e);
+                        "Database error. Could not add resource details.", e);
             }
-            log.error("Database error. Could not add resource details. - " + e.getMessage(), e);
+        } catch (SQLException e) {
             throw new UMAServiceException(ResourceConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE,
-                    "Database error. Could not add resource details. - " + e.getMessage(),
-                    e);
+                    "Database error. Could not add resource details.", e);
         }
+        return false;
+    }
+
+    private static boolean checkExsistanceOfSameResourceName(String resourceOwnerName, String resourceName)
+            throws UMAServiceException {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+            try (PreparedStatement preparedStatement = connection.prepareStatement
+                    (SQLQueries.CHECK_EXISTANCE_OF_RESOURCE_NAME)) {
+                preparedStatement.setString(1, resourceOwnerName);
+                preparedStatement.setString(2, resourceName);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        return true;
+                    }
+                }
+            }
+
+        } catch (SQLException e) {
+            throw new UMAServiceException(ResourceConstants.ErrorMessages
+                    .INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_REQUESTED_RESOURCES,
+                    "Database error. Could not identify a resource.", e);
+        }
+
         return false;
     }
 }

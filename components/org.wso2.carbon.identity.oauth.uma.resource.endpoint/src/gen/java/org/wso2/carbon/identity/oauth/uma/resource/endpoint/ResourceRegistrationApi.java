@@ -31,7 +31,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.*;
 
-@Path("/ResourceRegistration")
+@Path("/resource")
 @Consumes({ "application/json" })
 @Produces({ "application/json" })
 @io.swagger.annotations.Api(value = "/ResourceRegistration", description = "the ResourceRegistration API")
@@ -40,7 +40,7 @@ public class ResourceRegistrationApi  {
  private final ResourceRegistrationApiService delegate = ResourceRegistrationApiServiceFactory.getResourceRegistrationApi();
 
  @DELETE
- @Path("/resource/{resourceId}")
+ @Path("/{resourceId}")
  @Consumes({ "application/json" })
  @Produces({ "application/json" })
  @io.swagger.annotations.ApiOperation(value = "Delete Resource description by ID", notes = "This method uses to delete resource information when resource ID is given", response = void.class)
@@ -54,7 +54,7 @@ public class ResourceRegistrationApi  {
   return delegate.deleteResource(resourceId,context);
  }
  @GET
- @Path("/resource/{resourceId}")
+ @Path("/{resourceId}")
  @Consumes({ "application/json" })
  @Produces({ "application/json" })
  @io.swagger.annotations.ApiOperation(value = "Obtain resource description by ID", notes = "This method uses to obtain resource information when resource ID is given", response = ReadResourceDTO.class)
@@ -70,7 +70,6 @@ public class ResourceRegistrationApi  {
   return delegate.getResource(resourceId,context);
  }
  @GET
- @Path("/resource")
  @Consumes({ "application/json" })
  @Produces({ "application/json" })
  @io.swagger.annotations.ApiOperation(value = "Find all resource IDs", notes = "This method uses to obtain all resource IDs which was registered on Authorization server under same resource owner.", response = ListReadResourceDTO.class)
@@ -86,7 +85,6 @@ public class ResourceRegistrationApi  {
   return delegate.getResourceIds(context);
  }
  @POST
- @Path("/resource")
  @Consumes({ "application/json" })
  @Produces({ "application/json" })
  @io.swagger.annotations.ApiOperation(value = "Add a resource", notes = "This method uses to register resources in Authorization server.", response = CreateResourceDTO.class)
@@ -100,7 +98,7 @@ public class ResourceRegistrationApi  {
   return delegate.registerResource(resource,context);
  }
  @PUT
- @Path("/resource/{resourceId}")
+ @Path("/{resourceId}")
  @Consumes({ "application/json" })
  @Produces({ "application/json" })
  @io.swagger.annotations.ApiOperation(value = "Update resource description by ID", notes = "This method uses to update resource description information when resource ID is given by the resource owner. ", response = UpdateResourceDTO.class)

@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.identity.oauth.uma.resource.endpoint.util;
 
+import org.apache.commons.lang3.StringUtils;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.dto.CreateResourceDTO;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.dto.ListReadResourceDTO;
@@ -47,7 +48,7 @@ public class ResourceUtils {
 
         Resource resourceRegistration = new Resource();
         resourceRegistration.setName(resourceDetailsDTO.getName());
-        resourceRegistration.setScopes(resourceDetailsDTO.getResourceScopes());
+        resourceRegistration.setScopes(resourceDetailsDTO.getResource_Scopes());
 
         for (String scope : resourceRegistration.getScopes()) {
             resourceRegistration.getScopeDataDOArray().add(new ScopeDataDO(resourceRegistration.getResourceId()
@@ -59,8 +60,8 @@ public class ResourceUtils {
         if (resourceDetailsDTO.getDescription() != null && !resourceDetailsDTO.getDescription().isEmpty()) {
             resourceRegistration.setDescription(resourceDetailsDTO.getDescription());
         }
-        if (resourceDetailsDTO.getIconUri() != null && !resourceDetailsDTO.getIconUri().isEmpty()) {
-            resourceRegistration.setIconUri(resourceDetailsDTO.getIconUri());
+        if (StringUtils.isNotEmpty(resourceDetailsDTO.getIcon_Uri())) {
+            resourceRegistration.setIconUri(resourceDetailsDTO.getIcon_Uri());
         }
         return resourceRegistration;
     }

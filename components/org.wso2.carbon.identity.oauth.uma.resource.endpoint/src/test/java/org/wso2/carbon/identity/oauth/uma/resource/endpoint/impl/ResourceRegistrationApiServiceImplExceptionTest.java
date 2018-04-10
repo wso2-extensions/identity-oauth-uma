@@ -12,15 +12,12 @@ import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.internal.OSGiDataHolder;
-import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.auth.service.AuthenticationContext;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.TestUtil;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.dto.ResourceDetailsDTO;
 
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.exceptions.ResourceEndpointException;
-import org.wso2.carbon.identity.oauth.uma.resource.service.ResourceConstants;
 import org.wso2.carbon.identity.oauth.uma.resource.service.ResourceService;
-import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAClientException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.model.Resource;
 import org.wso2.carbon.identity.oauth.uma.resource.service.model.ScopeDataDO;
@@ -41,7 +38,7 @@ public class ResourceRegistrationApiServiceImplExceptionTest extends PowerMockTe
 
     private ResourceRegistrationApiServiceImpl resourcesApiService = null;
     private Resource resource;
-    private final String patScope = "uma_protection";
+    private static final String patScope = "uma_protection";
 
     @Mock
     private ResourceService resourceService;
@@ -60,7 +57,6 @@ public class ResourceRegistrationApiServiceImplExceptionTest extends PowerMockTe
 
     @Mock
     private HttpServletRequest mockHTTPServletRequest;
-
 
     @ObjectFactory
     public IObjectFactory getObjectFactory() {
@@ -100,18 +96,15 @@ public class ResourceRegistrationApiServiceImplExceptionTest extends PowerMockTe
         updateDetailsDTO.setName("photo_albem");
         List<String> scopes = new ArrayList<>();
         scopes.add("scope1");
-        updateDetailsDTO.setResourceScopes(scopes);
+        updateDetailsDTO.setResource_Scopes(scopes);
         updateDetailsDTO.setDescription("Collection of digital photographs");
-        updateDetailsDTO.setIconUri("http://www.example.com/icons/sky.png");
+        updateDetailsDTO.setIcon_Uri("http://www.example.com/icons/sky.png");
 
         try {
             when(mockMessageContext.getHttpServletRequest()).thenReturn(mockHTTPServletRequest);
             when(mockHTTPServletRequest.getAttribute(anyString())).thenReturn(mockAuthenticationContext);
             String[] tokenScopes = new String[]{patScope};
-            when(mockAuthenticationContext.getParameter(anyString())).thenReturn(tokenScopes);
-            when(mockAuthenticationContext.getUser()).thenReturn(new User());
-            UMAClientException umaClientException = new UMAClientException(ResourceConstants.
-                    ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE);
+            when(mockAuthenticationContext.getParameter(patScope)).thenReturn(tokenScopes);
             resourcesApiService.updateResource("78uyggggiu", updateDetailsDTO, mockMessageContext);
         } catch (ResourceEndpointException e) {
             assertNotEquals(e.getResponse().getStatus(), Response.Status.UNAUTHORIZED.getStatusCode());
@@ -128,8 +121,8 @@ public class ResourceRegistrationApiServiceImplExceptionTest extends PowerMockTe
             when(mockMessageContext.getHttpServletRequest()).thenReturn(mockHTTPServletRequest);
             when(mockHTTPServletRequest.getAttribute(anyString())).thenReturn(mockAuthenticationContext);
             String[] tokenScopes = new String[]{patScope};
-            when(mockAuthenticationContext.getParameter(anyString())).thenReturn(tokenScopes);
-            resourcesApiService.updateResource("ClientID", updateRequestDTO, mockMessageContext);
+            when(mockAuthenticationContext.getParameter(patScope)).thenReturn(tokenScopes);
+            resourcesApiService.updateResource("78uyggggiu", updateRequestDTO, mockMessageContext);
         } catch (ResourceEndpointException e) {
             assertNotEquals(e.getResponse().getStatus(), Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
         }
