@@ -1,19 +1,57 @@
 swagger: '2.0'
+######################################################
+# Prolog
+######################################################
 info:
-  title: Permission Endpoint
-  description: >
-    The resource server requests one or more permissions (resource identifiers
-    and corresponding scopes) with the authorization server on the client's
-    behalf. This process assumes that the client's request at the protected
-    resource had no token (or had an invalid RPT or insufficient permissions
-    associated with the RPT).
   version: 1.0.0
+  title: "WSO2 Identity Server UMA 2.0 Permission Endpoint"
+  description: >
+    This document specifies an **UMA 2.0 Permission Endpoint** for WSO2 **Identity Server** .
+
+    It is written with [swagger 2](http://swagger.io/).
+
+  contact:
+    name: WSO2
+    url: 'http://wso2.com/identity-and-access-management'
+    email: architecture@wso2.org
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+
+######################################################
+# The fixed parts of the URLs of the API
+######################################################
+
+# The schemes supported by the API
 schemes:
   - https
+
 host: localhost
-basePath: /api/identity/oauth2/uma/v1.0
+
+# The domain of the API.
+# This is configured by the customer during deployment.
+# The given host is just an example.
+# host: apis.is.com
+
+# The base path of the API.
+# Will be prefixed to all paths.
+# if the tenant domain is carbon.super basepath can be /api/identity/consent-mgt/v1.0 like this too.
+basePath: /api/identity/oauth2/uma/permission/v1.0
+
+# The following media types can be passed as input in message bodies of the API.
+# The actual media type must be specified in the Content-Type header field of the request.
+# The default is json, i.e. the Content-Type header is not needed to
+# be set, but supporting it serves extensibility.
 consumes:
   - application/json
+
+# The following media types may be passed as output in message bodies of the API.
+# The media type(s) consumable by the requestor is specified in the Accept header field
+# of the corresponding request.
+# The actual media type returned will be specfied in the Content-Type header field
+# of the of the response.
+# The default of the Accept header is json, i.e. there is not needed to
+# set the value, but supporting it serves extensibility.
 produces:
   - application/json
 paths:

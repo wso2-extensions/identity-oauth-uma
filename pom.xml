@@ -34,7 +34,7 @@
     <name>UMA 2.0</name>
 
     <scm>
-        <url>https://github.com/wso2-incubator/identity-oauth-uma</url>
+        <url>https://github.com/wso2-extensions/identity-oauth-uma</url>
     </scm>
 
     <modules>

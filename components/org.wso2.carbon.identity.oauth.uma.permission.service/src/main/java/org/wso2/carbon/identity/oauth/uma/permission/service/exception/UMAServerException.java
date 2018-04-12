@@ -23,25 +23,25 @@ import org.wso2.carbon.identity.oauth.uma.permission.service.UMAConstants;
 /**
  * Custom exception to be thrown when there is an issue with database.
  */
-public class PermissionDAOException extends UMAException {
+public class UMAServerException extends UMAException {
 
-    public PermissionDAOException(String message) {
+    public UMAServerException(String message) {
 
         super(message);
     }
 
-    public PermissionDAOException(String message, Throwable throwable) {
+    public UMAServerException(String message, Throwable throwable) {
 
         super(message, throwable);
     }
 
-    public PermissionDAOException(UMAConstants.ErrorMessages errorMessage, Throwable throwable) {
+    public UMAServerException(UMAConstants.ErrorMessages errorMessage, Throwable throwable) {
 
         super(errorMessage.getMessage(), throwable);
         this.setCode(errorMessage.getCode());
     }
 
-    public PermissionDAOException(UMAConstants.ErrorMessages errorMessage) {
+    public UMAServerException(UMAConstants.ErrorMessages errorMessage) {
 
         super(errorMessage.getMessage());
         this.setCode(errorMessage.getCode());

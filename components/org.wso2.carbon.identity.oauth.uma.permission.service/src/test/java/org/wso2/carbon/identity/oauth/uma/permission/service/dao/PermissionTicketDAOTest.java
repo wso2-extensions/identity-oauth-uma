@@ -82,7 +82,8 @@ public class PermissionTicketDAOTest extends DAOTestUtils {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             List<Resource> list = new ArrayList<>();
             list.add(getResource());
-            PermissionTicketDAO.persistPTandRequestedPermissions(list, getPermissionTicketDO());
+            PermissionTicketDAO.persistPTandRequestedPermissions(list, getPermissionTicketDO(),
+                    "owner1");
         }
     }
 
@@ -97,7 +98,8 @@ public class PermissionTicketDAOTest extends DAOTestUtils {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             List<Resource> list = new ArrayList<>();
             list.add(getResourceWithInvalidResourceId());
-            PermissionTicketDAO.persistPTandRequestedPermissions(list, getPermissionTicketDO());
+            PermissionTicketDAO.persistPTandRequestedPermissions(list, getPermissionTicketDO(),
+                    "owner1");
         }
     }
 
@@ -112,7 +114,8 @@ public class PermissionTicketDAOTest extends DAOTestUtils {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             List<Resource> list = new ArrayList<>();
             list.add(getResourceWithInvalidResourceScope());
-            PermissionTicketDAO.persistPTandRequestedPermissions(list, getPermissionTicketDO());
+            PermissionTicketDAO.persistPTandRequestedPermissions(list, getPermissionTicketDO(),
+                    "owner1");
         }
     }
 
@@ -126,7 +129,8 @@ public class PermissionTicketDAOTest extends DAOTestUtils {
         try (Connection connection = DAOTestUtils.getConnection(DB_NAME)) {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             List<Resource> list = new ArrayList<>();
-            PermissionTicketDAO.persistPTandRequestedPermissions(list, new PermissionTicketModel());
+            PermissionTicketDAO.persistPTandRequestedPermissions(list, new PermissionTicketModel(),
+                    "owner1");
         }
     }
 

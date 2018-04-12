@@ -31,9 +31,9 @@ public class UMAConstants {
     public enum ErrorMessages {
         ERROR_BAD_REQUEST_INVALID_RESOURCE_ID("6001", "Permission request failed with bad resource ID."),
         ERROR_BAD_REQUEST_INVALID_RESOURCE_SCOPE("6002", "Permission request failed with bad resource scope."),
-        ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_PT("6003", "Error occurred while persisting PT."),
-        ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_REQUESTED_PERMISSIONS("6004", "Error occurred while persisting" +
-                " requested permissions."),
+        ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_PT("6003", "Server error occurred while persisting PT."),
+        ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_REQUESTED_PERMISSIONS("6004", "Server error occurred while " +
+                "persisting requested permissions."),
         ERROR_UNEXPECTED("6005", "Unexpected error.");
 
         private final String code;
@@ -75,5 +75,6 @@ public class UMAConstants {
         public static final String RESOURCE_ID = "resource_id";
         public static final String RESOURCE_SCOPE = "resource_scope";
         public static final String ID = "id";
+        public static final String RESOURCE_OWNER_NAME = "resource_owner_name";
     }
 }

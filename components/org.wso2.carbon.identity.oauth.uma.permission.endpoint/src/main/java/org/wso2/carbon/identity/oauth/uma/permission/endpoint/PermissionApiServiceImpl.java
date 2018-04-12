@@ -31,9 +31,8 @@ import org.wso2.carbon.identity.oauth.uma.permission.endpoint.dto.ResourceModelD
 import org.wso2.carbon.identity.oauth.uma.permission.endpoint.exception.PermissionEndpointException;
 import org.wso2.carbon.identity.oauth.uma.permission.service.PermissionService;
 import org.wso2.carbon.identity.oauth.uma.permission.service.UMAConstants;
-import org.wso2.carbon.identity.oauth.uma.permission.service.exception.PermissionDAOException;
 import org.wso2.carbon.identity.oauth.uma.permission.service.exception.UMAException;
-import org.wso2.carbon.identity.oauth.uma.permission.service.exception.UMAResourceException;
+import org.wso2.carbon.identity.oauth.uma.permission.service.exception.UMAServerException;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.PermissionTicketModel;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.Resource;
 
@@ -47,9 +46,12 @@ import javax.ws.rs.core.Response;
 public class PermissionApiServiceImpl extends PermissionApiService {
 
     private static Log log = LogFactory.getLog(PermissionApiServiceImpl.class);
-    private final String patScope = "uma_protection";
-    private final String authContext = "auth-context";
-    private final String oauth2AllowedScopes = "oauth2-allowed-scopes";
+    //The access token (PAT - Protection API Access Token) should contain the scope uma_protection to access the
+    // permission endpoint.
+    public static final String PAT_SCOPE = "uma_protection";
+    public static final String OAUTH2_ALLOWED_SCOPES = "oauth2-allowed-scopes";
+    private static final String AUTH_CONTEXT = "auth-context";
+    private static final String CONSUMER_KEY = "consumer-key";
 
     /**
      * Requests a permission ticket.
@@ -60,13 +62,19 @@ public class PermissionApiServiceImpl extends PermissionApiService {
     @Override
     public Response requestPermission(ResourceModelDTO requestedPermission, MessageContext context) {
 
-        if (!isValidTokenScope(context)) {
-            log.error("Access token doesn't contain valid scope.");
-            return Response.status(Response.Status.UNAUTHORIZED).build();
+        if (!isValidTokenScope(context) && getResourceOwner(context) == null && getConsumerKey(context) == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Required context information not available in the access token.");
+            }
+            return Response.status(Response.Status.UNAUTHORIZED).entity(getErrorResponseDTO
+                    ("unauthorized", "Unauthorized user")).build();
         }
         if (requestedPermission == null) {
-            log.error("Empty request body.");
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            if (log.isDebugEnabled()) {
+                log.debug("Invalid request.");
+            }
+            return Response.status(Response.Status.BAD_REQUEST).entity(getErrorResponseDTO
+                    ("invalid_request", "Empty request body")).build();
         }
 
         PermissionService permissionService = (PermissionService) PrivilegedCarbonContext.getThreadLocalCarbonContext()
@@ -75,17 +83,20 @@ public class PermissionApiServiceImpl extends PermissionApiService {
         PermissionTicketModel permissionTicketModel = null;
         try {
             permissionTicketModel = permissionService.issuePermissionTicket(getPermissionTicketRequest(
-                    requestedPermission), PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
-        } catch (UMAResourceException e) {
-            handleErrorResponse(e, false);
-        } catch (PermissionDAOException e) {
-            handleErrorResponse(e, true);
-        } catch (Throwable throwable) {
-            handleErrorResponse(throwable, true);
+                    requestedPermission), PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId(),
+                    getResourceOwner(context));
+        } catch (UMAException e) {
+            handleErrorResponse("Error when requesting permission for consumer key: " + getConsumerKey(context),
+                    e);
         }
 
         PermissionTicketResponseDTO permissionTicketResponseDTO = new PermissionTicketResponseDTO();
-        permissionTicketResponseDTO.setTicket(permissionTicketModel.getTicket());
+        if (permissionTicketModel != null) {
+            permissionTicketResponseDTO.setTicket(permissionTicketModel.getTicket());
+        } else {
+            handleErrorResponse("Error when requesting permission for consumer key: " + getConsumerKey(context),
+                    new UMAServerException(UMAConstants.ErrorMessages.ERROR_UNEXPECTED));
+        }
 
         if (log.isDebugEnabled()) {
             if (IdentityUtil.isTokenLoggable("PermissionTicket")) {
@@ -98,13 +109,63 @@ public class PermissionApiServiceImpl extends PermissionApiService {
         return Response.status(Response.Status.CREATED).entity(permissionTicketResponseDTO).build();
     }
 
+    /**
+     * Validate if the the token contains the required scope.
+     *
+     * @param context message context
+     * @return scope validation state of the access token
+     */
     private boolean isValidTokenScope(MessageContext context) {
 
-        String[] tokenScopes = (String[]) ((AuthenticationContext) context.getHttpServletRequest()
-                .getAttribute(authContext)).getParameter(oauth2AllowedScopes);
-        return ArrayUtils.contains(tokenScopes, patScope);
+        String[] tokenScopes = null;
+        if (context.getHttpServletRequest().getAttribute(AUTH_CONTEXT) instanceof AuthenticationContext) {
+            tokenScopes = (String[]) ((AuthenticationContext) context.getHttpServletRequest()
+                    .getAttribute(AUTH_CONTEXT)).getParameter(OAUTH2_ALLOWED_SCOPES);
+        }
+        return ArrayUtils.contains(tokenScopes, PAT_SCOPE);
     }
 
+    /**
+     * Retrieve resource owner name
+     *
+     * @param context message context
+     */
+    private String getResourceOwner(MessageContext context) {
+
+        if (context.getHttpServletRequest().getAttribute(AUTH_CONTEXT) instanceof AuthenticationContext) {
+            AuthenticationContext authContext = (AuthenticationContext) context.getHttpServletRequest()
+                    .getAttribute(AUTH_CONTEXT);
+            if (authContext.getUser() != null) {
+                return authContext.getUser().getUserName();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Retrieve consumer key which represents the resource server.
+     *
+     * @param context message context
+     * @return consumerKey
+     */
+    private String getConsumerKey(MessageContext context) {
+
+        if (context.getHttpServletRequest().getAttribute(AUTH_CONTEXT) instanceof AuthenticationContext) {
+            AuthenticationContext authContext = (AuthenticationContext) context.getHttpServletRequest()
+                    .getAttribute(AUTH_CONTEXT);
+            if (authContext.getParameter(CONSUMER_KEY) != null) {
+                return String.valueOf(authContext.getParameter(CONSUMER_KEY));
+            }
+        }
+        return null;
+    }
+
+    /**
+     * List requested permissions.
+     *
+     * @param requestedPermission Start Index of the result set to enforce pagination
+     * @return List of requested resources
+     */
     private List<Resource> getPermissionTicketRequest(ResourceModelDTO requestedPermission) {
 
         List<Resource> resourceList = new ArrayList<>();
@@ -112,59 +173,68 @@ public class PermissionApiServiceImpl extends PermissionApiService {
             Resource resource = new Resource();
             resource.setResourceId(resourceModelInnerDTO.getResourceId());
             List<String> resourceScopesList = new ArrayList<>();
-            resourceModelInnerDTO.getResourceScopes().forEach(resourceScope -> {
-                resourceScopesList.add(resourceScope);
-            });
+            resourceScopesList.addAll(resourceModelInnerDTO.getResourceScopes());
             resource.setResourceScopes(resourceScopesList);
             resourceList.add(resource);
         });
         return resourceList;
     }
 
-    private void handleErrorResponse(Throwable throwable, boolean isServerException)
-            throws PermissionEndpointException {
+    /**
+     * Logs the error, builds a PermissionEndpointException with specified details and throws it.
+     *
+     * @param message      error message
+     * @param umaException
+     * @throws PermissionEndpointException
+     */
+    private void handleErrorResponse(String message, UMAException umaException) throws PermissionEndpointException {
 
-        String code;
+        String code = umaException.getCode();
         String errorCode = null;
         Response.Status status = Response.Status.INTERNAL_SERVER_ERROR;
-        boolean isStatusOnly = true;
-        if (throwable instanceof UMAException) {
-            code = ((UMAException) throwable).getCode();
-        } else {
-            code = UMAConstants.ErrorMessages.ERROR_UNEXPECTED.getCode();
-        }
+        boolean isHTTPStatusOnly = true;
+        boolean isServerException = umaException instanceof UMAServerException;
         if (isServerException) {
-            if (throwable == null) {
-                log.error(status.getReasonPhrase());
-            } else {
-                log.error(status.getReasonPhrase(), throwable);
-            }
+            log.error(message, umaException);
         } else {
-            log.error("Client error while requesting permission ticket.", throwable);
-            if (code != null) {
-                if (HandleErrorResponseConstants.RESPONSE_DATA_MAP.containsKey(code)) {
-                    String statusCode = HandleErrorResponseConstants.RESPONSE_DATA_MAP.get(code)[0];
-                    errorCode = HandleErrorResponseConstants.RESPONSE_DATA_MAP.get(code)[1];
-                    status = Response.Status.fromStatusCode(Integer.parseInt(statusCode));
-                    isStatusOnly = false;
-                }
+            log.error(message + " - " + umaException.getErrorLogMessage());
+            if (log.isDebugEnabled()) {
+                log.debug(message, umaException);
+            }
+            if (HandleErrorResponseConstants.RESPONSE_DATA_MAP.containsKey(code)) {
+                String statusCode = HandleErrorResponseConstants.RESPONSE_DATA_MAP.get(code)[0];
+                errorCode = HandleErrorResponseConstants.RESPONSE_DATA_MAP.get(code)[1];
+                status = Response.Status.fromStatusCode(Integer.parseInt(statusCode));
+                isHTTPStatusOnly = false;
             }
         }
-        throw buildPermissionEndpointException(status, errorCode, throwable == null ? "" : throwable.getMessage(),
-                isStatusOnly);
+        throw buildPermissionEndpointException(status, errorCode, umaException.getMessage(), isHTTPStatusOnly);
     }
 
     private PermissionEndpointException buildPermissionEndpointException(Response.Status status,
                                                                          String errorCode, String description,
-                                                                         boolean isStatusOnly) {
+                                                                         boolean isHTTPStatusOnly) {
 
-        if (isStatusOnly) {
+        if (isHTTPStatusOnly) {
             return new PermissionEndpointException(status);
         } else {
-            ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO();
-            errorResponseDTO.setError(errorCode);
-            errorResponseDTO.setErrorDescription(description);
-            return new PermissionEndpointException(status, errorResponseDTO);
+            return new PermissionEndpointException(status, getErrorResponseDTO(errorCode, description));
         }
     }
+
+    /**
+     * Returns a generic errorResponseDTO
+     *
+     * @param errorCode   specifies the error code.
+     * @param description describes the error code briefly.
+     * @return A generic errorResponseDTO with the specified details
+     */
+    private ErrorResponseDTO getErrorResponseDTO(String errorCode, String description) {
+
+        ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO();
+        errorResponseDTO.setError(errorCode);
+        errorResponseDTO.setErrorDescription(description);
+        return errorResponseDTO;
+    }
+
 }

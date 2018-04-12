@@ -20,8 +20,8 @@ package org.wso2.carbon.identity.oauth.uma.permission.service.dao;
 
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.oauth.uma.permission.service.UMAConstants;
-import org.wso2.carbon.identity.oauth.uma.permission.service.exception.PermissionDAOException;
-import org.wso2.carbon.identity.oauth.uma.permission.service.exception.UMAResourceException;
+import org.wso2.carbon.identity.oauth.uma.permission.service.exception.UMAClientException;
+import org.wso2.carbon.identity.oauth.uma.permission.service.exception.UMAServerException;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.PermissionTicketModel;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.Resource;
 import org.wso2.carbon.identity.oauth2.util.NamedPreparedStatement;
@@ -55,7 +55,8 @@ public class PermissionTicketDAO {
             + "; AND RESOURCE_IDENTITY = (SELECT ID FROM IDN_RESOURCE WHERE RESOURCE_ID = :" +
             UMAConstants.SQLPlaceholders.RESOURCE_ID + ";)))";
     private static final String VALIDATE_REQUESTED_RESOURCE_IDS_WITH_REGISTERED_RESOURCE_IDS = "SELECT ID " +
-            "FROM IDN_RESOURCE WHERE RESOURCE_ID = :" + UMAConstants.SQLPlaceholders.RESOURCE_ID + ";";
+            "FROM IDN_RESOURCE WHERE RESOURCE_ID = :" + UMAConstants.SQLPlaceholders.RESOURCE_ID + "; AND " +
+            "RESOURCE_OWNER_NAME = :" + UMAConstants.SQLPlaceholders.RESOURCE_OWNER_NAME + ";";
     private static final String VALIDATE_REQUESTED_RESOURCE_SCOPES_WITH_REGISTERED_RESOURCE_SCOPES = "SELECT ID FROM" +
             " IDN_RESOURCE_SCOPE WHERE SCOPE_NAME = :" + UMAConstants.SQLPlaceholders.RESOURCE_SCOPE + "; AND " +
             "RESOURCE_IDENTITY = (SELECT ID FROM IDN_RESOURCE WHERE RESOURCE_ID = :" +
@@ -67,15 +68,16 @@ public class PermissionTicketDAO {
      *
      * @param resourceList          A list with the resource ids and the corresponding scopes.
      * @param permissionTicketModel Model class for permission ticket values.
-     * @throws PermissionDAOException Exception thrown when there is a database issue.
-     * @throws UMAResourceException   Exception thrown when there is an invalid resource ID/scope.
+     * @throws UMAServerException Exception thrown when there is a database issue.
+     * @throws UMAClientException   Exception thrown when there is an invalid resource ID/scope.
      */
     public static void persistPTandRequestedPermissions(List<Resource> resourceList,
-                                                        PermissionTicketModel permissionTicketModel) throws
-            UMAResourceException, PermissionDAOException {
+                                                        PermissionTicketModel permissionTicketModel,
+                                                        String resourceOwnerName) throws UMAClientException,
+            UMAServerException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
-            checkResourceIdsExistence(connection, resourceList);
+            checkResourceIdsExistence(connection, resourceList, resourceOwnerName);
             checkResourceScopesExistence(connection, resourceList);
             connection.setAutoCommit(false);
             NamedPreparedStatement ptNamedPreparedStatement = new NamedPreparedStatement(connection, STORE_PT_QUERY);
@@ -97,7 +99,7 @@ public class PermissionTicketDAO {
                     if (resultSet.next()) {
                         id = resultSet.getLong(1);
                     } else {
-                        throw new PermissionDAOException(UMAConstants.ErrorMessages
+                        throw new UMAServerException(UMAConstants.ErrorMessages
                                 .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_PT);
                     }
                 }
@@ -136,37 +138,40 @@ public class PermissionTicketDAO {
             }
             connection.commit();
         } catch (SQLException e) {
-            throw new PermissionDAOException(UMAConstants.ErrorMessages
+            throw new UMAServerException(UMAConstants.ErrorMessages
                     .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_REQUESTED_PERMISSIONS, e);
         }
     }
 
-    private static void checkResourceIdsExistence(Connection connection, List<Resource> resourceList) throws
-            UMAResourceException, PermissionDAOException {
+    private static void checkResourceIdsExistence(Connection connection, List<Resource> resourceList, String
+            resourceOwnerName) throws UMAClientException, UMAServerException {
 
         for (Resource resource : resourceList) {
             try {
                 NamedPreparedStatement resourceIdNamedPreparedStatement = new NamedPreparedStatement(connection,
                         VALIDATE_REQUESTED_RESOURCE_IDS_WITH_REGISTERED_RESOURCE_IDS);
+                resourceIdNamedPreparedStatement.setString(UMAConstants.SQLPlaceholders.RESOURCE_OWNER_NAME,
+                        resourceOwnerName);
                 resourceIdNamedPreparedStatement.setString(UMAConstants.SQLPlaceholders.RESOURCE_ID,
                         resource.getResourceId());
                 try (PreparedStatement resourceIdStatement = resourceIdNamedPreparedStatement.getPreparedStatement()) {
                     try (ResultSet resultSet = resourceIdStatement.executeQuery()) {
                         if (!resultSet.next()) {
-                            throw new UMAResourceException(UMAConstants.ErrorMessages
-                                    .ERROR_BAD_REQUEST_INVALID_RESOURCE_ID);
+                            throw new UMAClientException(UMAConstants.ErrorMessages
+                                    .ERROR_BAD_REQUEST_INVALID_RESOURCE_ID, "Permission request failed with bad " +
+                                    "resource ID : " + resource.getResourceId());
                         }
                     }
                 }
             } catch (SQLException e) {
-                throw new PermissionDAOException(UMAConstants.ErrorMessages
+                throw new UMAServerException(UMAConstants.ErrorMessages
                         .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_REQUESTED_PERMISSIONS, e);
             }
         }
     }
 
     private static void checkResourceScopesExistence(Connection connection, List<Resource> resourceList) throws
-            UMAResourceException, PermissionDAOException {
+            UMAClientException, UMAServerException {
 
         for (Resource resource : resourceList) {
             try {
@@ -181,8 +186,9 @@ public class PermissionTicketDAO {
                                 UMAConstants.SQLPlaceholders.RESOURCE_SCOPE, scope);
                         try (ResultSet resultSet = resourceScopeStatement.executeQuery()) {
                             if (!resultSet.next()) {
-                                throw new UMAResourceException(UMAConstants.ErrorMessages
-                                        .ERROR_BAD_REQUEST_INVALID_RESOURCE_SCOPE);
+                                throw new UMAClientException(UMAConstants.ErrorMessages
+                                        .ERROR_BAD_REQUEST_INVALID_RESOURCE_SCOPE, "Permission request failed with " +
+                                        "bad resource scope " + scope + " for resource " + resource.getResourceId());
                             }
                         }
 
@@ -190,7 +196,7 @@ public class PermissionTicketDAO {
 
                 }
             } catch (SQLException e) {
-                throw new PermissionDAOException(UMAConstants.ErrorMessages
+                throw new UMAServerException(UMAConstants.ErrorMessages
                         .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_REQUESTED_PERMISSIONS, e);
             }
         }

@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.identity.oauth.uma.permission.service;
 
-import org.wso2.carbon.identity.oauth.uma.permission.service.exception.PermissionDAOException;
-import org.wso2.carbon.identity.oauth.uma.permission.service.exception.UMAResourceException;
+import org.wso2.carbon.identity.oauth.uma.permission.service.exception.UMAClientException;
+import org.wso2.carbon.identity.oauth.uma.permission.service.exception.UMAServerException;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.PermissionTicketModel;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.Resource;
 
@@ -30,6 +30,6 @@ import java.util.List;
  */
 public interface PermissionService {
 
-    PermissionTicketModel issuePermissionTicket(List<Resource> resourceList, int tenantId) throws
-            UMAResourceException, PermissionDAOException;
+    PermissionTicketModel issuePermissionTicket(List<Resource> resourceList, int tenantId, String resourceOwnerName)
+            throws UMAClientException, UMAServerException;
 }
