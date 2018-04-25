@@ -34,7 +34,10 @@
     <name>UMA 2.0</name>
 
     <scm>
-        <url>https://github.com/wso2-extensions/identity-oauth-uma</url>
+        <url>https://github.com/wso2-extensions/identity-oauth-uma.git</url>
+        <developerConnection>scm:git:https://github.com/wso2-extensions/identity-oauth-uma.git</developerConnection>
+        <connection>scm:git:https://github.com/wso2-extensions/identity-oauth-uma.git</connection>
+        <tag>HEAD</tag>
     </scm>
 
     <modules>
