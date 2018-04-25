@@ -24,6 +24,7 @@ package org.wso2.carbon.identity.oauth.uma.permission.service.exception;
 public class UMAException extends Exception {
 
     private String code = null;
+    private String errorLogMessage = null;
 
     public UMAException(String message) {
 
@@ -54,5 +55,15 @@ public class UMAException extends Exception {
     public void setCode(String code) {
 
         this.code = code;
+    }
+
+    public String getErrorLogMessage() {
+
+        return errorLogMessage;
+    }
+
+    public void setErrorLogMessage(String errorLogMessage) {
+
+        this.errorLogMessage = errorLogMessage;
     }
 }

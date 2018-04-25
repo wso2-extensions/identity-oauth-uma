@@ -37,8 +37,8 @@ import org.wso2.carbon.identity.oauth.uma.permission.endpoint.dto.ResourceModelD
 import org.wso2.carbon.identity.oauth.uma.permission.endpoint.exception.PermissionEndpointException;
 import org.wso2.carbon.identity.oauth.uma.permission.service.PermissionService;
 import org.wso2.carbon.identity.oauth.uma.permission.service.UMAConstants;
-import org.wso2.carbon.identity.oauth.uma.permission.service.exception.PermissionDAOException;
-import org.wso2.carbon.identity.oauth.uma.permission.service.exception.UMAResourceException;
+import org.wso2.carbon.identity.oauth.uma.permission.service.exception.UMAClientException;
+import org.wso2.carbon.identity.oauth.uma.permission.service.exception.UMAServerException;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.PermissionTicketModel;
 
 import javax.servlet.http.HttpServletRequest;
@@ -52,13 +52,14 @@ import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+import static org.wso2.carbon.identity.oauth.uma.permission.endpoint.PermissionApiServiceImpl.OAUTH2_ALLOWED_SCOPES;
+import static org.wso2.carbon.identity.oauth.uma.permission.endpoint.PermissionApiServiceImpl.PAT_SCOPE;
 
 @PrepareForTest({BundleContext.class, ServiceTracker.class, PrivilegedCarbonContext.class, PermissionService.class})
 public class PermissionApiServiceImplTest extends PowerMockTestCase {
 
     private PermissionApiServiceImpl permissionApiService;
     private ResourceModelDTO resourceModelDTO;
-    private final String patScope = "uma_protection";
 
     @Mock
     private BundleContext mockBundleContext;
@@ -111,11 +112,12 @@ public class PermissionApiServiceImplTest extends PowerMockTestCase {
 
         when(mockMessageContext.getHttpServletRequest()).thenReturn(mockHTTPServletRequest);
         when(mockHTTPServletRequest.getAttribute(anyString())).thenReturn(mockAuthenticationContext);
-        String[] tokenScopes = new String[]{patScope};
+        String[] tokenScopes = new String[]{PAT_SCOPE};
         when(mockAuthenticationContext.getParameter(anyString())).thenReturn(tokenScopes);
         when(mockAuthenticationContext.getUser()).thenReturn(new User());
         PermissionTicketModel permissionTicketModel = new PermissionTicketModel();
-        when(mockPermissionService.issuePermissionTicket(anyList(), anyInt())).thenReturn(permissionTicketModel);
+        when(mockPermissionService.issuePermissionTicket(anyList(), anyInt(), anyString())).
+                thenReturn(permissionTicketModel);
         when(mockPermissionTicketModel.getTicket()).thenReturn("ticket");
         assertEquals(permissionApiService.requestPermission(resourceModelDTO, mockMessageContext).getStatus(),
                 Response.Status.CREATED.getStatusCode());
@@ -126,11 +128,11 @@ public class PermissionApiServiceImplTest extends PowerMockTestCase {
 
         when(mockMessageContext.getHttpServletRequest()).thenReturn(mockHTTPServletRequest);
         when(mockHTTPServletRequest.getAttribute(anyString())).thenReturn(mockAuthenticationContext);
-        String[] tokenScopes = new String[]{patScope};
+        String[] tokenScopes = new String[]{PAT_SCOPE};
         when(mockAuthenticationContext.getParameter(anyString())).thenReturn(tokenScopes);
         when(mockAuthenticationContext.getUser()).thenReturn(new User());
-        doThrow(new PermissionDAOException("Server")).when(mockPermissionService).issuePermissionTicket(anyList(),
-                anyInt());
+        doThrow(new UMAServerException("Server")).when(mockPermissionService).issuePermissionTicket(anyList(),
+                anyInt(), anyString());
         try {
             permissionApiService.requestPermission(resourceModelDTO, mockMessageContext);
         } catch (PermissionEndpointException e) {
@@ -143,17 +145,17 @@ public class PermissionApiServiceImplTest extends PowerMockTestCase {
 
         when(mockMessageContext.getHttpServletRequest()).thenReturn(mockHTTPServletRequest);
         when(mockHTTPServletRequest.getAttribute(anyString())).thenReturn(mockAuthenticationContext);
-        String[] tokenScopes = new String[]{patScope};
+        String[] tokenScopes = new String[]{PAT_SCOPE};
         when(mockAuthenticationContext.getParameter(anyString())).thenReturn(tokenScopes);
         when(mockAuthenticationContext.getUser()).thenReturn(new User());
-        UMAResourceException umaResourceException = new UMAResourceException(UMAConstants
+        UMAClientException umaClientException = new UMAClientException(UMAConstants
                 .ErrorMessages.ERROR_BAD_REQUEST_INVALID_RESOURCE_ID);
-        doThrow(umaResourceException).when(mockPermissionService).issuePermissionTicket(anyList(), anyInt());
+        doThrow(umaClientException).when(mockPermissionService).issuePermissionTicket(anyList(), anyInt(), anyString());
         try {
             permissionApiService.requestPermission(resourceModelDTO, mockMessageContext);
         } catch (PermissionEndpointException e) {
             assertTrue(HandleErrorResponseConstants.RESPONSE_DATA_MAP.containsKey(
-                    umaResourceException.getCode()));
+                    umaClientException.getCode()));
         }
     }
 
@@ -163,7 +165,7 @@ public class PermissionApiServiceImplTest extends PowerMockTestCase {
         when(mockMessageContext.getHttpServletRequest()).thenReturn(mockHTTPServletRequest);
         when(mockHTTPServletRequest.getAttribute(anyString())).thenReturn(mockAuthenticationContext);
         String[] tokenScopes = new String[]{"uma_protection_fake"};
-        when(mockAuthenticationContext.getParameter(anyString())).thenReturn(tokenScopes);
+        when(mockAuthenticationContext.getParameter(OAUTH2_ALLOWED_SCOPES)).thenReturn(tokenScopes);
         assertEquals(permissionApiService.requestPermission(resourceModelDTO, mockMessageContext).getStatus(),
                 Response.Status.UNAUTHORIZED.getStatusCode());
 
@@ -174,7 +176,7 @@ public class PermissionApiServiceImplTest extends PowerMockTestCase {
 
         when(mockMessageContext.getHttpServletRequest()).thenReturn(mockHTTPServletRequest);
         when(mockHTTPServletRequest.getAttribute(anyString())).thenReturn(mockAuthenticationContext);
-        String[] tokenScopes = new String[]{patScope};
+        String[] tokenScopes = new String[]{PAT_SCOPE};
         when(mockAuthenticationContext.getParameter(anyString())).thenReturn(tokenScopes);
         ResourceModelDTO requestedPermission = null;
         assertEquals(permissionApiService.requestPermission(requestedPermission, mockMessageContext).getStatus(),

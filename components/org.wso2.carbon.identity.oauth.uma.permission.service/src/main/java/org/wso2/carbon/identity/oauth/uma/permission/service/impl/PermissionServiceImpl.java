@@ -21,8 +21,8 @@ package org.wso2.carbon.identity.oauth.uma.permission.service.impl;
 import org.wso2.carbon.identity.oauth.uma.permission.service.PermissionService;
 import org.wso2.carbon.identity.oauth.uma.permission.service.ReadPropertiesFile;
 import org.wso2.carbon.identity.oauth.uma.permission.service.dao.PermissionTicketDAO;
-import org.wso2.carbon.identity.oauth.uma.permission.service.exception.PermissionDAOException;
-import org.wso2.carbon.identity.oauth.uma.permission.service.exception.UMAResourceException;
+import org.wso2.carbon.identity.oauth.uma.permission.service.exception.UMAClientException;
+import org.wso2.carbon.identity.oauth.uma.permission.service.exception.UMAServerException;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.PermissionTicketModel;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.Resource;
 
@@ -39,8 +39,8 @@ public class PermissionServiceImpl implements PermissionService {
     private static final String UTC = "UTC";
 
     @Override
-    public PermissionTicketModel issuePermissionTicket(List<Resource> resourceList, int tenantId) throws
-            UMAResourceException, PermissionDAOException {
+    public PermissionTicketModel issuePermissionTicket(List<Resource> resourceList, int tenantId, String
+            resourceOwnerName) throws UMAClientException, UMAServerException {
 
         PermissionTicketModel permissionTicketModel = new PermissionTicketModel();
         ReadPropertiesFile.readFileConfigValues(permissionTicketModel);
@@ -52,7 +52,7 @@ public class PermissionServiceImpl implements PermissionService {
         permissionTicketModel.setStatus("ACTIVE");
         permissionTicketModel.setTenantId(tenantId);
 
-        PermissionTicketDAO.persistPTandRequestedPermissions(resourceList, permissionTicketModel);
+        PermissionTicketDAO.persistPTandRequestedPermissions(resourceList, permissionTicketModel, resourceOwnerName);
 
         return permissionTicketModel;
     }
