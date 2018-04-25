@@ -24,6 +24,7 @@ public class UMAException extends Exception {
     private String errorCode;
     private String errorDescription;
     private int statusCode;
+    private String errorLogMessage = null;
 
     public UMAException() {
 
@@ -44,10 +45,10 @@ public class UMAException extends Exception {
         super(message, throwable);
     }
 
-    public UMAException(String errorcode, String message) {
+    public UMAException(String errorCode, String message) {
 
         super(message);
-        this.errorCode = errorcode;
+        this.errorCode = errorCode;
     }
 
     public UMAException(String errorCode, String message, Throwable throwable) {
@@ -84,5 +85,15 @@ public class UMAException extends Exception {
     public void setStatusCode(int statusCode) {
 
         this.statusCode = statusCode;
+    }
+
+    public String getErrorLogMessage() {
+
+        return errorLogMessage;
+    }
+
+    public void setErrorLogMessage(String errorLogMessage) {
+
+        this.errorLogMessage = errorLogMessage;
     }
 }

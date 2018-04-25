@@ -23,20 +23,21 @@ import org.wso2.carbon.identity.oauth.uma.resource.service.ResourceConstants;
  */
 public class UMAClientException extends UMAException {
 
-    public UMAClientException(String wqgfj) {
+    public UMAClientException(String message) {
 
     }
 
-    public UMAClientException(
-            ResourceConstants.ErrorMessages errorCodeFailToGetResource) {
+    public UMAClientException(ResourceConstants.ErrorMessages errorCode) {
 
-        super(errorCodeFailToGetResource.getCode(), errorCodeFailToGetResource.getMessage());
-        this.setErrorDescription(errorCodeFailToGetResource.getMessage());
+        super(errorCode.getCode(), errorCode.getMessage());
+        this.setErrorCode(errorCode.getCode());
+        this.setErrorDescription(errorCode.getMessage());
     }
 
-    public UMAClientException(ResourceConstants.ErrorMessages message, Throwable throwable) {
+    public UMAClientException(ResourceConstants.ErrorMessages errorMessage, Throwable throwable) {
 
-        super(String.valueOf(message), throwable);
+        super(errorMessage.getMessage(), throwable);
+        this.setErrorCode(errorMessage.getCode());
     }
 
     public UMAClientException(int stausCode, String errorMessage) {

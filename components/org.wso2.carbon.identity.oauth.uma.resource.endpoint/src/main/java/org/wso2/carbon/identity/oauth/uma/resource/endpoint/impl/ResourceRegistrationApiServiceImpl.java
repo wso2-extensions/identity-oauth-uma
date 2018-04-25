@@ -16,11 +16,14 @@
 
 package org.wso2.carbon.identity.oauth.uma.resource.endpoint.impl;
 
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.cxf.common.util.CollectionUtils;
 import org.apache.cxf.jaxrs.ext.MessageContext;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.auth.service.AuthenticationContext;
-import org.wso2.carbon.identity.oauth.uma.resource.endpoint.HandleErrorResponseConstants;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.ResourceRegistrationApiService;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.dto.CreateResourceDTO;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.dto.ErrorDTO;
@@ -37,11 +40,12 @@ import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAExcepti
 import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAServiceException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.model.Resource;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.ws.rs.core.Response;
 
+import static org.wso2.carbon.identity.oauth.uma.resource.service.ResourceConstants.RESOURCE_PATH;
 
 /**
  * ResourceRegistrationApiServiceImpl is used to handling resource management.
@@ -49,9 +53,12 @@ import javax.ws.rs.core.Response;
 public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiService {
 
     private static final Log log = LogFactory.getLog(ResourceRegistrationApiServiceImpl.class);
-    private static String tenantDomain = null;
-    private static String resourceOwnerName = null;
-    private static String consumerKey = null;
+    // These variable related to PAT_SCOPE ("uma_protection") is defined in the UMA 2.o specification.
+    private static final String PAT_SCOPE = "uma_protection";
+    // These variables are assigning from auth-rest valve.
+    private static final String AUTH_CONTEXT = "auth-context";
+    private static final String OAUTH2_ALLOWED_SCOPES = "oauth2-allowed-scopes";
+    private static final String CONSUMER_KEY = "consumer-key";
 
     /**
      * Register a resource with resource details
@@ -62,36 +69,41 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
     @Override
     public Response registerResource(ResourceDetailsDTO requestedResource, MessageContext context) {
 
-        tenantDomain =  ((AuthenticationContext) context.getHttpServletRequest().getAttribute("auth-context"))
-                .getUser().getTenantDomain();
-        ;
-        resourceOwnerName = ((AuthenticationContext) context.getHttpServletRequest().getAttribute("auth-context"))
-                .getUser().getUserName();
-        consumerKey = (String) ((AuthenticationContext) context.getHttpServletRequest().getAttribute("auth-context"))
-                .getParameter("consumer-key");
-        Response response = null;
+        String resourceOwner = getResourceOwner(context);
+        int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
+        String consumerKey = getConsumerKey(context);
 
-        if (requestedResource == null) {
-            log.error("Request body cannot be empty.");
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-        try {
-            Resource registerResource = ResourceUtils.getResourceService()
-                    .registerResource(ResourceUtils.getResource(requestedResource), resourceOwnerName, tenantDomain
-                            , consumerKey);
-            CreateResourceDTO createResourceDTO = ResourceUtils.createResponse(registerResource);
-            return Response.status(Response.Status.CREATED).entity(createResourceDTO).build();
+        if (isValidToken(context) && resourceOwner != null && consumerKey != null) {
 
-        } catch (UMAServiceException e) {
-            handleErrorResponse(e, log);
-        } catch (UMAClientException e) {
-            handleErrorResponse(e, log);
-            log.error("Client error when retrieving resource from the resource server.", e);
-        } catch (Throwable throwable) {
-            handleErrorResponse((UMAException) throwable, log);
-            log.error("Internal server error occurred. ", throwable);
+            if (log.isDebugEnabled()) {
+                log.debug("Access token is valid and all required context information " +
+                        "are existing in the token.");
+            }
+
+            if (CollectionUtils.isEmpty(requestedResource.getResource_Scopes())) {
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Resource scopes not existing in the flow of resource registration. ");
+                }
+                return Response.status(Response.Status.BAD_REQUEST).entity(getErrorDTO("Bad_Request",
+                        "ResourceId is not in format or message context is null. ")).build();
+            }
+            try {
+                Resource registerResource = ResourceUtils.getResourceService()
+                        .registerResource(ResourceUtils.getResource(requestedResource), resourceOwner,
+                                tenantId, consumerKey);
+                CreateResourceDTO createResourceDTO = ResourceUtils.createResponse(registerResource);
+
+                return Response.status(Response.Status.CREATED).entity(createResourceDTO)
+                        .location(getResourceLocationURI(createResourceDTO)).build();
+            } catch (UMAException e) {
+                handleErrorResponse("Error when requesting context information: " +
+                        isValidToken(context) + getResourceOwner(context) + getConsumerKey(context), e);
+            } catch (URISyntaxException e) {
+                log.error("string could not be parsed as a URI reference.", e);
+            }
         }
-        return response;
+        return getUnauthorizedResponseObject();
     }
 
     /**
@@ -103,30 +115,34 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
     @Override
     public Response getResource(String resourceId, MessageContext context) {
 
-        Response response = null;
-
         try {
-            if (isResourceId(resourceId)) {
-                try {
+            if (isValidToken(context)) {
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Access token is valid and all required context information " +
+                            "are existing in the token.");
+                }
+
+                if (isResourceIdValid(resourceId)) {
+
+                    if (log.isDebugEnabled()) {
+                        log.debug("Valid resourceId :" + resourceId);
+                    }
+
                     Resource resourceRegistration = ResourceUtils.getResourceService().getResourceById
                             (resourceId);
                     ReadResourceDTO readResourceDTO = ResourceUtils.readResponse(resourceRegistration);
+
+                    if (log.isDebugEnabled()) {
+                        log.debug("Obtained resource details relevant to specific resourceId.");
+                    }
                     return Response.status(Response.Status.OK).entity(readResourceDTO).build();
-                } catch (UMAServiceException e) {
-                    handleErrorResponse(e, log);
-
-                } catch (Throwable throwable) {
-                    handleErrorResponse((UMAException) throwable, log);
                 }
-            } else {
-                throw new UMAClientException(ResourceConstants.ErrorMessages.ERROR_CODE_NOT_FOUND_RESOURCE_ID);
             }
-        } catch (UMAClientException e) {
-            handleErrorResponse(e, log);
-            log.error("Client error when retrieving resource from the resource server.", e);
-
+        } catch (UMAException e) {
+            handleErrorResponse("Error when requesting information: " + isValidToken(context) + resourceId, e);
         }
-        return response;
+        return getUnauthorizedResponseObject();
     }
 
     /**
@@ -138,23 +154,31 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
     @Override
     public Response getResourceIds(MessageContext context) {
 
-        resourceOwnerName = ((AuthenticationContext) context.getHttpServletRequest().getAttribute("auth-context"))
-                .getUser().getUserName();
-        consumerKey = (String) ((AuthenticationContext) context.getHttpServletRequest().getAttribute("auth-context"))
-                .getParameter("consumer-key");
+        String resourceOwner = getResourceOwner(context);
+        String consumerKey = getConsumerKey(context);
 
-        try {
-            List<String> resourceRegistration = ResourceUtils.getResourceService().getResourceIds(resourceOwnerName,
-                    consumerKey);
-            Response response = Response.ok().entity(resourceRegistration).build();
-            return response;
-        } catch (UMAClientException e) {
-            handleErrorResponse(e, log);
-            log.error("Invalid request.Request with valid resource Id to update the resource. ", e);
-        } catch (UMAException e) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+        if (isValidToken(context) && resourceOwner != null && consumerKey != null) {
+
+            if (log.isDebugEnabled()) {
+                log.debug("Access token is valid and all required context information " +
+                        "are existing in the token.");
+            }
+
+            try {
+                List<String> resourceRegistration = ResourceUtils.getResourceService()
+                        .getResourceIds(resourceOwner, consumerKey);
+                if (log.isDebugEnabled()) {
+                    log.debug("Obtained resources belong to a specific resource Owner.");
+                }
+
+                return Response.ok().entity(resourceRegistration).build();
+
+            } catch (UMAException e) {
+                handleErrorResponse("Error when requesting context information : " +
+                        isValidToken(context) + getResourceOwner(context) + getConsumerKey(context), e);
+            }
         }
-        return null;
+        return getUnauthorizedResponseObject();
     }
 
     /**
@@ -167,34 +191,35 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
     @Override
     public Response updateResource(String resourceId, ResourceDetailsDTO updatedResource, MessageContext context) {
 
-        Response response = null;
         try {
-            if (isResourceId(resourceId)) {
+            if (isValidToken(context)) {
 
-                try {
+                if (log.isDebugEnabled()) {
+                    log.debug("Access token is valid and all required context information " +
+                            "are existing in the token.");
+                }
+                if (isResourceIdValid(resourceId)) {
+
+                    if (log.isDebugEnabled()) {
+                        log.debug("Valid resourceId :" + resourceId);
+                    }
+
                     Resource resourceRegistration = ResourceUtils.getResourceService().updateResource(resourceId,
-                            ResourceUtils.
-                                    getResource(updatedResource));
+                            ResourceUtils.getResource(updatedResource));
                     resourceRegistration.setResourceId(resourceId);
                     UpdateResourceDTO updateResourceDTO = ResourceUtils.updateResponse(resourceRegistration);
+
+                    if (log.isDebugEnabled()) {
+                        log.debug("Updated resource details which was persisted on the database.");
+                    }
+
                     return Response.status(Response.Status.CREATED).entity(updateResourceDTO).build();
-                } catch (UMAServiceException e) {
-                    handleErrorResponse(e, log);
-                    log.error("Invalid request.Request with valid resource Id to update the resource. ", e);
-
-                } catch (Throwable throwable) {
-                    handleErrorResponse((UMAException) throwable, log);
-                    log.error("Internal server error occurred. ", throwable);
                 }
-            } else {
-                throw new UMAClientException(ResourceConstants.ErrorMessages.ERROR_CODE_NOT_FOUND_RESOURCE_ID);
             }
-        } catch (UMAClientException e) {
-            handleErrorResponse(e, log);
-            log.error("Client error when retrieving resource from the resource server.", e);
-
+        } catch (UMAException e) {
+            handleErrorResponse("Error when requesting information: " + isValidToken(context) + resourceId, e);
         }
-        return response;
+        return getUnauthorizedResponseObject();
     }
 
     /**
@@ -203,81 +228,178 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
      * @param resourceId resourceId of the resource which need to get deleted
      * @return Response with the status of resource deletion
      */
-    @Override
-    public Response deleteResource(String resourceId, MessageContext messageContext) {
 
-        Response response = null;
+    @Override
+    public Response deleteResource(String resourceId, MessageContext context) {
 
         try {
-            if (isResourceId(resourceId)) {
+            if (isValidToken(context)) {
 
-                try {
-                    if (ResourceUtils.getResourceService().deleteResource(resourceId)) {
-                        return Response.status(Response.Status.NO_CONTENT).build();
+                if (log.isDebugEnabled()) {
+                    log.debug("Access token is valid and all required context information " +
+                            "are existing in the token.");
+                }
+
+                if (isResourceIdValid(resourceId)) {
+
+                    if (log.isDebugEnabled()) {
+                        log.debug("Valid resourceId :" + resourceId);
                     }
 
-                } catch (UMAServiceException e) {
-                    handleErrorResponse(e, log);
-                    log.error("Invalid request. ", e);
+                    if (ResourceUtils.getResourceService().deleteResource(resourceId)) {
 
-                } catch (Throwable throwable) {
-                    handleErrorResponse((UMAException) throwable, log);
-                    log.error("Internal server error occurred. ", throwable);
+                        if (log.isDebugEnabled()) {
+                            log.debug("Delete resource details successfully.");
+                        }
+                        return Response.status(Response.Status.NO_CONTENT).build();
+                    }
                 }
-            } else {
-                throw new UMAClientException(ResourceConstants.ErrorMessages.ERROR_CODE_NOT_FOUND_RESOURCE_ID);
             }
-        } catch (UMAClientException e) {
-            handleErrorResponse(e, log);
-            log.error("Client error when retrieving resource from the resource server.", e);
-
+        } catch (UMAException e) {
+            handleErrorResponse("Error when requesting information: " + isValidToken(context) + resourceId, e);
         }
-        return response;
-
+        return getUnauthorizedResponseObject();
     }
 
     /**
-     * Handle error responses.
-     *
-     * @param umaException exception that should pass to handle error.
+     * @param umaException
+     * @throws ResourceEndpointException
      */
-    public static void handleErrorResponse(UMAException umaException, Log log) throws ResourceEndpointException {
+    private void handleErrorResponse(String message, UMAException umaException)
+            throws ResourceEndpointException {
 
-        HandleErrorResponseConstants handleErrorResponseConstants = new HandleErrorResponseConstants();
-        if (handleErrorResponseConstants.getResponseMap().containsKey(umaException.getErrorCode())) {
-            String statusCode = handleErrorResponseConstants.getResponseMap().get(umaException.getErrorCode())[0];
-            Response.Status status = Response.Status.fromStatusCode(Integer.parseInt(statusCode));
-            String errorCode = handleErrorResponseConstants.getResponseMap().get(umaException.getErrorCode())[1];
+        String code = umaException.getErrorCode();
+        String errorCode = null;
+        Response.Status status = Response.Status.INTERNAL_SERVER_ERROR;
+        boolean isStatusOnly = true;
+        boolean isServerException = umaException instanceof UMAServiceException;
 
-            throw buildResourceEndpointException(status, errorCode, umaException.getMessage());
+        if (isServerException) {
+            log.error(message, umaException);
+        } else {
+            log.error(message + " - " + umaException.getErrorLogMessage());
+            if (log.isDebugEnabled()) {
+                log.debug(message, umaException);
+            }
+            if (HandleErrorResponseConstants.RESPONSE_MAP.containsKey(code)) {
+                String statusCode = HandleErrorResponseConstants.RESPONSE_MAP.get(code)[0];
+                status = Response.Status.fromStatusCode(Integer.parseInt(statusCode));
+                errorCode = HandleErrorResponseConstants.RESPONSE_MAP.get(code)[1];
+                isStatusOnly = false;
+            }
         }
+        throw buildResourceEndpointException(status, errorCode, umaException.getMessage(), isStatusOnly);
     }
 
-    private static ResourceEndpointException buildResourceEndpointException(Response.Status status,
-                                                                            String code, String description) {
+    public ResourceEndpointException buildResourceEndpointException(Response.Status status, String errorCode,
+                                                                    String description, boolean isStatusOnly) {
 
-        ErrorDTO errorDTO = new ErrorDTO();
-        errorDTO.setCode(code);
-        errorDTO.setDescription(description);
-        return new ResourceEndpointException(status, errorDTO);
+        if (isStatusOnly) {
+            return new ResourceEndpointException(status);
+        } else {
+            return new ResourceEndpointException(status, getErrorDTO(errorCode, description));
+        }
     }
 
     /**
      * Validate resourceId
      *
      * @param resourceId resourceId of the resource which need to get deleted
-     * @return validator obtain
+     * @return boolean
      */
-    public boolean isResourceId(String resourceId) throws UMAClientException {
+    private static final boolean isResourceIdValid(String resourceId) throws UMAClientException {
 
-        String validPattern = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$";
-        Pattern pattern = Pattern.compile(validPattern);
-        Matcher match = pattern.matcher(resourceId);
-
-        if (match.find()) {
-            return true;
+        if (resourceId == null || StringUtils.isEmpty(resourceId)) {
+            if (log.isDebugEnabled()) {
+                log.debug("ResourceId is invalid :" + resourceId);
+            }
+            throw new UMAClientException(ResourceConstants.ErrorMessages.ERROR_CODE_INVALID_RESOURCE_ID);
         } else {
-            return false;
+            return true;
         }
+    }
+
+    /**
+     * Retrieve resource owner name
+     *
+     * @param context message context
+     * @return resource owner name
+     */
+    private String getResourceOwner(MessageContext context) {
+
+        String resourceOwnerName = null;
+        if (context.getHttpServletRequest().getAttribute(AUTH_CONTEXT) instanceof AuthenticationContext) {
+            AuthenticationContext authContext = (AuthenticationContext) context.getHttpServletRequest()
+                    .getAttribute(AUTH_CONTEXT);
+            if (authContext.getUser() != null) {
+                return authContext.getUser().getUserName();
+            }
+        }
+        return resourceOwnerName;
+    }
+
+    /**
+     * Retrieve ConsumerKey
+     *
+     * @param context message context
+     * @return clientId
+     */
+    private String getConsumerKey(MessageContext context) {
+
+        String consumerKey = null;
+        if (context.getHttpServletRequest().getAttribute(AUTH_CONTEXT) instanceof AuthenticationContext) {
+            AuthenticationContext authContext = (AuthenticationContext) context.getHttpServletRequest()
+                    .getAttribute(AUTH_CONTEXT);
+            if (authContext.getParameter(CONSUMER_KEY) != null) {
+                return String.valueOf(authContext.getParameter(CONSUMER_KEY));
+            }
+        }
+        return consumerKey;
+    }
+
+    /**
+     * Retrieve Scopes
+     *
+     * @param context message context
+     * @return scopes
+     */
+    private boolean isValidToken(MessageContext context) {
+
+        String[] tokenScopes = null;
+        if (context.getHttpServletRequest().getAttribute(AUTH_CONTEXT) instanceof AuthenticationContext) {
+            tokenScopes = (String[]) ((AuthenticationContext) context.getHttpServletRequest()
+                    .getAttribute(AUTH_CONTEXT)).getParameter(OAUTH2_ALLOWED_SCOPES);
+        }
+        return ArrayUtils.contains(tokenScopes, PAT_SCOPE);
+    }
+
+    /**
+     * Making errorDTO
+     *
+     * @param errorCode   Related error code to error
+     * @param description Description related to the error
+     * @return errorDTO
+     */
+    private ErrorDTO getErrorDTO(String errorCode, String description) {
+
+        ErrorDTO errorDTO = new ErrorDTO();
+        errorDTO.setCode(errorCode);
+        errorDTO.setDescription(description);
+        return errorDTO;
+    }
+
+    private Response getUnauthorizedResponseObject() {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Context information not in the access token.");
+        }
+        return Response.status(Response.Status.UNAUTHORIZED).entity(getErrorDTO
+                ("Unauthorized", "Unauthorized User.")).build();
+    }
+
+    private URI getResourceLocationURI(CreateResourceDTO response) throws URISyntaxException {
+
+        return new URI(RESOURCE_PATH + "/" + response.getResourceId());
+
     }
 }

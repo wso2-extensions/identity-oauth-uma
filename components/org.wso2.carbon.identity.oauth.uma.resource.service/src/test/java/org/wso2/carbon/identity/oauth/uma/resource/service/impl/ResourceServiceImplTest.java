@@ -34,7 +34,7 @@ public class ResourceServiceImplTest {
 
     private static final String RESOURCE_ID = "123454-62552-31456";
     private static Resource resource = new Resource();
-    private static String tenantDomain = "carbon.user";
+    private static int tenantId = -1234;
     private static String resourceOwnerName = "carbon";
     private static String consumerKey = "88999ng-667";
 
@@ -57,7 +57,7 @@ public class ResourceServiceImplTest {
     public void testRegisterResource() throws Exception {
 
         mockStatic(ResourceDAO.class);
-        assertNull(resourceService.registerResource(resource, resourceOwnerName, tenantDomain, consumerKey));
+        assertNull(resourceService.registerResource(resource, resourceOwnerName, tenantId, consumerKey));
     }
 
     @Test

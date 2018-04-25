@@ -26,6 +26,7 @@ import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.oauth.uma.resource.service.dao.util.DAOUtils;
+import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAClientException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAServiceException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.model.Resource;
@@ -47,7 +48,7 @@ public class ResourceDAOTest extends DAOUtils {
     private static final Log log = LogFactory.getLog(ResourceDAOTest.class);
 
     private static final String DB_NAME = "regdb";
-    private static String tenantDomain = "carbon.user";
+    private static final int tenantId = -1234;
     private static String resourceOwnerName = "carbon";
     private static String consumerKey = "88999ng-667";
 
@@ -56,8 +57,8 @@ public class ResourceDAOTest extends DAOUtils {
 
         initiateH2Base(DB_NAME, getFilePath("resource.sql"));
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        createResourceTable(DB_NAME, "1", "PhotoAlbem", timestamp, "carbon",
-                "carbon.123", "889988-7888555-7555");
+        createResourceTable(DB_NAME, "1", "PhotoAlbum", timestamp, resourceOwnerName,
+                tenantId, consumerKey);
         createResourceMetaDataTable(DB_NAME, "icon_uri",
                 "http://www.example.com/icons/sharesocial.png", (long) 1);
         createResourceScopeTable(DB_NAME, (long) 1, "view");
@@ -75,16 +76,6 @@ public class ResourceDAOTest extends DAOUtils {
         return new org.powermock.modules.testng.PowerMockObjectFactory();
     }
 
-    @Test
-    public void testRegisterResource() throws Exception {
-
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-            ResourceDAO resourceDAO = new ResourceDAO();
-            resourceDAO.registerResource(storeResources(), tenantDomain, resourceOwnerName, consumerKey);
-        }
-    }
 
     @Test(expectedExceptions = UMAException.class)
     public void testRetrieveResourceWithException() throws Exception {
@@ -147,12 +138,12 @@ public class ResourceDAOTest extends DAOUtils {
     }
 
     private void addScopes(ResourceDAO resourceDAO, List<Object> resources) throws SQLException,
-            UMAServiceException {
+            UMAServiceException, UMAClientException {
 
         for (Object resource : resources) {
             try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
                 when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-                resourceDAO.registerResource((Resource) resource, tenantDomain, resourceOwnerName, consumerKey);
+                resourceDAO.registerResource((Resource) resource, resourceOwnerName, tenantId, consumerKey);
 
             }
         }

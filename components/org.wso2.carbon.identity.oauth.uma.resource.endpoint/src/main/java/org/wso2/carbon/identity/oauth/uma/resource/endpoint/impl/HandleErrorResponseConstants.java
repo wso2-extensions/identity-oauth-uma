@@ -14,39 +14,22 @@
  *  limitations under the License.
  */
 
-package org.wso2.carbon.identity.oauth.uma.resource.endpoint;
+package org.wso2.carbon.identity.oauth.uma.resource.endpoint.impl;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * HandleErrorResponseConstants class is used to handle exceptions in the endpoint layer.
- * */
-public class HandleErrorResponseConstants {
+ */
+public final class HandleErrorResponseConstants {
 
-    private String code;
-    private Map<String, String[]> map;
-
-    public HandleErrorResponseConstants() {
-        this.code = null;
-        this.map = initializeMapping();
-    }
-
-    private Map<String, String[]> initializeMapping() {
-
-        Map<String, String[]> map = new HashMap<>();
-        map.put("60001", new String[]{"400", "invalid_request"});
-        map.put("60002", new String[]{"404", "not_found"});
-        return map;
-    }
-
-    public String getCode() {
-
-        return code;
-    }
-
-    public Map<String, String[]> getResponseMap() {
-
-        return map;
-    }
+   public static final Map<String, String[]> RESPONSE_MAP = new HashMap<String, String[]>() {
+        {
+            put("60001", new String[]{"400", "invalid_request"});
+            put("60002", new String[]{"404", "not_found"});
+            put("60003", new String[]{"404", "not_found"});
+            put("60004", new String[]{"409", "conflict"});
+        }
+    };
 }
