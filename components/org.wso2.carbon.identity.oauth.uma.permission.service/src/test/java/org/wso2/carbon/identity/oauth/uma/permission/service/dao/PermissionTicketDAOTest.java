@@ -25,8 +25,8 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.oauth.uma.common.exception.UMAException;
 import org.wso2.carbon.identity.oauth.uma.permission.service.dao.utils.DAOTestUtils;
-import org.wso2.carbon.identity.oauth.uma.permission.service.exception.UMAException;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.PermissionTicketModel;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.Resource;
 

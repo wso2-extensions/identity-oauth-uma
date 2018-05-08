@@ -25,10 +25,10 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.oauth.uma.common.exception.UMAClientException;
+import org.wso2.carbon.identity.oauth.uma.common.exception.UMAException;
+import org.wso2.carbon.identity.oauth.uma.common.exception.UMAServerException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.dao.util.DAOUtils;
-import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAClientException;
-import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAException;
-import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAServiceException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.model.Resource;
 import org.wso2.carbon.identity.oauth.uma.resource.service.model.ScopeDataDO;
 
@@ -138,7 +138,7 @@ public class ResourceDAOTest extends DAOUtils {
     }
 
     private void addScopes(ResourceDAO resourceDAO, List<Object> resources) throws SQLException,
-            UMAServiceException, UMAClientException {
+            UMAServerException, UMAClientException {
 
         for (Object resource : resources) {
             try (Connection connection = DAOUtils.getConnection(DB_NAME)) {

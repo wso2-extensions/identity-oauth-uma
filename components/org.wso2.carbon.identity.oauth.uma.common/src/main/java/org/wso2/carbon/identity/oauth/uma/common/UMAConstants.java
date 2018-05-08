@@ -16,25 +16,37 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.oauth.uma.permission.service;
+package org.wso2.carbon.identity.oauth.uma.common;
+
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 /**
- * This class holds the constants used by Permission Endpoint.
+ * This class holds the constants used by UMA Resource Registration Endpoint and Permission Endpoint.
  */
 public class UMAConstants {
 
     public static final String UMA_PERMISSION_ENDPOINT_CONFIG_PATH = "uma.properties";
+    public static final String REGISTERED_RESOURCE_PATH = "/api/identity/oauth2/uma/resourceregistration/v1.0/resource";
+    public static final String RESOURCE_PATH =
+            IdentityUtil.getServerURL(REGISTERED_RESOURCE_PATH, true, true);
 
     /**
      * error descriptions
      */
     public enum ErrorMessages {
-        ERROR_BAD_REQUEST_INVALID_RESOURCE_ID("6001", "Permission request failed with bad resource ID."),
-        ERROR_BAD_REQUEST_INVALID_RESOURCE_SCOPE("6002", "Permission request failed with bad resource scope."),
-        ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_PT("6003", "Server error occurred while persisting PT."),
-        ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_REQUESTED_PERMISSIONS("6004", "Server error occurred while " +
+
+        ERROR_CODE_FAIL_TO_GET_RESOURCE("60001", "Server error occurred while retrieving resource."),
+        ERROR_CODE_NOT_FOUND_RESOURCE_ID("60002", "Resource id is not found."),
+        ERROR_CODE_INVALID_RESOURCE_ID("60003", "Invalid resource id."),
+        ERROR_CODE_RESOURCE_NAME_DUPLICATE("60004", "Conflict occurred when persisting resource name."),
+        INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_REQUESTED_RESOURCES("60005", "Error occurred while persisting" +
+                " requested permissions."),
+        ERROR_BAD_REQUEST_INVALID_RESOURCE_ID("60005", "Permission request failed with bad resource ID."),
+        ERROR_BAD_REQUEST_INVALID_RESOURCE_SCOPE("60006", "Permission request failed with bad resource scope."),
+        ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_PT("60007", "Server error occurred while persisting PT."),
+        ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_REQUESTED_PERMISSIONS("60008", "Server error occurred while " +
                 "persisting requested permissions."),
-        ERROR_UNEXPECTED("6005", "Unexpected error.");
+        ERROR_UNEXPECTED("60009", "Unexpected error.");
 
         private final String code;
         private final String message;

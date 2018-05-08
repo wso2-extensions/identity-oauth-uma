@@ -35,6 +35,11 @@
     <dependencies>
         <dependency>
             <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
+            <artifactId>org.wso2.carbon.identity.oauth.uma.common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
             <artifactId>org.wso2.carbon.identity.oauth.uma.resource.service</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -114,6 +119,7 @@
                                 </properties>
                             </adviceFile>
                             <bundles>
+                                <bundleDef>org.wso2.carbon.identity.oauth.uma:org.wso2.carbon.identity.oauth.uma.common</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.oauth.uma:org.wso2.carbon.identity.oauth.uma.resource.service</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.oauth.uma:org.wso2.carbon.identity.oauth.uma.permission.service</bundleDef>
                             </bundles>

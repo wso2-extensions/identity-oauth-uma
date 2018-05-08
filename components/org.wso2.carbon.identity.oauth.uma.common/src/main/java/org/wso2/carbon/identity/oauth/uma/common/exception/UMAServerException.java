@@ -16,9 +16,9 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.oauth.uma.permission.service.exception;
+package org.wso2.carbon.identity.oauth.uma.common.exception;
 
-import org.wso2.carbon.identity.oauth.uma.permission.service.UMAConstants;
+import org.wso2.carbon.identity.oauth.uma.common.UMAConstants;
 
 /**
  * Custom exception to be thrown when there is an issue with database.
@@ -46,4 +46,11 @@ public class UMAServerException extends UMAException {
         super(errorMessage.getMessage());
         this.setCode(errorMessage.getCode());
     }
+
+    public UMAServerException(UMAConstants.ErrorMessages errorMessage, String errorLogMessage, Throwable throwable) {
+
+        super(errorLogMessage, throwable);
+        this.setCode(errorMessage.getCode());
+    }
+
 }

@@ -89,6 +89,7 @@
                             org.wso2.carbon.identity.core.util.*;version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.oauth.uma.common.*; version="${project.version}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.oauth.uma.resource.service.internal,
@@ -231,5 +232,12 @@
             <artifactId>org.osgi.core</artifactId>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
+            <artifactId>org.wso2.carbon.identity.oauth.uma.common</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
     </dependencies>
 </project>

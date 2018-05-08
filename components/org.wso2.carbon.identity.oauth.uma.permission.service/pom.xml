@@ -40,24 +40,6 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>add-source</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>src/gen/java</source>
-                            </sources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-scr-plugin</artifactId>
             </plugin>
@@ -83,6 +65,7 @@
                             org.wso2.carbon.database.utils.*;version="${org.wso2.carbon.database.utils.version.range}",
                             org.wso2.carbon.identity.base; version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.apache.axiom.om.*; version="${axiom.osgi.version.range}",
+                            org.wso2.carbon.identity.oauth.uma.common.*; version="${project.version}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.oauth.uma.permission.service.internal,
@@ -273,6 +256,11 @@
         <dependency>
             <groupId>org.wso2.carbon.utils</groupId>
             <artifactId>org.wso2.carbon.database.utils</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
+            <artifactId>org.wso2.carbon.identity.oauth.uma.common</artifactId>
             <scope>provided</scope>
         </dependency>
     </dependencies>

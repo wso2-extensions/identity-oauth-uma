@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.oauth.uma.resource.service.model;
  */
 public class ScopeDataDO {
 
-    private int id;
     private String resourceId;
     private String scopeName;
     private String scopeDescription;

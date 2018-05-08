@@ -33,12 +33,13 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.internal.OSGiDataHolder;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.auth.service.AuthenticationContext;
+import org.wso2.carbon.identity.oauth.uma.common.HandleErrorResponseConstants;
+import org.wso2.carbon.identity.oauth.uma.common.UMAConstants;
+import org.wso2.carbon.identity.oauth.uma.common.exception.UMAClientException;
+import org.wso2.carbon.identity.oauth.uma.common.exception.UMAServerException;
 import org.wso2.carbon.identity.oauth.uma.permission.endpoint.dto.ResourceModelDTO;
 import org.wso2.carbon.identity.oauth.uma.permission.endpoint.exception.PermissionEndpointException;
 import org.wso2.carbon.identity.oauth.uma.permission.service.PermissionService;
-import org.wso2.carbon.identity.oauth.uma.permission.service.UMAConstants;
-import org.wso2.carbon.identity.oauth.uma.permission.service.exception.UMAClientException;
-import org.wso2.carbon.identity.oauth.uma.permission.service.exception.UMAServerException;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.PermissionTicketModel;
 
 import javax.servlet.http.HttpServletRequest;
