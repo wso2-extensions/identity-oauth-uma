@@ -21,9 +21,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
-import org.wso2.carbon.identity.oauth.uma.resource.service.ResourceConstants;
-import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAClientException;
-import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAServiceException;
+import org.wso2.carbon.identity.oauth.uma.common.UMAConstants;
+import org.wso2.carbon.identity.oauth.uma.common.exception.UMAClientException;
+import org.wso2.carbon.identity.oauth.uma.common.exception.UMAServerException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.model.Resource;
 import org.wso2.carbon.identity.oauth.uma.resource.service.model.ScopeDataDO;
 
@@ -51,17 +51,17 @@ public class ResourceDAO {
      *
      * @param resource details of the registered resource
      * @return resourceId of registered resource description
-     * @throws UMAServiceException ResourceException
+     * @throws UMAServerException ResourceException
      */
     public static Resource registerResource(Resource resource, String resourceOwnerName, int tenantId,
-                                            String consumerKey) throws UMAServiceException, UMAClientException {
+                                            String consumerKey) throws UMAServerException, UMAClientException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
             connection.setAutoCommit(false);
             Savepoint savepoint = connection.setSavepoint();
             if (checkExsistanceOfSameResourceName(resourceOwnerName, resource.getName())) {
-                throw new UMAClientException(ResourceConstants.
-                        ErrorMessages.ERROR_CODE_RESOURCE_NAME_DUPLICATE, null);
+                throw new UMAClientException(UMAConstants.ErrorMessages
+                        .ERROR_CODE_RESOURCE_NAME_DUPLICATE, "Duplicate resource name: " + resource.getName());
             } else {
                 PreparedStatement preparedStatement = connection.prepareStatement(SQLQueries.STORE_RESOURCE_DETAILS,
                         Statement.RETURN_GENERATED_KEYS);
@@ -88,22 +88,22 @@ public class ResourceDAO {
                     try {
                         connection.rollback(savepoint);
                     } catch (SQLException e1) {
-                        throw new UMAServiceException(ResourceConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE,
+                        throw new UMAServerException(UMAConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE,
                                 "Rollback error. Could not rollback purpose adding.", e);
                     }
-                    throw new UMAServiceException(ResourceConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE,
+                    throw new UMAServerException(UMAConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE,
                             "Database error. Could not add resource details.", e);
                 }
             }
         } catch (SQLException e) {
-            throw new UMAServiceException(ResourceConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE,
+            throw new UMAServerException(UMAConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE,
                     "Database error. Could not add resource details.", e);
         }
         return resource;
     }
 
     private static void mapMetaDataWithResource(Connection connection, long id, Resource resourceRegistation)
-            throws UMAServiceException {
+            throws UMAServerException {
 
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(SQLQueries.STORE_RESOURCE_META_DETAILS);
@@ -125,12 +125,12 @@ public class ResourceDAO {
             }
 
         } catch (SQLException e) {
-            throw new UMAServiceException("Database error. Could not map metadata to resource.", e);
+            throw new UMAServerException("Database error. Could not map metadata to resource.", e);
         }
     }
 
     private static void mapScopeWithResource(Connection connection, long id, List<ScopeDataDO>
-            scopeData) throws UMAServiceException {
+            scopeData) throws UMAServerException {
 
         try {
             for (ScopeDataDO scopeDataDO : scopeData) {
@@ -140,7 +140,7 @@ public class ResourceDAO {
                 preparedStatement.execute();
             }
         } catch (SQLException e) {
-            throw new UMAServiceException("Database error. Could not map scope to resource.", e);
+            throw new UMAServerException("Database error. Could not map scope to resource.", e);
         }
     }
 
@@ -149,9 +149,9 @@ public class ResourceDAO {
      *
      * @param resourceid Id of the resource
      * @return resource description for the provided ID
-     * @throws UMAServiceException
+     * @throws UMAServerException
      */
-    public static Resource retrieveResource(String resourceid) throws UMAServiceException, UMAClientException {
+    public static Resource retrieveResource(String resourceid) throws UMAServerException, UMAClientException {
 
         Resource resourceRegistration = null;
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
@@ -160,7 +160,8 @@ public class ResourceDAO {
             ResultSet resultSet = preparedStatement.executeQuery();
 
             if (!resultSet.next()) {
-                throw new UMAClientException(ResourceConstants.ErrorMessages.ERROR_CODE_NOT_FOUND_RESOURCE_ID, null);
+                throw new UMAClientException(UMAConstants.ErrorMessages
+                        .ERROR_CODE_NOT_FOUND_RESOURCE_ID, "Resource id : " + resourceid + " not found.");
             } else {
                 resourceRegistration = new Resource();
                 do {
@@ -189,7 +190,7 @@ public class ResourceDAO {
                 log.debug("Successfully retrieved the resource details from the database.");
             }
         } catch (SQLException e) {
-            throw new UMAServiceException(ResourceConstants.ErrorMessages.ERROR_CODE_NOT_FOUND_RESOURCE_ID, "Database" +
+            throw new UMAServerException(UMAConstants.ErrorMessages.ERROR_CODE_NOT_FOUND_RESOURCE_ID, "Database" +
                     "error.Could not get resource.Resource Id can not be found in data base: " + resourceid, e);
 
         }
@@ -201,10 +202,10 @@ public class ResourceDAO {
      *
      * @param resourceOwnerName ResourceOwner name
      * @return available resource list
-     * @throws UMAServiceException
+     * @throws UMAServerException
      */
     public static List<String> retrieveResourceIDs(String resourceOwnerName, String consumerKey)
-            throws UMAServiceException {
+            throws UMAServerException {
 
         List<String> resourceSetIdList = new ArrayList<>();
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
@@ -225,7 +226,7 @@ public class ResourceDAO {
                 log.debug("Successfully listed the resourceID's in the database.");
             }
         } catch (SQLException e) {
-            throw new UMAServiceException(ResourceConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE, "Database " +
+            throw new UMAServerException(UMAConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE, "Database " +
                     "error.Could not obtain resource List.", e);
         }
         return resourceSetIdList;
@@ -235,9 +236,9 @@ public class ResourceDAO {
      * Delete a resource description of the provided resource ID
      *
      * @param resourceId Resource ID of the resource
-     * @throws UMAServiceException
+     * @throws UMAServerException
      */
-    public static boolean deleteResource(String resourceId) throws UMAServiceException {
+    public static boolean deleteResource(String resourceId) throws UMAServerException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(SQLQueries.DELETE_RESOURCE_SCOPES);
@@ -256,7 +257,7 @@ public class ResourceDAO {
             return rowsAffected > 0;
 
         } catch (SQLException e) {
-            throw new UMAServiceException(ResourceConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE,
+            throw new UMAServerException(UMAConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE,
                     "Database error. Could not delete resource categories:", e);
         }
     }
@@ -266,10 +267,10 @@ public class ResourceDAO {
      *
      * @param resourceRegistration details of the updated resource
      * @param resourceId           Resource ID of the resource
-     * @throws UMAServiceException
+     * @throws UMAServerException
      */
     public static boolean updateResource(String resourceId, Resource resourceRegistration)
-            throws UMAServiceException {
+            throws UMAServerException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
             Savepoint savepoint = null;
@@ -316,21 +317,21 @@ public class ResourceDAO {
                 try {
                     connection.rollback(savepoint);
                 } catch (SQLException e1) {
-                    throw new UMAServiceException(ResourceConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE,
+                    throw new UMAServerException(UMAConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE,
                             "Rollback error. Could not rollback purpose adding.", e);
                 }
-                throw new UMAServiceException(ResourceConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE,
+                throw new UMAServerException(UMAConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE,
                         "Database error. Could not add resource details.", e);
             }
         } catch (SQLException e) {
-            throw new UMAServiceException(ResourceConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE,
+            throw new UMAServerException(UMAConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE,
                     "Database error. Could not add resource details.", e);
         }
         return false;
     }
 
     private static boolean checkExsistanceOfSameResourceName(String resourceOwnerName, String resourceName)
-            throws UMAServiceException {
+            throws UMAServerException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
             try (PreparedStatement preparedStatement = connection.prepareStatement
@@ -345,7 +346,7 @@ public class ResourceDAO {
             }
 
         } catch (SQLException e) {
-            throw new UMAServiceException(ResourceConstants.ErrorMessages
+            throw new UMAServerException(UMAConstants.ErrorMessages
                     .INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_REQUESTED_RESOURCES,
                     "Database error. Could not identify a resource.", e);
         }

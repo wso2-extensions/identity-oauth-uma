@@ -13,12 +13,12 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.internal.OSGiDataHolder;
 import org.wso2.carbon.identity.auth.service.AuthenticationContext;
+import org.wso2.carbon.identity.oauth.uma.common.exception.UMAException;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.TestUtil;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.dto.ResourceDetailsDTO;
 
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.exceptions.ResourceEndpointException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.ResourceService;
-import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.model.Resource;
 import org.wso2.carbon.identity.oauth.uma.resource.service.model.ScopeDataDO;
 

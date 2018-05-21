@@ -24,6 +24,11 @@ import org.apache.cxf.common.util.CollectionUtils;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.auth.service.AuthenticationContext;
+import org.wso2.carbon.identity.oauth.uma.common.HandleErrorResponseConstants;
+import org.wso2.carbon.identity.oauth.uma.common.UMAConstants;
+import org.wso2.carbon.identity.oauth.uma.common.exception.UMAClientException;
+import org.wso2.carbon.identity.oauth.uma.common.exception.UMAException;
+import org.wso2.carbon.identity.oauth.uma.common.exception.UMAServerException;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.ResourceRegistrationApiService;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.dto.CreateResourceDTO;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.dto.ErrorDTO;
@@ -34,10 +39,6 @@ import org.wso2.carbon.identity.oauth.uma.resource.endpoint.dto.UpdateResourceDT
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.exceptions.ResourceEndpointException;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.util.ResourceUtils;
 
-import org.wso2.carbon.identity.oauth.uma.resource.service.ResourceConstants;
-import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAClientException;
-import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAException;
-import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAServiceException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.model.Resource;
 
 import java.net.URI;
@@ -45,7 +46,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 import javax.ws.rs.core.Response;
 
-import static org.wso2.carbon.identity.oauth.uma.resource.service.ResourceConstants.RESOURCE_PATH;
+import static org.wso2.carbon.identity.oauth.uma.common.UMAConstants.RESOURCE_PATH;
 
 /**
  * ResourceRegistrationApiServiceImpl is used to handling resource management.
@@ -268,11 +269,11 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
     private void handleErrorResponse(String message, UMAException umaException)
             throws ResourceEndpointException {
 
-        String code = umaException.getErrorCode();
+        String code = umaException.getCode();
         String errorCode = null;
         Response.Status status = Response.Status.INTERNAL_SERVER_ERROR;
         boolean isStatusOnly = true;
-        boolean isServerException = umaException instanceof UMAServiceException;
+        boolean isServerException = umaException instanceof UMAServerException;
 
         if (isServerException) {
             log.error(message, umaException);
@@ -281,10 +282,10 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
             if (log.isDebugEnabled()) {
                 log.debug(message, umaException);
             }
-            if (HandleErrorResponseConstants.RESPONSE_MAP.containsKey(code)) {
-                String statusCode = HandleErrorResponseConstants.RESPONSE_MAP.get(code)[0];
+            if (HandleErrorResponseConstants.RESPONSE_DATA_MAP.containsKey(code)) {
+                String statusCode = HandleErrorResponseConstants.RESPONSE_DATA_MAP.get(code)[0];
                 status = Response.Status.fromStatusCode(Integer.parseInt(statusCode));
-                errorCode = HandleErrorResponseConstants.RESPONSE_MAP.get(code)[1];
+                errorCode = HandleErrorResponseConstants.RESPONSE_DATA_MAP.get(code)[1];
                 isStatusOnly = false;
             }
         }
@@ -313,7 +314,7 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
             if (log.isDebugEnabled()) {
                 log.debug("ResourceId is invalid :" + resourceId);
             }
-            throw new UMAClientException(ResourceConstants.ErrorMessages.ERROR_CODE_INVALID_RESOURCE_ID);
+            throw new UMAClientException(UMAConstants.ErrorMessages.ERROR_CODE_INVALID_RESOURCE_ID);
         } else {
             return true;
         }

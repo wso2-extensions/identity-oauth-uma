@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.oauth.uma.permission.service.exception;
+package org.wso2.carbon.identity.oauth.uma.common.exception;
 
 /**
  * custom exception for uma

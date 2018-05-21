@@ -268,5 +268,12 @@
             </exclusions>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
+            <artifactId>org.wso2.carbon.identity.oauth.uma.common</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
     </dependencies>
 </project>

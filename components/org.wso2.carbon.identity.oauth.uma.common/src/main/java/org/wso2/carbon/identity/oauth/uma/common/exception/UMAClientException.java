@@ -16,9 +16,9 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.oauth.uma.permission.service.exception;
+package org.wso2.carbon.identity.oauth.uma.common.exception;
 
-import org.wso2.carbon.identity.oauth.uma.permission.service.UMAConstants;
+import org.wso2.carbon.identity.oauth.uma.common.UMAConstants;
 
 /**
  * Custom exception to be thrown when there is an invalid resource id or resource scope in the requested permission(s).

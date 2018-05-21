@@ -18,11 +18,11 @@
 
 package org.wso2.carbon.identity.oauth.uma.permission.service.impl;
 
+import org.wso2.carbon.identity.oauth.uma.common.exception.UMAClientException;
+import org.wso2.carbon.identity.oauth.uma.common.exception.UMAServerException;
 import org.wso2.carbon.identity.oauth.uma.permission.service.PermissionService;
 import org.wso2.carbon.identity.oauth.uma.permission.service.ReadPropertiesFile;
 import org.wso2.carbon.identity.oauth.uma.permission.service.dao.PermissionTicketDAO;
-import org.wso2.carbon.identity.oauth.uma.permission.service.exception.UMAClientException;
-import org.wso2.carbon.identity.oauth.uma.permission.service.exception.UMAServerException;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.PermissionTicketModel;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.Resource;
 

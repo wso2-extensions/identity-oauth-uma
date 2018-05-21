@@ -16,8 +16,8 @@
 
 package org.wso2.carbon.identity.oauth.uma.resource.service;
 
-import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAClientException;
-import org.wso2.carbon.identity.oauth.uma.resource.service.exceptions.UMAServiceException;
+import org.wso2.carbon.identity.oauth.uma.common.exception.UMAClientException;
+import org.wso2.carbon.identity.oauth.uma.common.exception.UMAServerException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.model.Resource;
 
 import java.util.List;
@@ -28,17 +28,17 @@ import java.util.List;
 
 public interface ResourceService {
 
-    public boolean deleteResource(String resourceId) throws UMAServiceException, UMAClientException;
+    boolean deleteResource(String resourceId) throws UMAServerException, UMAClientException;
 
-    public List<String> getResourceIds(String resourceOwnerName, String consumerKey) throws UMAServiceException
+    List<String> getResourceIds(String resourceOwnerName, String consumerKey) throws UMAServerException
             , UMAClientException;
 
-    public Resource registerResource(Resource resourceRegistration, String resourceOwnerName, int tenantId,
-                                     String consumerKey) throws UMAServiceException, UMAClientException;
+    Resource registerResource(Resource resourceRegistration, String resourceOwnerName, int tenantId,
+                                     String consumerKey) throws UMAServerException, UMAClientException;
 
-    public Resource getResourceById(String resourceId)
-            throws UMAServiceException, UMAClientException;
+    Resource getResourceById(String resourceId)
+            throws UMAServerException, UMAClientException;
 
-    public Resource updateResource(String resourceId, Resource resourceRegistration)
-            throws UMAServiceException;
+    Resource updateResource(String resourceId, Resource resourceRegistration)
+            throws UMAServerException;
 }

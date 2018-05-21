@@ -19,9 +19,9 @@
 package org.wso2.carbon.identity.oauth.uma.permission.service.dao;
 
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
-import org.wso2.carbon.identity.oauth.uma.permission.service.UMAConstants;
-import org.wso2.carbon.identity.oauth.uma.permission.service.exception.UMAClientException;
-import org.wso2.carbon.identity.oauth.uma.permission.service.exception.UMAServerException;
+import org.wso2.carbon.identity.oauth.uma.common.UMAConstants;
+import org.wso2.carbon.identity.oauth.uma.common.exception.UMAClientException;
+import org.wso2.carbon.identity.oauth.uma.common.exception.UMAServerException;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.PermissionTicketModel;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.Resource;
 import org.wso2.carbon.identity.oauth2.util.NamedPreparedStatement;
