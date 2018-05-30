@@ -40,7 +40,7 @@ public class PermissionServiceImpl implements PermissionService {
 
     @Override
     public PermissionTicketModel issuePermissionTicket(List<Resource> resourceList, int tenantId, String
-            resourceOwnerName) throws UMAClientException, UMAServerException {
+            resourceOwnerName, String clientId, String userDomain) throws UMAClientException, UMAServerException {
 
         PermissionTicketModel permissionTicketModel = new PermissionTicketModel();
         ReadPropertiesFile.readFileConfigValues(permissionTicketModel);
@@ -52,7 +52,8 @@ public class PermissionServiceImpl implements PermissionService {
         permissionTicketModel.setStatus("ACTIVE");
         permissionTicketModel.setTenantId(tenantId);
 
-        PermissionTicketDAO.persistPTandRequestedPermissions(resourceList, permissionTicketModel, resourceOwnerName);
+        PermissionTicketDAO.persistPermissionTicket(resourceList, permissionTicketModel, resourceOwnerName, clientId,
+                userDomain);
 
         return permissionTicketModel;
     }

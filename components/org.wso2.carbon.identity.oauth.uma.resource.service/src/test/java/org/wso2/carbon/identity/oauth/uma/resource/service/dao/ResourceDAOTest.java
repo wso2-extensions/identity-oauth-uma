@@ -16,58 +16,54 @@
 
 package org.wso2.carbon.identity.oauth.uma.resource.service.dao;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.IObjectFactory;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
-import org.wso2.carbon.identity.oauth.uma.common.exception.UMAClientException;
+import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
+import org.wso2.carbon.identity.oauth.uma.common.JdbcUtils;
 import org.wso2.carbon.identity.oauth.uma.common.exception.UMAException;
-import org.wso2.carbon.identity.oauth.uma.common.exception.UMAServerException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.dao.util.DAOUtils;
 import org.wso2.carbon.identity.oauth.uma.resource.service.model.Resource;
-import org.wso2.carbon.identity.oauth.uma.resource.service.model.ScopeDataDO;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
+import javax.sql.DataSource;
 
+import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-@PrepareForTest(IdentityDatabaseUtil.class)
 
-public class ResourceDAOTest extends DAOUtils {
-
-    private static final Log log = LogFactory.getLog(ResourceDAOTest.class);
+@PrepareForTest(JdbcUtils.class)
+public class ResourceDAOTest extends PowerMockTestCase {
 
     private static final String DB_NAME = "regdb";
-    private static final int tenantId = -1234;
-    private static String resourceOwnerName = "carbon";
-    private static String consumerKey = "88999ng-667";
+    private int tenantId = -1234;
+    private String resourceOwnerName = "admin";
+    private String clientId = "1234";
+    private String resourceId = "1";
+    private String userDomain = "primary";
 
     @BeforeClass
     public void setUp() throws Exception {
 
-        initiateH2Base(DB_NAME, getFilePath("resource.sql"));
+        DAOUtils.initiateH2Base(DB_NAME, DAOUtils.getFilePath("resource.sql"));
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        createResourceTable(DB_NAME, "1", "PhotoAlbum", timestamp, resourceOwnerName,
-                tenantId, consumerKey);
-        createResourceMetaDataTable(DB_NAME, "icon_uri",
+        DAOUtils.createResourceTable(DB_NAME, resourceId, "PhotoAlbum", timestamp, resourceOwnerName,
+                tenantId, clientId, userDomain);
+        DAOUtils.createResourceMetaDataTable(DB_NAME, "icon_uri",
                 "http://www.example.com/icons/sharesocial.png", (long) 1);
-        createResourceScopeTable(DB_NAME, (long) 1, "view");
+        DAOUtils.createResourceScopeTable(DB_NAME, (long) 1, "view");
     }
 
     @AfterClass
     public void tearDown() throws Exception {
 
-        closeH2Base(DB_NAME);
+        DAOUtils.closeH2Base(DB_NAME);
     }
 
     @ObjectFactory
@@ -76,76 +72,118 @@ public class ResourceDAOTest extends DAOUtils {
         return new org.powermock.modules.testng.PowerMockObjectFactory();
     }
 
+    @Test
+    public void testRegisterResource() throws Exception {
 
-    @Test(expectedExceptions = UMAException.class)
-    public void testRetrieveResourceWithException() throws Exception {
-
-        mockStatic(IdentityDatabaseUtil.class);
+        DataSource dataSource = mock(DataSource.class);
+        mockStatic(JdbcUtils.class);
+        when(JdbcUtils.getNewNamedTemplate()).thenReturn(new NamedJdbcTemplate(dataSource));
         try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-            ResourceDAO resourceDAO = new ResourceDAO();
-            resourceDAO.retrieveResource("1");
+            Connection spy = DAOUtils.spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
+            ResourceDAO.registerResource(new Resource(), resourceOwnerName, tenantId, clientId, userDomain);
+        }
+
+    }
+
+    @Test(priority = 1)
+    public void testRetrieveResource() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+        mockStatic(JdbcUtils.class);
+        when(JdbcUtils.getNewNamedTemplate()).thenReturn(new NamedJdbcTemplate(dataSource));
+        try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
+            Connection spy = DAOUtils.spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
+            ResourceDAO.retrieveResource(resourceId);
+        }
+    }
+
+    /**
+     * Test retrieving with a invalid resource id.
+     */
+    @Test(expectedExceptions = UMAException.class)
+    public void testRetrieveResourceWithInvalidResourceId() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+        mockStatic(JdbcUtils.class);
+        when(JdbcUtils.getNewNamedTemplate()).thenReturn(new NamedJdbcTemplate(dataSource));
+        try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
+            Connection spy = DAOUtils.spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
+            ResourceDAO.retrieveResource("1234");
         }
     }
 
     @Test
     public void testRetrieveResourceIDs() throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
+        DataSource dataSource = mock(DataSource.class);
+        mockStatic(JdbcUtils.class);
+        when(JdbcUtils.getNewNamedTemplate()).thenReturn(new NamedJdbcTemplate(dataSource));
         try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-            ResourceDAO resourceDAO = new ResourceDAO();
-            resourceDAO.retrieveResourceIDs(resourceOwnerName, consumerKey);
+            Connection spy = DAOUtils.spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
+            ResourceDAO.retrieveResourceIDs(resourceOwnerName, userDomain, clientId);
         }
     }
 
-    @Test
+    @Test(priority = 3)
     public void testDeleteResource() throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        Connection connection = DAOUtils.getConnection(DB_NAME);
-        when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-        ResourceDAO resourceDAO = new ResourceDAO();
-        resourceDAO.deleteResource("19");
-
+        DataSource dataSource = mock(DataSource.class);
+        mockStatic(JdbcUtils.class);
+        when(JdbcUtils.getNewNamedTemplate()).thenReturn(new NamedJdbcTemplate(dataSource));
+        try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
+            Connection spy = DAOUtils.spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
+            ResourceDAO.deleteResource(resourceId);
+        }
     }
 
-    @Test
+    /**
+     * Test deleting with a invalid resource id.
+     */
+    @Test(expectedExceptions = UMAException.class)
+    public void testDeleteResourceWithInvalidResourceId() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+        mockStatic(JdbcUtils.class);
+        when(JdbcUtils.getNewNamedTemplate()).thenReturn(new NamedJdbcTemplate(dataSource));
+        try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
+            Connection spy = DAOUtils.spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
+            ResourceDAO.deleteResource("1234");
+        }
+    }
+
+    @Test(priority = 2)
     public void testUpdateResource() throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
+        DataSource dataSource = mock(DataSource.class);
+        mockStatic(JdbcUtils.class);
+        when(JdbcUtils.getNewNamedTemplate()).thenReturn(new NamedJdbcTemplate(dataSource));
         try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-            ResourceDAO resourceDAO = new ResourceDAO();
-            resourceDAO.updateResource("1", storeResources());
+            Connection spy = DAOUtils.spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
+            ResourceDAO.updateResource(resourceId, new Resource());
         }
     }
 
-    private Resource storeResources() {
+    /**
+     * Test updating with a invalid resource id.
+     */
+    @Test(expectedExceptions = UMAException.class)
+    public void testUpdateResourceWithInvalidResourceId() throws Exception {
 
-        Resource resource = new Resource();
-        resource.setResourceId("190292");
-        resource.setName("photo_albem");
-        ArrayList<String> scopes = new ArrayList<>();
-        scopes.add("scope1");
-        ScopeDataDO scopeDataDO = new ScopeDataDO();
-        scopeDataDO.setScopeName("Scope1");
-        resource.setScopes(scopes);
-        resource.setDescription("Collection of digital photographs");
-        resource.setIconUri("http://www.example.com/icons/sky.png");
-        resource.setType("http://www.example.com/rsrcs/photoalbum");
-        return resource;
-    }
-
-    private void addScopes(ResourceDAO resourceDAO, List<Object> resources) throws SQLException,
-            UMAServerException, UMAClientException {
-
-        for (Object resource : resources) {
-            try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
-                when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-                resourceDAO.registerResource((Resource) resource, resourceOwnerName, tenantId, consumerKey);
-
-            }
+        DataSource dataSource = mock(DataSource.class);
+        mockStatic(JdbcUtils.class);
+        when(JdbcUtils.getNewNamedTemplate()).thenReturn(new NamedJdbcTemplate(dataSource));
+        try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
+            Connection spy = DAOUtils.spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
+            ResourceDAO.updateResource("1234", new Resource());
         }
     }
+
 }

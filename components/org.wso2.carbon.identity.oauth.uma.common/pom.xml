@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
         <artifactId>identity-oauth-uma</artifactId>
-        <version>1.0.4-SNAPSHOT</version>
+        <version>1.0.5-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -43,7 +43,11 @@
                     <instructions>
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
-                        <Import-Package>org.wso2.carbon.identity.core.util;version="[5.8,6)"
+                        <Import-Package>
+                            javax.sql,
+                            org.wso2.carbon.database.utils.jdbc;version="${org.wso2.carbon.database.utils.version.range}",
+                            org.wso2.carbon.identity.core.persistence;version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.core.util;version="${carbon.identity.framework.imp.pkg.version.range}",
                         </Import-Package>
                         <Export-Package>
                             org.wso2.carbon.identity.oauth.uma.common.*;${project.version},
@@ -58,6 +62,11 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.core</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.utils</groupId>
+            <artifactId>org.wso2.carbon.database.utils</artifactId>
             <scope>provided</scope>
         </dependency>
     </dependencies>

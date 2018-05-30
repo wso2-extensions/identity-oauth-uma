@@ -34,9 +34,6 @@ public class ResourceServiceImplTest {
 
     private static final String RESOURCE_ID = "123454-62552-31456";
     private static Resource resource = new Resource();
-    private static int tenantId = -1234;
-    private static String resourceOwnerName = "carbon";
-    private static String consumerKey = "88999ng-667";
 
     @InjectMocks
     private ResourceServiceImpl resourceService;
@@ -57,14 +54,16 @@ public class ResourceServiceImplTest {
     public void testRegisterResource() throws Exception {
 
         mockStatic(ResourceDAO.class);
-        assertNull(resourceService.registerResource(resource, resourceOwnerName, tenantId, consumerKey));
+        assertNull(resourceService.registerResource(resource, "admin", -1234,
+                "1234", "primary"));
     }
 
     @Test
     public void testGetResourceIds() throws Exception {
 
         mockStatic(ResourceDAO.class);
-        assertNotNull(resourceService.getResourceIds("", ""));
+        assertNotNull(resourceService.getResourceIds("admin", "primary",
+                "1234"));
     }
 
     @Test

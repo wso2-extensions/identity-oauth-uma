@@ -54,10 +54,10 @@ public class ResourceUtils {
             resourceRegistration.getScopeDataDOArray().add(new ScopeDataDO(resourceRegistration.getResourceId()
                     , scope));
         }
-        if (resourceDetailsDTO.getType() != null && !resourceDetailsDTO.getType().isEmpty()) {
+        if (StringUtils.isNotEmpty(resourceDetailsDTO.getType())) {
             resourceRegistration.setType(resourceDetailsDTO.getType());
         }
-        if (resourceDetailsDTO.getDescription() != null && !resourceDetailsDTO.getDescription().isEmpty()) {
+        if (StringUtils.isNotEmpty(resourceDetailsDTO.getDescription())) {
             resourceRegistration.setDescription(resourceDetailsDTO.getDescription());
         }
         if (StringUtils.isNotEmpty(resourceDetailsDTO.getIcon_Uri())) {

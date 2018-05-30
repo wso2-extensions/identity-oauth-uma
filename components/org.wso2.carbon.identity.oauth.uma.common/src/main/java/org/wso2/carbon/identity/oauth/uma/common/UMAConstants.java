@@ -35,18 +35,26 @@ public class UMAConstants {
      */
     public enum ErrorMessages {
 
-        ERROR_CODE_FAIL_TO_GET_RESOURCE("60001", "Server error occurred while retrieving resource."),
-        ERROR_CODE_NOT_FOUND_RESOURCE_ID("60002", "Resource id is not found."),
-        ERROR_CODE_INVALID_RESOURCE_ID("60003", "Invalid resource id."),
-        ERROR_CODE_RESOURCE_NAME_DUPLICATE("60004", "Conflict occurred when persisting resource name."),
-        INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_REQUESTED_RESOURCES("60005", "Error occurred while persisting" +
-                " requested permissions."),
-        ERROR_BAD_REQUEST_INVALID_RESOURCE_ID("60005", "Permission request failed with bad resource ID."),
-        ERROR_BAD_REQUEST_INVALID_RESOURCE_SCOPE("60006", "Permission request failed with bad resource scope."),
-        ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_PT("60007", "Server error occurred while persisting PT."),
-        ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_REQUESTED_PERMISSIONS("60008", "Server error occurred while " +
-                "persisting requested permissions."),
-        ERROR_UNEXPECTED("60009", "Unexpected error.");
+        ERROR_NOT_FOUND_RESOURCE_ID("60001", "Resource id is not found."),
+        ERROR_BAD_REQUEST_RESOURCE_ID_MISSING("60002", "Resource id is missing in the request."),
+        ERROR_CONFLICT_RESOURCE_NAME_DUPLICATE("60003", "Conflict occurred when persisting resource name."),
+        ERROR_BAD_REQUEST_INVALID_RESOURCE_ID("60004", "Permission request failed with bad resource ID."),
+        ERROR_BAD_REQUEST_INVALID_RESOURCE_SCOPE("60005", "Permission request failed with bad resource scope."),
+        ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_PT("60006", "Server error occurred while persisting PT."),
+        ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_CHECK_RESOURCE_ID_EXISTENCE("60007", "Server error occurred while " +
+                "checking whether resource ids are existing."),
+        ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_GET_RESOURCE("60008", "Server error occurred while retrieving" +
+                " resource description."),
+        ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_RESOURCE("60009", "Server error occurred while registering " +
+                "resource."),
+        ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_DELETE_RESOURCE("60010", "Server error occurred while deleting " +
+                "resource."),
+        ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_UPDATE_RESOURCE("60011", "Server error occurred while updating resource" +
+                "description."),
+        ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_LIST_RESOURCES("60012", "Server error occurred while listing resources."),
+        ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_CHECK_RESOURCE_SCOPE_EXISTENCE("60013", "Server error occurred while " +
+                "checking whether resource scopes are existing."),
+        ERROR_UNEXPECTED("60014", "Unexpected error.");
 
         private final String code;
         private final String message;
@@ -88,5 +96,11 @@ public class UMAConstants {
         public static final String RESOURCE_SCOPE = "resource_scope";
         public static final String ID = "id";
         public static final String RESOURCE_OWNER_NAME = "resource_owner_name";
+        public static final String RESOURCE_NAME = "resource_name";
+        public static final String CLIENT_ID = "client_id";
+        public static final String USER_DOMAIN = "user_domain";
+        public static final String PROPERTY_KEY = "property_key";
+        public static final String PROPERTY_VALUE = "property_value";
+        public static final String SCOPE_NAME = "scope_name";
     }
 }

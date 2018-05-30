@@ -18,25 +18,23 @@
 
 package org.wso2.carbon.identity.oauth.uma.permission.service.dao;
 
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
+import org.wso2.carbon.identity.oauth.uma.common.JdbcUtils;
 import org.wso2.carbon.identity.oauth.uma.common.UMAConstants;
 import org.wso2.carbon.identity.oauth.uma.common.exception.UMAClientException;
 import org.wso2.carbon.identity.oauth.uma.common.exception.UMAServerException;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.PermissionTicketModel;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.Resource;
-import org.wso2.carbon.identity.oauth2.util.NamedPreparedStatement;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
 /**
- * Data Access Layer functionality for Permission Endpoint. This includes storing requested permissions
- * (requested resource ids with their scopes).
+ * Data Access Layer functionality for Permission Endpoint. This includes persisting requested permissions
+ * (requested resource ids with their scopes) and the issued permission ticket.
  */
 public class PermissionTicketDAO {
 
@@ -56,7 +54,9 @@ public class PermissionTicketDAO {
             UMAConstants.SQLPlaceholders.RESOURCE_ID + ";)))";
     private static final String VALIDATE_REQUESTED_RESOURCE_IDS_WITH_REGISTERED_RESOURCE_IDS = "SELECT ID " +
             "FROM IDN_RESOURCE WHERE RESOURCE_ID = :" + UMAConstants.SQLPlaceholders.RESOURCE_ID + "; AND " +
-            "RESOURCE_OWNER_NAME = :" + UMAConstants.SQLPlaceholders.RESOURCE_OWNER_NAME + ";";
+            "RESOURCE_OWNER_NAME = :" + UMAConstants.SQLPlaceholders.RESOURCE_OWNER_NAME + "; AND USER_DOMAIN = :" +
+            UMAConstants.SQLPlaceholders.USER_DOMAIN + "; AND CLIENT_ID = :" +
+            UMAConstants.SQLPlaceholders.CLIENT_ID + ";";
     private static final String VALIDATE_REQUESTED_RESOURCE_SCOPES_WITH_REGISTERED_RESOURCE_SCOPES = "SELECT ID FROM" +
             " IDN_RESOURCE_SCOPE WHERE SCOPE_NAME = :" + UMAConstants.SQLPlaceholders.RESOURCE_SCOPE + "; AND " +
             "RESOURCE_IDENTITY = (SELECT ID FROM IDN_RESOURCE WHERE RESOURCE_ID = :" +
@@ -68,138 +68,153 @@ public class PermissionTicketDAO {
      *
      * @param resourceList          A list with the resource ids and the corresponding scopes.
      * @param permissionTicketModel Model class for permission ticket values.
+     * @param resourceOwnerName     Resource owner name.
+     * @param clientId              Client id representing the resource server.
+     * @param userDomain            User domain of the resource owner.
      * @throws UMAServerException Exception thrown when there is a database issue.
-     * @throws UMAClientException   Exception thrown when there is an invalid resource ID/scope.
+     * @throws UMAClientException Exception thrown when there is an invalid resource ID/scope.
      */
-    public static void persistPTandRequestedPermissions(List<Resource> resourceList,
-                                                        PermissionTicketModel permissionTicketModel,
-                                                        String resourceOwnerName) throws UMAClientException,
+    public static void persistPermissionTicket(List<Resource> resourceList, PermissionTicketModel permissionTicketModel,
+                                               String resourceOwnerName, String clientId, String userDomain)
+            throws UMAServerException, UMAClientException {
+
+        checkResourceIdsExistence(resourceList, resourceOwnerName, clientId, userDomain);
+        checkResourceScopesExistence(resourceList);
+
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedTemplate();
+        try {
+            namedJdbcTemplate.withTransaction(namedTemplate -> {
+                int insertedId = namedTemplate.
+                        executeInsert(STORE_PT_QUERY,
+                                (namedPreparedStatement -> {
+                                    namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.PERMISSION_TICKET,
+                                            permissionTicketModel.getTicket());
+                                    namedPreparedStatement.setTimeStamp(UMAConstants.SQLPlaceholders.TIME_CREATED,
+                                            new Timestamp(new Date().getTime()), permissionTicketModel.
+                                                    getCreatedTime());
+                                    namedPreparedStatement.setLong(UMAConstants.SQLPlaceholders.VALIDITY_PERIOD,
+                                            permissionTicketModel.getValidityPeriod());
+                                    namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.STATE,
+                                            permissionTicketModel.getStatus());
+                                    namedPreparedStatement.setLong(UMAConstants.SQLPlaceholders.TENANT_ID,
+                                            permissionTicketModel.getTenantId());
+                                }), permissionTicketModel, true);
+                addRequestedResources(resourceList, insertedId);
+                return null;
+            });
+
+        } catch (TransactionException e) {
+            throw new UMAServerException(UMAConstants.ErrorMessages
+                    .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_PT, e);
+        }
+    }
+
+    private static void checkResourceIdsExistence(List<Resource> resourceList, String
+            resourceOwnerName, String clientId, String userDomain) throws UMAClientException,
             UMAServerException {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
-            checkResourceIdsExistence(connection, resourceList, resourceOwnerName);
-            checkResourceScopesExistence(connection, resourceList);
-            connection.setAutoCommit(false);
-            NamedPreparedStatement ptNamedPreparedStatement = new NamedPreparedStatement(connection, STORE_PT_QUERY);
-            ptNamedPreparedStatement.setString(UMAConstants.SQLPlaceholders.PERMISSION_TICKET,
-                    permissionTicketModel.getTicket());
-            ptNamedPreparedStatement.setTimeStamp(UMAConstants.SQLPlaceholders.TIME_CREATED,
-                    new Timestamp(new Date().getTime()), permissionTicketModel.getCreatedTime());
-            ptNamedPreparedStatement.setLong(UMAConstants.SQLPlaceholders.VALIDITY_PERIOD,
-                    permissionTicketModel.getValidityPeriod());
-            ptNamedPreparedStatement.setString(UMAConstants.SQLPlaceholders.STATE, permissionTicketModel.getStatus());
-            ptNamedPreparedStatement.setLong(UMAConstants.SQLPlaceholders.TENANT_ID,
-                    permissionTicketModel.getTenantId());
-            try (PreparedStatement preparedStatement = ptNamedPreparedStatement.getPreparedStatement()) {
-                preparedStatement.execute();
-
-                // Checking if the PT is persisted in the db.
-                long id;
-                try (ResultSet resultSet = preparedStatement.getGeneratedKeys()) {
-                    if (resultSet.next()) {
-                        id = resultSet.getLong(1);
-                    } else {
-                        throw new UMAServerException(UMAConstants.ErrorMessages
-                                .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_PT);
-                    }
-                }
-
-                for (Resource resource : resourceList) {
-                    NamedPreparedStatement resourceNamedPreparedStatement = new NamedPreparedStatement(connection,
-                            STORE_PT_RESOURCE_IDS_QUERY);
-                    resourceNamedPreparedStatement.setString(UMAConstants.SQLPlaceholders.RESOURCE_ID,
-                            resource.getResourceId());
-                    resourceNamedPreparedStatement.setLong(UMAConstants.SQLPlaceholders.ID, id);
-                    try (PreparedStatement resourceIdStatement =
-                                 resourceNamedPreparedStatement.getPreparedStatement()) {
-                        resourceIdStatement.execute();
-                        try (ResultSet resultSet = resourceIdStatement.getGeneratedKeys()) {
-                            if (resultSet.next()) {
-                                long resourceId = resultSet.getLong(1);
-                                NamedPreparedStatement scopeNamedPreparedStatement = new NamedPreparedStatement
-                                        (connection, STORE_PT_RESOURCE_SCOPES_QUERY);
-                                scopeNamedPreparedStatement.setLong(UMAConstants.SQLPlaceholders.ID,
-                                        resourceId);
-                                try (PreparedStatement resourceScopeStatement =
-                                             scopeNamedPreparedStatement.getPreparedStatement()) {
-                                    for (String scope : resource.getResourceScopes()) {
-                                        scopeNamedPreparedStatement.setString(UMAConstants.SQLPlaceholders.RESOURCE_ID,
-                                                resource.getResourceId());
-                                        scopeNamedPreparedStatement.setString(
-                                                UMAConstants.SQLPlaceholders.RESOURCE_SCOPE, scope);
-                                        scopeNamedPreparedStatement.getPreparedStatement().addBatch();
-                                    }
-                                    resourceScopeStatement.executeBatch();
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            connection.commit();
-        } catch (SQLException e) {
-            throw new UMAServerException(UMAConstants.ErrorMessages
-                    .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_REQUESTED_PERMISSIONS, e);
-        }
-    }
-
-    private static void checkResourceIdsExistence(Connection connection, List<Resource> resourceList, String
-            resourceOwnerName) throws UMAClientException, UMAServerException {
-
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedTemplate();
+        String resourceId;
         for (Resource resource : resourceList) {
             try {
-                NamedPreparedStatement resourceIdNamedPreparedStatement = new NamedPreparedStatement(connection,
-                        VALIDATE_REQUESTED_RESOURCE_IDS_WITH_REGISTERED_RESOURCE_IDS);
-                resourceIdNamedPreparedStatement.setString(UMAConstants.SQLPlaceholders.RESOURCE_OWNER_NAME,
-                        resourceOwnerName);
-                resourceIdNamedPreparedStatement.setString(UMAConstants.SQLPlaceholders.RESOURCE_ID,
-                        resource.getResourceId());
-                try (PreparedStatement resourceIdStatement = resourceIdNamedPreparedStatement.getPreparedStatement()) {
-                    try (ResultSet resultSet = resourceIdStatement.executeQuery()) {
-                        if (!resultSet.next()) {
-                            throw new UMAClientException(UMAConstants.ErrorMessages
-                                    .ERROR_BAD_REQUEST_INVALID_RESOURCE_ID, "Permission request failed with bad " +
-                                    "resource ID : " + resource.getResourceId());
+                resourceId = namedJdbcTemplate.fetchSingleRecord(
+                        VALIDATE_REQUESTED_RESOURCE_IDS_WITH_REGISTERED_RESOURCE_IDS, (resultSet, rowNumber) ->
+                                resultSet.getString(1), namedPreparedStatement -> {
+                            namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.RESOURCE_ID,
+                                    resource.getResourceId());
+                            namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.RESOURCE_OWNER_NAME,
+                                    resourceOwnerName);
+                            namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.USER_DOMAIN, userDomain);
+                            namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.CLIENT_ID,
+                                    clientId);
                         }
-                    }
+                );
+                if (resourceId == null) {
+                    throw new UMAClientException(UMAConstants.ErrorMessages
+                            .ERROR_BAD_REQUEST_INVALID_RESOURCE_ID, "Permission request failed with bad resource ID : "
+                            + resource.getResourceId());
                 }
-            } catch (SQLException e) {
+            } catch (DataAccessException e) {
                 throw new UMAServerException(UMAConstants.ErrorMessages
-                        .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_REQUESTED_PERMISSIONS, e);
+                        .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_CHECK_RESOURCE_ID_EXISTENCE, e);
             }
         }
     }
 
-    private static void checkResourceScopesExistence(Connection connection, List<Resource> resourceList) throws
-            UMAClientException, UMAServerException {
+    private static void checkResourceScopesExistence(List<Resource> resourceList) throws UMAClientException,
+            UMAServerException {
 
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedTemplate();
+        String resourceScope;
+        for (Resource resource : resourceList) {
+            for (String scope : resource.getResourceScopes()) {
+                try {
+                    resourceScope = namedJdbcTemplate.fetchSingleRecord(
+                            VALIDATE_REQUESTED_RESOURCE_SCOPES_WITH_REGISTERED_RESOURCE_SCOPES, (resultSet,
+                                                                                                 rowNumber) ->
+                                    resultSet.getString(1), namedPreparedStatement -> {
+                                namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.RESOURCE_ID,
+                                        resource.getResourceId());
+                                namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.RESOURCE_SCOPE, scope);
+                            }
+                    );
+                    if (resourceScope == null) {
+                        throw new UMAClientException(UMAConstants.ErrorMessages.ERROR_BAD_REQUEST_INVALID_RESOURCE_SCOPE
+                                , "Permission request failed with bad resource scope " + scope + " for resource " +
+                                resource.getResourceId());
+                    }
+                } catch (DataAccessException e) {
+                    throw new UMAServerException(UMAConstants.ErrorMessages
+                            .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_CHECK_RESOURCE_SCOPE_EXISTENCE, e);
+                }
+            }
+        }
+    }
+
+    private static void addRequestedResources(List<Resource> resourceList, int insertedId) throws
+            UMAServerException {
+
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedTemplate();
         for (Resource resource : resourceList) {
             try {
-                NamedPreparedStatement scopeNamedPreparedStatement = new NamedPreparedStatement
-                        (connection, VALIDATE_REQUESTED_RESOURCE_SCOPES_WITH_REGISTERED_RESOURCE_SCOPES);
-                scopeNamedPreparedStatement.setString(UMAConstants.SQLPlaceholders.RESOURCE_ID,
-                        resource.getResourceId());
-                try (PreparedStatement resourceScopeStatement =
-                             scopeNamedPreparedStatement.getPreparedStatement()) {
+                namedJdbcTemplate.withTransaction(namedtemplate -> {
+                    int insertedResourceId = namedtemplate.executeInsert(STORE_PT_RESOURCE_IDS_QUERY,
+                            (namedpreparedStatement -> {
+                                namedpreparedStatement.setString(UMAConstants.SQLPlaceholders.RESOURCE_ID,
+                                        resource.getResourceId());
+                                namedpreparedStatement.setLong(UMAConstants.SQLPlaceholders.ID, insertedId);
+                            }), resource, true);
+                    addResourceScopes(resource, insertedResourceId);
+                    return null;
+                });
+            } catch (TransactionException e) {
+                throw new UMAServerException(UMAConstants.ErrorMessages
+                        .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_PT, e);
+            }
+        }
+    }
+
+    private static void addResourceScopes(Resource resource, int insertedResourceId) throws UMAServerException {
+
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedTemplate();
+        try {
+            namedJdbcTemplate.withTransaction(namedtemplate -> {
+                namedtemplate.executeBatchInsert(STORE_PT_RESOURCE_SCOPES_QUERY, (namedPreparedStatement -> {
+                    namedPreparedStatement.setLong(UMAConstants.SQLPlaceholders.ID,
+                            insertedResourceId);
                     for (String scope : resource.getResourceScopes()) {
-                        scopeNamedPreparedStatement.setString(
+                        namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.RESOURCE_ID,
+                                resource.getResourceId());
+                        namedPreparedStatement.setString(
                                 UMAConstants.SQLPlaceholders.RESOURCE_SCOPE, scope);
-                        try (ResultSet resultSet = resourceScopeStatement.executeQuery()) {
-                            if (!resultSet.next()) {
-                                throw new UMAClientException(UMAConstants.ErrorMessages
-                                        .ERROR_BAD_REQUEST_INVALID_RESOURCE_SCOPE, "Permission request failed with " +
-                                        "bad resource scope " + scope + " for resource " + resource.getResourceId());
-                            }
-                        }
-
+                        namedPreparedStatement.addBatch();
                     }
-
-                }
-            } catch (SQLException e) {
-                throw new UMAServerException(UMAConstants.ErrorMessages
-                        .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_REQUESTED_PERMISSIONS, e);
-            }
+                }), insertedResourceId);
+                return null;
+            });
+        } catch (TransactionException e) {
+            throw new UMAServerException(UMAConstants.ErrorMessages
+                    .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_PT, e);
         }
     }
-
 }

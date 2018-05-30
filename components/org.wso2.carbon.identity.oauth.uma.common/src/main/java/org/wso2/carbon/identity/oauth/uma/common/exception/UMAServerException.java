@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.oauth.uma.common.exception;
 import org.wso2.carbon.identity.oauth.uma.common.UMAConstants;
 
 /**
- * Custom exception to be thrown when there is an issue with database.
+ * Custom exception to be thrown when there is a server issue.
  */
 public class UMAServerException extends UMAException {
 

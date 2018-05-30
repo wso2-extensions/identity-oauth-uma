@@ -122,7 +122,7 @@ public class ResourceRegistrationApiServiceImplTest extends PowerMockTestCase {
         when(mockHTTPServletRequest.getAttribute(anyString())).thenReturn(mockAuthenticationContext);
         when(mockAuthenticationContext.getUser()).thenReturn(new User());
         List<String> resourceIds = new ArrayList<>();
-        when(resourceService.getResourceIds(anyString(), anyString())).thenReturn(resourceIds);
+        when(resourceService.getResourceIds(anyString(), anyString(), anyString())).thenReturn(resourceIds);
         assertNotEquals(resourcesApiService.getResourceIds(mockMessageContext).getStatus(),
                 Response.Status.NO_CONTENT.getStatusCode());
     }

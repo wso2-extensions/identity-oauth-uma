@@ -30,15 +30,15 @@ public interface ResourceService {
 
     boolean deleteResource(String resourceId) throws UMAServerException, UMAClientException;
 
-    List<String> getResourceIds(String resourceOwnerName, String consumerKey) throws UMAServerException
-            , UMAClientException;
+    List<String> getResourceIds(String resourceOwnerName, String userDomain, String consumerKey) throws
+            UMAServerException, UMAClientException;
 
     Resource registerResource(Resource resourceRegistration, String resourceOwnerName, int tenantId,
-                                     String consumerKey) throws UMAServerException, UMAClientException;
+                              String consumerKey, String userDomain) throws UMAServerException, UMAClientException;
 
     Resource getResourceById(String resourceId)
             throws UMAServerException, UMAClientException;
 
-    Resource updateResource(String resourceId, Resource resourceRegistration)
-            throws UMAServerException;
+    boolean updateResource(String resourceId, Resource resourceRegistration)
+            throws UMAServerException, UMAClientException;
 }

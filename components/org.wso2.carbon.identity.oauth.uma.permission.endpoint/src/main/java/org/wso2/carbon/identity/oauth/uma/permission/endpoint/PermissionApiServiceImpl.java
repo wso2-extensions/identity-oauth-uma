@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.oauth.uma.permission.endpoint.exception.Permissi
 import org.wso2.carbon.identity.oauth.uma.permission.service.PermissionService;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.PermissionTicketModel;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.Resource;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +64,16 @@ public class PermissionApiServiceImpl extends PermissionApiService {
     @Override
     public Response requestPermission(ResourceModelDTO requestedPermission, MessageContext context) {
 
-        if (!isValidTokenScope(context) && getResourceOwner(context) == null && getConsumerKey(context) == null) {
+        String consumerKey = getConsumerKey(context);
+        String userNameWithDomain = getUserNameWithDomain(context);
+        String userDomain = null;
+        String resourceOwner = null;
+        if (userNameWithDomain != null) {
+            resourceOwner = UserCoreUtil.removeDomainFromName(userNameWithDomain);
+            userDomain = IdentityUtil.extractDomainFromName(userNameWithDomain);
+        }
+
+        if (!isValidTokenScope(context) || resourceOwner == null || consumerKey == null) {
             if (log.isDebugEnabled()) {
                 log.debug("Required context information not available in the access token.");
             }
@@ -72,7 +82,8 @@ public class PermissionApiServiceImpl extends PermissionApiService {
         }
         if (requestedPermission == null) {
             if (log.isDebugEnabled()) {
-                log.debug("Invalid request.");
+                log.debug("Invalid permission request with client: " + consumerKey + " resource owner: "
+                        + userNameWithDomain);
             }
             return Response.status(Response.Status.BAD_REQUEST).entity(getErrorResponseDTO
                     ("invalid_request", "Empty request body")).build();
@@ -85,23 +96,25 @@ public class PermissionApiServiceImpl extends PermissionApiService {
         try {
             permissionTicketModel = permissionService.issuePermissionTicket(getPermissionTicketRequest(
                     requestedPermission), PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId(),
-                    getResourceOwner(context));
+                    resourceOwner, consumerKey, userDomain);
         } catch (UMAException e) {
-            handleErrorResponse("Error when requesting permission for consumer key: " + getConsumerKey(context),
-                    e);
+            handleErrorResponse("Error when requesting permission for client: " + consumerKey +
+                    " resource owner: " + userNameWithDomain, e);
         }
 
         PermissionTicketResponseDTO permissionTicketResponseDTO = new PermissionTicketResponseDTO();
         if (permissionTicketModel != null) {
             permissionTicketResponseDTO.setTicket(permissionTicketModel.getTicket());
         } else {
-            handleErrorResponse("Error when requesting permission for consumer key: " + getConsumerKey(context),
-                    new UMAServerException(UMAConstants.ErrorMessages.ERROR_UNEXPECTED));
+            handleErrorResponse("Error when requesting permission for client: " + consumerKey +
+                    " resource owner: " + userNameWithDomain, new UMAServerException
+                    (UMAConstants.ErrorMessages.ERROR_UNEXPECTED));
         }
 
         if (log.isDebugEnabled()) {
             if (IdentityUtil.isTokenLoggable("PermissionTicket")) {
-                log.debug("Permission Ticket created: " + permissionTicketResponseDTO.getTicket());
+                log.debug("Permission Ticket created: " + permissionTicketResponseDTO.getTicket() + " for client: "
+                        + consumerKey + " resource owner: " + userNameWithDomain);
             } else {
                 // Avoid logging token since its a sensitive information.
                 log.debug("Permission Ticket created.");
@@ -127,11 +140,11 @@ public class PermissionApiServiceImpl extends PermissionApiService {
     }
 
     /**
-     * Retrieve resource owner name
+     * Retrieve resource owner name with user domain
      *
      * @param context message context
      */
-    private String getResourceOwner(MessageContext context) {
+    private String getUserNameWithDomain(MessageContext context) {
 
         if (context.getHttpServletRequest().getAttribute(AUTH_CONTEXT) instanceof AuthenticationContext) {
             AuthenticationContext authContext = (AuthenticationContext) context.getHttpServletRequest()

@@ -24,18 +24,17 @@ import java.util.Map;
 /**
  * Contains the http status codes and error codes to be sent in body of the response as a JSON Result as specified in
  * spec when an error occurs.
- * https://docs.kantarainitiative.org/uma/wg/oauth-uma-federated-authz-2.0-09.html#rfc.section.4.3
+ * https://docs.kantarainitiative.org/uma/wg/oauth-uma-federated-authz-2.0-09.html#errors
  */
 public final class HandleErrorResponseConstants {
 
     public static final Map<String, String[]> RESPONSE_DATA_MAP = new HashMap<String, String[]>() {
         {
-            put("60001", new String[]{"400", "invalid_request"});
-            put("60002", new String[]{"404", "not_found"});
-            put("60003", new String[]{"404", "not_found"});
-            put("60004", new String[]{"409", "conflict"});
-            put("60005", new String[]{"400", "invalid_resource_id"});
-            put("60006", new String[]{"400", "invalid_scope"});
+            put("60001", new String[]{"404", "not_found"});
+            put("60002", new String[]{"400", "invalid_request"});
+            put("60003", new String[]{"409", "conflict"});
+            put("60004", new String[]{"400", "invalid_resource_id"});
+            put("60005", new String[]{"400", "invalid_scope"});
         }
     };
 }

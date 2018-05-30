@@ -16,24 +16,25 @@
 
 package org.wso2.carbon.identity.oauth.uma.resource.service.dao;
 
-import com.mysql.jdbc.Statement;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
+import org.wso2.carbon.identity.oauth.uma.common.JdbcUtils;
 import org.wso2.carbon.identity.oauth.uma.common.UMAConstants;
 import org.wso2.carbon.identity.oauth.uma.common.exception.UMAClientException;
 import org.wso2.carbon.identity.oauth.uma.common.exception.UMAServerException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.model.Resource;
 import org.wso2.carbon.identity.oauth.uma.resource.service.model.ScopeDataDO;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Savepoint;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * Data Access Layer functionality for Resource management. This includes storing, updating, deleting
@@ -44,6 +45,7 @@ public class ResourceDAO {
     private static final String ICON_URI = "icon_uri";
     private static final String DESCRIPTION = "description";
     private static final String TYPE = "type";
+    private static final String UTC = "UTC";
     private static final Log log = LogFactory.getLog(ResourceDAO.class);
 
     /**
@@ -54,182 +56,138 @@ public class ResourceDAO {
      * @throws UMAServerException ResourceException
      */
     public static Resource registerResource(Resource resource, String resourceOwnerName, int tenantId,
-                                            String consumerKey) throws UMAServerException, UMAClientException {
+                                            String clientId, String userDomain) throws UMAServerException,
+            UMAClientException {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
-            connection.setAutoCommit(false);
-            Savepoint savepoint = connection.setSavepoint();
-            if (checkExsistanceOfSameResourceName(resourceOwnerName, resource.getName())) {
-                throw new UMAClientException(UMAConstants.ErrorMessages
-                        .ERROR_CODE_RESOURCE_NAME_DUPLICATE, "Duplicate resource name: " + resource.getName());
-            } else {
-                PreparedStatement preparedStatement = connection.prepareStatement(SQLQueries.STORE_RESOURCE_DETAILS,
-                        Statement.RETURN_GENERATED_KEYS);
-                preparedStatement.setString(1, resource.getResourceId());
-                preparedStatement.setString(2, resource.getName());
-                preparedStatement.setTimestamp(3, resource.getTimecreated());
-                preparedStatement.setString(4, resourceOwnerName);
-                preparedStatement.setInt(5, tenantId);
-                preparedStatement.setString(6, consumerKey);
-                preparedStatement.execute();
-
-                try (ResultSet resultSet1 = preparedStatement.getGeneratedKeys()) {
-                    long id = 0;
-                    if (resultSet1.next()) {
-                        id = resultSet1.getLong(1);
-                    }
-                    mapMetaDataWithResource(connection, id, resource);
-                    mapScopeWithResource(connection, id, resource.getScopeDataDOArray());
-                    connection.commit();
-                    if (log.isDebugEnabled()) {
-                        log.debug("Successfully added the resource details to the database.");
-                    }
-                } catch (SQLException e) {
-                    try {
-                        connection.rollback(savepoint);
-                    } catch (SQLException e1) {
-                        throw new UMAServerException(UMAConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE,
-                                "Rollback error. Could not rollback purpose adding.", e);
-                    }
-                    throw new UMAServerException(UMAConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE,
-                            "Database error. Could not add resource details.", e);
+        if (checkDuplicationOfResourceName(resourceOwnerName, userDomain, resource.getName()) != null) {
+            throw new UMAClientException(UMAConstants.ErrorMessages
+                    .ERROR_CONFLICT_RESOURCE_NAME_DUPLICATE, "Duplicate resource name: " + resource.getName());
+        }
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedTemplate();
+        try {
+            namedJdbcTemplate.withTransaction(namedTemplate -> {
+                int insertedId = namedTemplate
+                        .executeInsert(SQLQueries.STORE_RESOURCE,
+                                (namedPreparedStatement -> {
+                                    namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.RESOURCE_ID,
+                                            resource.getResourceId());
+                                    namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.RESOURCE_NAME,
+                                            resource.getName());
+                                    namedPreparedStatement.setTimeStamp(UMAConstants.SQLPlaceholders.TIME_CREATED,
+                                            new Timestamp(new Date().getTime()),
+                                            Calendar.getInstance(TimeZone.getTimeZone(UTC)));
+                                    namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.RESOURCE_OWNER_NAME,
+                                            resourceOwnerName);
+                                    namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.CLIENT_ID, clientId);
+                                    namedPreparedStatement.setInt(UMAConstants.SQLPlaceholders.TENANT_ID, tenantId);
+                                    namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.USER_DOMAIN,
+                                            userDomain);
+                                }), resource, true);
+                storeResourceMetaData(insertedId, resource);
+                storeResourceScopes(insertedId, resource.getScopeDataDOArray());
+                if (log.isDebugEnabled()) {
+                    log.debug("Successfully registered the resource.");
                 }
-            }
-        } catch (SQLException e) {
-            throw new UMAServerException(UMAConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE,
-                    "Database error. Could not add resource details.", e);
+                return resource;
+            });
+        } catch (TransactionException e) {
+            throw new UMAServerException(UMAConstants.ErrorMessages.
+                    ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_RESOURCE, e);
         }
         return resource;
-    }
-
-    private static void mapMetaDataWithResource(Connection connection, long id, Resource resourceRegistation)
-            throws UMAServerException {
-
-        try {
-            PreparedStatement preparedStatement = connection.prepareStatement(SQLQueries.STORE_RESOURCE_META_DETAILS);
-            preparedStatement.setLong(1, id);
-            if (StringUtils.isNotEmpty(resourceRegistation.getDescription())) {
-                preparedStatement.setString(2, DESCRIPTION);
-                preparedStatement.setString(3, resourceRegistation.getDescription());
-                preparedStatement.execute();
-            }
-            if (StringUtils.isNotEmpty(resourceRegistation.getType())) {
-                preparedStatement.setString(2, TYPE);
-                preparedStatement.setString(3, resourceRegistation.getType());
-                preparedStatement.execute();
-            }
-            if (StringUtils.isNotEmpty(resourceRegistation.getIconUri())) {
-                preparedStatement.setString(2, ICON_URI);
-                preparedStatement.setString(3, resourceRegistation.getDescription());
-                preparedStatement.execute();
-            }
-
-        } catch (SQLException e) {
-            throw new UMAServerException("Database error. Could not map metadata to resource.", e);
-        }
-    }
-
-    private static void mapScopeWithResource(Connection connection, long id, List<ScopeDataDO>
-            scopeData) throws UMAServerException {
-
-        try {
-            for (ScopeDataDO scopeDataDO : scopeData) {
-                PreparedStatement preparedStatement = connection.prepareStatement(SQLQueries.STORE_SCOPES);
-                preparedStatement.setLong(1, id);
-                preparedStatement.setString(2, scopeDataDO.getScopeName());
-                preparedStatement.execute();
-            }
-        } catch (SQLException e) {
-            throw new UMAServerException("Database error. Could not map scope to resource.", e);
-        }
     }
 
     /**
      * Get a resource by resourceId
      *
-     * @param resourceid Id of the resource
+     * @param resourceId Id of the resource
      * @return resource description for the provided ID
      * @throws UMAServerException
      */
-    public static Resource retrieveResource(String resourceid) throws UMAServerException, UMAClientException {
+    public static Resource retrieveResource(String resourceId) throws UMAServerException, UMAClientException {
 
-        Resource resourceRegistration = null;
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
-            PreparedStatement preparedStatement = connection.prepareStatement(SQLQueries.RETRIEVE_RESOURCES_BY_ID);
-            preparedStatement.setString(1, resourceid);
-            ResultSet resultSet = preparedStatement.executeQuery();
+        Resource resource = new Resource();
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedTemplate();
+        Integer id;
+        try {
+            id = checkResourceExistence(resourceId);
 
-            if (!resultSet.next()) {
-                throw new UMAClientException(UMAConstants.ErrorMessages
-                        .ERROR_CODE_NOT_FOUND_RESOURCE_ID, "Resource id : " + resourceid + " not found.");
-            } else {
-                resourceRegistration = new Resource();
-                do {
-                    if (!resourceRegistration.getScopes().contains(resultSet.getString(5))) {
-                        resourceRegistration.getScopes().add(resultSet.getString(5));
-                    }
+            resource.setResourceId(resourceId);
 
-                    if (resultSet.getString(1) != null) {
-                        resourceRegistration.setResourceId(resultSet.getString(1));
-                    }
-                    if (resultSet.getString(2) != null) {
-                        resourceRegistration.setName(resultSet.getString(2));
-                    }
-                    if (resultSet.getString("PROPERTY_KEY").equals(ICON_URI)) {
-                        resourceRegistration.setIconUri(resultSet.getString("PROPERTY_VALUE"));
-                    }
-                    if (resultSet.getString("PROPERTY_KEY").equals(TYPE)) {
-                        resourceRegistration.setType(resultSet.getString("PROPERTY_VALUE"));
-                    }
-                    if (resultSet.getString("PROPERTY_KEY").equals(DESCRIPTION)) {
-                        resourceRegistration.setDescription(resultSet.getString("PROPERTY_VALUE"));
-                    }
-                } while (resultSet.next());
+            String name = namedJdbcTemplate.fetchSingleRecord(SQLQueries.GET_RESOURCE_NAME, (resultSet, i) ->
+                    resultSet.getString(1), namedPreparedStatement -> {
+                namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.RESOURCE_ID, resourceId);
+            });
+            if (name != null) {
+                resource.setName(name);
             }
+
+            List<String> scopes = new ArrayList<>();
+            namedJdbcTemplate.executeQuery(SQLQueries.GET_RESOURCE_SCOPES, (resultSet, rowNumber) ->
+                    scopes.add(resultSet.getString(1)), namedPreparedStatement ->
+                    namedPreparedStatement.setInt(UMAConstants.SQLPlaceholders.ID, id));
+
+            resource.setScopes(scopes);
+
+            namedJdbcTemplate.executeQuery(SQLQueries.GET_RESOURCE_META_DATA, (resultSet, rowNumber) -> {
+                        if (resultSet.getString("PROPERTY_KEY").equals(ICON_URI)) {
+                            resource.setIconUri(resultSet.getString(
+                                    "PROPERTY_VALUE"));
+                        }
+                        if (resultSet.getString("PROPERTY_KEY").equals(TYPE)) {
+                            resource.setType(resultSet.getString("PROPERTY_VALUE"));
+                        }
+                        if (resultSet.getString("PROPERTY_KEY").equals(DESCRIPTION)) {
+                            resource.setDescription(resultSet.getString(
+                                    "PROPERTY_VALUE"));
+                        }
+                        return null;
+                    }, namedPreparedStatement -> namedPreparedStatement.setInt(UMAConstants.SQLPlaceholders.ID, id)
+            );
             if (log.isDebugEnabled()) {
-                log.debug("Successfully retrieved the resource details from the database.");
+                log.debug("Successfully retrieved resource description for resource: " + resourceId);
             }
-        } catch (SQLException e) {
-            throw new UMAServerException(UMAConstants.ErrorMessages.ERROR_CODE_NOT_FOUND_RESOURCE_ID, "Database" +
-                    "error.Could not get resource.Resource Id can not be found in data base: " + resourceid, e);
 
+        } catch (DataAccessException e) {
+            throw new UMAServerException(UMAConstants.ErrorMessages
+                    .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_GET_RESOURCE, e);
         }
-        return resourceRegistration;
+
+        return resource;
     }
 
     /**
      * Get all available resources
      *
-     * @param resourceOwnerName ResourceOwner name
+     * @param resourceOwnerName name of the resource owner.
+     * @param userDomain        user store domain of the resource owner.
+     * @param clientId          client id representing the resource server.
      * @return available resource list
      * @throws UMAServerException
      */
-    public static List<String> retrieveResourceIDs(String resourceOwnerName, String consumerKey)
+    public static List<String> retrieveResourceIDs(String resourceOwnerName, String userDomain, String clientId)
             throws UMAServerException {
 
-        List<String> resourceSetIdList = new ArrayList<>();
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
-            try (PreparedStatement preparedStatement = connection.prepareStatement(SQLQueries.GET_ALL_RESOURCES)) {
-                preparedStatement.setString(1, resourceOwnerName);
-                preparedStatement.setString(2, consumerKey);
-
-                try (ResultSet resultSet = preparedStatement.executeQuery()) {
-
-                    while (resultSet.next()) {
-                        String resourceId = resultSet.getString(1);
-                        resourceSetIdList.add(resourceId);
-                    }
-                }
-            }
-            connection.commit();
+        List<String> resourceIdsList = new ArrayList<>();
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedTemplate();
+        try {
+            namedJdbcTemplate.executeQuery(SQLQueries.GET_ALL_RESOURCES,
+                    (resultSet, rowNumber) -> resourceIdsList.add(resultSet.getString(1)),
+                    namedPreparedStatement -> {
+                        namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.RESOURCE_OWNER_NAME,
+                                resourceOwnerName);
+                        namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.USER_DOMAIN, userDomain);
+                        namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.CLIENT_ID, clientId);
+                    });
             if (log.isDebugEnabled()) {
-                log.debug("Successfully listed the resourceID's in the database.");
+                log.debug("Successfully listed the resource ids in the database for resource owner: " +
+                        resourceOwnerName + "in user domain: " + userDomain);
             }
-        } catch (SQLException e) {
-            throw new UMAServerException(UMAConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE, "Database " +
-                    "error.Could not obtain resource List.", e);
+        } catch (DataAccessException e) {
+            throw new UMAServerException(UMAConstants.ErrorMessages
+                    .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_LIST_RESOURCES, e);
         }
-        return resourceSetIdList;
+        return resourceIdsList;
     }
 
     /**
@@ -238,28 +196,21 @@ public class ResourceDAO {
      * @param resourceId Resource ID of the resource
      * @throws UMAServerException
      */
-    public static boolean deleteResource(String resourceId) throws UMAServerException {
+    public static boolean deleteResource(String resourceId) throws UMAServerException, UMAClientException {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
-            PreparedStatement preparedStatement = connection.prepareStatement(SQLQueries.DELETE_RESOURCE_SCOPES);
-            preparedStatement.setString(1, resourceId);
-            preparedStatement.executeUpdate();
-            preparedStatement = connection.prepareStatement(SQLQueries.DELETE_RESOURCE_META_DETAILS);
-            preparedStatement.setString(1, resourceId);
-            preparedStatement.executeUpdate();
-            preparedStatement = connection.prepareStatement(SQLQueries.DELETE_RESOURCE_DETAILS);
-            preparedStatement.setString(1, resourceId);
-            int rowsAffected = preparedStatement.executeUpdate();
-            connection.commit();
+        try {
+            Integer id = checkResourceExistence(resourceId);
+            deleteResourceData(id);
             if (log.isDebugEnabled()) {
-                log.debug("Successfully deleted the resource details from the database.");
+                log.debug("Successfully deleted resource description for resource id: " + resourceId);
             }
-            return rowsAffected > 0;
-
-        } catch (SQLException e) {
-            throw new UMAServerException(UMAConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE,
-                    "Database error. Could not delete resource categories:", e);
+        } catch (DataAccessException e) {
+            throw new UMAServerException(UMAConstants.ErrorMessages
+                    .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_DELETE_RESOURCE, e);
         }
+
+        return true;
+
     }
 
     /**
@@ -269,88 +220,169 @@ public class ResourceDAO {
      * @param resourceId           Resource ID of the resource
      * @throws UMAServerException
      */
-    public static boolean updateResource(String resourceId, Resource resourceRegistration)
-            throws UMAServerException {
+    public static boolean updateResource(String resourceId, Resource resourceRegistration) throws UMAServerException,
+            UMAClientException {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
-            Savepoint savepoint = null;
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedTemplate();
+        try {
+            Integer id = checkResourceExistence(resourceId);
             try {
-                connection.setAutoCommit(false);
-                savepoint = connection.setSavepoint();
-                PreparedStatement preparedStatement = connection.prepareStatement(SQLQueries.DELETE_SCOPES);
-                preparedStatement.setString(1, resourceId);
-                preparedStatement.execute();
-                preparedStatement = connection.prepareStatement(SQLQueries.UPDATE_SCOPES);
-                preparedStatement.setString(1, resourceId);
-                for (String scopes : resourceRegistration.getScopes()) {
-                    preparedStatement.setString(2, scopes);
-                    preparedStatement.execute();
-                }
-
-                preparedStatement = connection.prepareStatement(SQLQueries.UPDATE_METADATA);
-                preparedStatement.setString(2, resourceId);
-                if (StringUtils.isNotEmpty(resourceRegistration.getDescription())) {
-                    preparedStatement.setString(3, DESCRIPTION);
-                    preparedStatement.setString(1, resourceRegistration.getDescription());
-                    preparedStatement.execute();
-                }
-                if (StringUtils.isNotEmpty(resourceRegistration.getType())) {
-                    preparedStatement.setString(3, TYPE);
-                    preparedStatement.setString(1, resourceRegistration.getType());
-                    preparedStatement.execute();
-                }
-                if (StringUtils.isNotEmpty(resourceRegistration.getIconUri())) {
-                    preparedStatement.setString(3, ICON_URI);
-                    preparedStatement.setString(1, resourceRegistration.getIconUri());
-                    preparedStatement.execute();
-                }
-                preparedStatement = connection.prepareStatement(SQLQueries.UPDATE_RESOURCE);
-                preparedStatement.setString(2, resourceId);
-                preparedStatement.setString(1, resourceRegistration.getName());
-                preparedStatement.execute();
-
-                connection.commit();
-                if (log.isDebugEnabled()) {
-                    log.debug("Successfully updated the resource details to the database.");
-                }
-            } catch (SQLException e) {
-                try {
-                    connection.rollback(savepoint);
-                } catch (SQLException e1) {
-                    throw new UMAServerException(UMAConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE,
-                            "Rollback error. Could not rollback purpose adding.", e);
-                }
-                throw new UMAServerException(UMAConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE,
-                        "Database error. Could not add resource details.", e);
+                namedJdbcTemplate.withTransaction(namedTemplate -> {
+                    deleteScope(id);
+                    storeResourceScopes(id, resourceRegistration.getScopeDataDOArray());
+                    deleteMeta(id);
+                    storeResourceMetaData(id, resourceRegistration);
+                    updateResourceDetails(id, resourceRegistration);
+                    return true;
+                });
+            } catch (TransactionException e) {
+                throw new UMAServerException(UMAConstants.ErrorMessages
+                        .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_UPDATE_RESOURCE, e);
             }
-        } catch (SQLException e) {
-            throw new UMAServerException(UMAConstants.ErrorMessages.ERROR_CODE_FAIL_TO_GET_RESOURCE,
-                    "Database error. Could not add resource details.", e);
+            if (log.isDebugEnabled()) {
+                log.debug("Successfully updated resource description for resource id: " + resourceId);
+            }
+
+        } catch (DataAccessException e) {
+            throw new UMAServerException(UMAConstants.ErrorMessages
+                    .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_DELETE_RESOURCE, e);
         }
-        return false;
+
+        return true;
     }
 
-    private static boolean checkExsistanceOfSameResourceName(String resourceOwnerName, String resourceName)
-            throws UMAServerException {
+    private static void deleteScope(int id) throws UMAServerException, TransactionException {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
-            try (PreparedStatement preparedStatement = connection.prepareStatement
-                    (SQLQueries.CHECK_EXISTANCE_OF_RESOURCE_NAME)) {
-                preparedStatement.setString(1, resourceOwnerName);
-                preparedStatement.setString(2, resourceName);
-                try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                    if (resultSet.next()) {
-                        return true;
-                    }
-                }
-            }
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedTemplate();
 
-        } catch (SQLException e) {
+        namedJdbcTemplate.withTransaction(namedTemplate -> {
+            namedTemplate.executeUpdate(SQLQueries.DELETE_RESOURCE_SCOPES, namedPreparedStatement ->
+                    namedPreparedStatement.setInt(UMAConstants.SQLPlaceholders.ID, id));
+            return null;
+        });
+    }
+
+    private static void deleteMeta(int id) throws UMAServerException, TransactionException {
+
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedTemplate();
+        namedJdbcTemplate.withTransaction(namedTemplate -> {
+            namedTemplate.executeUpdate(SQLQueries.DELETE_RESOURCE_META_DETAILS, namedPreparedStatement ->
+                    namedPreparedStatement.setInt(UMAConstants.SQLPlaceholders.ID, id));
+            return null;
+        });
+
+    }
+
+    private static void deleteResourceData(int id) throws UMAServerException, DataAccessException {
+
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedTemplate();
+        namedJdbcTemplate.executeUpdate(SQLQueries.DELETE_RESOURCE, namedPreparedStatement ->
+                namedPreparedStatement.setInt(UMAConstants.SQLPlaceholders.ID, id));
+
+    }
+
+    private static void updateResourceDetails(int id, Resource resourceRegistration) throws
+            UMAServerException, TransactionException {
+
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedTemplate();
+
+        namedJdbcTemplate.withTransaction(namedTemplate -> {
+            namedTemplate.executeUpdate(SQLQueries.UPDATE_RESOURCE, namedPreparedStatement ->
+            {
+                namedPreparedStatement.setInt(UMAConstants.SQLPlaceholders.ID, id);
+                namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.RESOURCE_NAME,
+                        resourceRegistration.getName());
+            });
+            return null;
+        });
+    }
+
+    private static String checkDuplicationOfResourceName(String resourceOwnerName, String userDomain,
+                                                         String resourceName) throws UMAServerException {
+
+        String name;
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedTemplate();
+        try {
+            name = namedJdbcTemplate.fetchSingleRecord(SQLQueries.CHECK_RESOURCE_NAME_EXISTENCE,
+                    (resultSet, rowNumber) -> resultSet.getString(1), namedPreparedStatement -> {
+                        namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.RESOURCE_NAME, resourceName);
+                        namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.RESOURCE_OWNER_NAME,
+                                resourceOwnerName);
+                        namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.USER_DOMAIN, userDomain);
+                    });
+        } catch (DataAccessException e) {
             throw new UMAServerException(UMAConstants.ErrorMessages
-                    .INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_REQUESTED_RESOURCES,
-                    "Database error. Could not identify a resource.", e);
+                    .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_RESOURCE, e);
         }
+        return name;
+    }
 
-        return false;
+    private static void storeResourceMetaData(int id, Resource resourceRegistation)
+            throws UMAServerException, TransactionException {
+
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedTemplate();
+        if (StringUtils.isNotEmpty(resourceRegistation.getDescription())) {
+            namedJdbcTemplate.withTransaction(namedTemplate -> {
+                namedTemplate.executeInsert(SQLQueries.STORE_RESOURCE_META_DETAILS, (namedPreparedStatement -> {
+                    namedPreparedStatement.setLong(UMAConstants.SQLPlaceholders.ID, id);
+                    namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.PROPERTY_KEY,
+                            DESCRIPTION);
+                    namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.PROPERTY_VALUE,
+                            resourceRegistation.getDescription());
+                }), resourceRegistation, false);
+                return null;
+            });
+        }
+        if (StringUtils.isNotEmpty(resourceRegistation.getIconUri())) {
+            namedJdbcTemplate.withTransaction(namedTemplate -> {
+                namedTemplate.executeInsert(SQLQueries.STORE_RESOURCE_META_DETAILS, (namedPreparedStatement -> {
+                    namedPreparedStatement.setLong(UMAConstants.SQLPlaceholders.ID, id);
+                    namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.PROPERTY_KEY, ICON_URI);
+                    namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.PROPERTY_VALUE,
+                            resourceRegistation.getIconUri());
+                }), resourceRegistation, false);
+                return null;
+            });
+        }
+        if (StringUtils.isNotEmpty(resourceRegistation.getType())) {
+            namedJdbcTemplate.withTransaction(namedTemplate -> {
+                namedTemplate.executeInsert(SQLQueries.STORE_RESOURCE_META_DETAILS, (namedPreparedStatement -> {
+                    namedPreparedStatement.setLong(UMAConstants.SQLPlaceholders.ID, id);
+                    namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.PROPERTY_KEY, TYPE);
+                    namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.PROPERTY_VALUE,
+                            resourceRegistation.getType());
+                }), resourceRegistation, false);
+                return null;
+            });
+        }
+    }
+
+    private static void storeResourceScopes(int id, List<ScopeDataDO> scopeData) throws UMAServerException,
+            TransactionException {
+
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedTemplate();
+        for (ScopeDataDO scopeDataDO : scopeData) {
+            namedJdbcTemplate.withTransaction(namedTemplate -> namedTemplate.executeInsert(
+                    SQLQueries.STORE_RESOURCE_SCOPES, (namedPreparedStatement -> {
+                        namedPreparedStatement.setLong(UMAConstants.SQLPlaceholders.ID, id);
+                        namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.SCOPE_NAME,
+                                scopeDataDO.getScopeName());
+                    }), null, false));
+        }
+    }
+
+    private static Integer checkResourceExistence(String resourceId) throws DataAccessException, UMAClientException {
+
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedTemplate();
+        Integer id;
+        id = namedJdbcTemplate.fetchSingleRecord(SQLQueries.CHECK_RESOURCE_ID_EXISTENCE, (resultSet, rowNumber) ->
+                resultSet.getInt(1), namedPreparedStatement -> {
+            namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.RESOURCE_ID, resourceId);
+        });
+        if (id == null) {
+            throw new UMAClientException(UMAConstants.ErrorMessages
+                    .ERROR_NOT_FOUND_RESOURCE_ID, "Resource id : " + resourceId + " not found.");
+        }
+        return id;
     }
 }
