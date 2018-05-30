@@ -13,15 +13,16 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package org.wso2.carbon.identity.oauth.uma.xacml.service.handler;
 
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.apache.axiom.om.xpath.AXIOMXPath;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jaxen.JaxenException;
-
 import org.wso2.balana.utils.exception.PolicyBuilderException;
 import org.wso2.balana.utils.policy.PolicyBuilder;
 import org.wso2.balana.utils.policy.dto.RequestElementDTO;
@@ -31,6 +32,7 @@ import org.wso2.carbon.identity.entitlement.common.EntitlementPolicyConstants;
 import org.wso2.carbon.identity.entitlement.common.dto.RequestDTO;
 import org.wso2.carbon.identity.entitlement.common.dto.RowDTO;
 import org.wso2.carbon.identity.entitlement.common.util.PolicyCreatorUtil;
+import org.wso2.carbon.identity.oauth.uma.authorization.connector.PolicyEvaluator;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.Resource;
 import org.wso2.carbon.identity.oauth.uma.xacml.service.constants.XACMLAppUMAConstants;
 import org.wso2.carbon.identity.oauth.uma.xacml.service.internal.AppUMADataholder;
@@ -46,7 +48,7 @@ import javax.xml.stream.XMLStreamException;
  * Resource validation implementation. This uses XACML policies to evaluate resource defined by the relevant
  * service provider and the scopes related to the resource.
  */
-public class XACMLUMAHandler {
+public class XACMLUMAHandler implements PolicyEvaluator {
 
     private static final Log log = LogFactory.getLog(XACMLUMAHandler.class);
     private static final String DECISION_XPATH = "//ns:Result/ns:Decision/text()";
@@ -68,9 +70,10 @@ public class XACMLUMAHandler {
     public boolean isAuthorized(String userName, List<Resource> resource) throws IdentityOAuth2Exception {
 
         if (log.isDebugEnabled()) {
-            log.debug("In policy authorization flow..." + "User Name" + " " + userName);
+            log.debug("In policy authorization flow..." + "UserName: " + userName);
         }
         boolean isValid = false;
+
         try {
             for (Resource singleResource : resource) {
                 RequestDTO requestDTO = createRequestDTO(singleResource, userName);
@@ -84,14 +87,14 @@ public class XACMLUMAHandler {
                 String responseString =
                         AppUMADataholder.getInstance().getEntitlementService().getDecision(requestString);
                 if (log.isDebugEnabled()) {
-                    log.debug("XACML Authorization response :\n" + responseString + "User Name" + " " + userName);
+                    log.debug("XACML Authorization response :\n" + responseString);
                 }
                 String authzResponse = evaluateXACMLResponse(responseString);
                 if (RULE_EFFECT_NOT_APPLICABLE.equalsIgnoreCase(authzResponse)) {
                     log.warn(String.format(
                             "No applicable rule for service provider '%s@%s', Hence authorizing the user by default. " +
                                     "Add an authorization policy (or unset authorization) to fix this warning."
-                                    + "Client Id" + userName));
+                                    + "UserName: " + userName));
                     isValid = true;
                 } else if (RULE_EFFECT_PERMIT.equalsIgnoreCase(authzResponse)) {
                     isValid = true;
@@ -105,11 +108,9 @@ public class XACMLUMAHandler {
 
     private RequestDTO createRequestDTO(Resource resource, String userName) {
 
-        String listString = "";
         List<RowDTO> rowDTOs = new ArrayList<>();
-        for (String scopes : resource.getResourceScopes()) {
-            listString += scopes + ",";
-        }
+        String listString = StringUtils.join(resource.getResourceScopes(), ",");
+
         RowDTO actionDTO = createRowDTO(listString, XACMLAppUMAConstants.AUTH_ACTION_ID,
                 XACMLAppUMAConstants.ACTION_CATEGORY);
         RowDTO resourceDTO = createRowDTO(resource.getResourceId(), XACMLAppUMAConstants.RESOURCE_ID,
@@ -150,4 +151,5 @@ public class XACMLUMAHandler {
             throw new FrameworkException("Exception occurred when getting decision from xacml response.", e);
         }
     }
+
 }
