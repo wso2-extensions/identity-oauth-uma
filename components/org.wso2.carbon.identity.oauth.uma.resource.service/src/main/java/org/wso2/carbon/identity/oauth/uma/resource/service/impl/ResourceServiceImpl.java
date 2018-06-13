@@ -16,8 +16,6 @@
 
 package org.wso2.carbon.identity.oauth.uma.resource.service.impl;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.oauth.uma.common.exception.UMAClientException;
 import org.wso2.carbon.identity.oauth.uma.common.exception.UMAServerException;
 import org.wso2.carbon.identity.oauth.uma.resource.service.ResourceService;
@@ -25,26 +23,21 @@ import org.wso2.carbon.identity.oauth.uma.resource.service.dao.ResourceDAO;
 import org.wso2.carbon.identity.oauth.uma.resource.service.model.Resource;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * ResourceService use for resource management.
  */
 public class ResourceServiceImpl implements ResourceService {
 
-    private static final Log log = LogFactory.getLog(ResourceServiceImpl.class);
-
-    private static ResourceDAO resourceDAO = new ResourceDAO();
-
     @Override
     public Resource registerResource(Resource resourceRegistration, String resourceOwnerName, int tenantId,
-                                     String consumerKey) throws UMAServerException, UMAClientException {
+                                     String consumerKey, String userDomain) throws UMAServerException,
+            UMAClientException {
 
-        ResourceDAO.registerResource(resourceRegistration, resourceOwnerName, tenantId,
-                consumerKey);
-        if (log.isDebugEnabled()) {
-            log.debug("Resource registered successfully.");
-        }
-        return resourceRegistration;
+        String resourceId = UUID.randomUUID().toString();
+        resourceRegistration.setResourceId(resourceId);
+        return ResourceDAO.registerResource(resourceRegistration, resourceOwnerName, tenantId, consumerKey, userDomain);
     }
 
     /**
@@ -55,13 +48,10 @@ public class ResourceServiceImpl implements ResourceService {
      * @throws UMAServerException
      */
     @Override
-    public List<String> getResourceIds(String resourceOwnerName, String consumerKey) throws UMAServerException {
+    public List<String> getResourceIds(String resourceOwnerName, String userDomain, String consumerKey) throws
+            UMAServerException {
 
-        List<String> resourceRegistration = resourceDAO.retrieveResourceIDs(resourceOwnerName, consumerKey);
-        if (log.isDebugEnabled()) {
-            log.debug("Retrieved resourceId's successfully.");
-        }
-        return resourceRegistration;
+        return ResourceDAO.retrieveResourceIDs(resourceOwnerName, userDomain, consumerKey);
     }
 
     /**
@@ -72,12 +62,7 @@ public class ResourceServiceImpl implements ResourceService {
     @Override
     public Resource getResourceById(String resourceId) throws UMAServerException, UMAClientException {
 
-        Resource resourceRegistration;
-        resourceRegistration = resourceDAO.retrieveResource(resourceId);
-        if (log.isDebugEnabled()) {
-            log.debug("Retrieved resource detail's successfully.");
-        }
-        return resourceRegistration;
+        return ResourceDAO.retrieveResource(resourceId);
 
     }
 
@@ -89,14 +74,10 @@ public class ResourceServiceImpl implements ResourceService {
      * @throws UMAServerException
      */
     @Override
-    public Resource updateResource(String resourceId, Resource resourceRegistration)
-            throws UMAServerException {
+    public boolean updateResource(String resourceId, Resource resourceRegistration)
+            throws UMAServerException, UMAClientException {
 
-        ResourceDAO.updateResource(resourceId, resourceRegistration);
-        if (log.isDebugEnabled()) {
-            log.debug("Resource details updated successfully.");
-        }
-        return resourceRegistration;
+        return ResourceDAO.updateResource(resourceId, resourceRegistration);
     }
 
     /**
@@ -108,10 +89,6 @@ public class ResourceServiceImpl implements ResourceService {
     @Override
     public boolean deleteResource(String resourceId) throws UMAServerException, UMAClientException {
 
-        Resource resourceRegistration = null;
-        if (log.isDebugEnabled()) {
-            log.debug("Resource deleted successfully from the database.");
-        }
         return ResourceDAO.deleteResource(resourceId);
 
     }

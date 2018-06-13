@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.oauth.uma.common.exception;
 import org.wso2.carbon.identity.oauth.uma.common.UMAConstants;
 
 /**
- * Custom exception to be thrown when there is an invalid resource id or resource scope in the requested permission(s).
+ * Custom exception to be thrown when there is an invalid parameter in the request.
  */
 public class UMAClientException extends UMAException {
 

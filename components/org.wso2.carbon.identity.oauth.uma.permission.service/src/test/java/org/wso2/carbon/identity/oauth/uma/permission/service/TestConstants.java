@@ -18,20 +18,11 @@
 
 package org.wso2.carbon.identity.oauth.uma.permission.service;
 
-import org.wso2.carbon.identity.oauth.uma.common.exception.UMAClientException;
-import org.wso2.carbon.identity.oauth.uma.common.exception.UMAServerException;
-import org.wso2.carbon.identity.oauth.uma.permission.service.model.PermissionTicketModel;
-import org.wso2.carbon.identity.oauth.uma.permission.service.model.Resource;
+public class TestConstants {
 
-import java.util.List;
-
-/**
- * PermissionService is the service interface used for permission registration.
- */
-public interface PermissionService {
-
-    PermissionTicketModel issuePermissionTicket(List<Resource> resourceList, int tenantId, String resourceOwnerName,
-                                                String clientId, String userDomain) throws UMAClientException,
-            UMAServerException;
+    public static final String USER_DOMAIN = "PRIMARY";
+    public static final String RESOURCE_OWNER_NAME = "admin";
+    public static final String CLIENT_ID = "1234";
+    public static final int TENANT_ID = -1234;
 
 }

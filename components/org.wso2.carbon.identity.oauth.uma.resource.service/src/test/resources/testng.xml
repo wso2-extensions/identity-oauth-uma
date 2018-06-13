@@ -21,7 +21,8 @@
     <test name="oauth.tests.with.debug.enabled" preserve-order="false" parallel="false">
         <parameter name="log-level" value="debug"/>
         <classes>
-           <class name="org.wso2.carbon.identity.oauth.uma.resource.service.dao.ResourceDAOTest"/>
+            <class name="org.wso2.carbon.identity.oauth.uma.resource.service.dao.ResourceDAOTest"/>
+            <class name="org.wso2.carbon.identity.oauth.uma.resource.service.impl.ResourceServiceImplTest"/>
             <class name="org.wso2.carbon.identity.oauth.uma.resource.service.internal.RegisterServiceComponentsTest"/>
         </classes>
     </test>

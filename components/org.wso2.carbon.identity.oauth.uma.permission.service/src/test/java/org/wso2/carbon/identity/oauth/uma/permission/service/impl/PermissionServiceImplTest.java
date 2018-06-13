@@ -25,6 +25,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.oauth.uma.permission.service.ReadPropertiesFile;
+import org.wso2.carbon.identity.oauth.uma.permission.service.TestConstants;
 import org.wso2.carbon.identity.oauth.uma.permission.service.dao.PermissionTicketDAO;
 
 import static org.mockito.Matchers.anyList;
@@ -54,7 +55,8 @@ public class PermissionServiceImplTest {
 
         mockStatic(ReadPropertiesFile.class);
         mockStatic(PermissionTicketDAO.class);
-        assertNotNull(permissionService.issuePermissionTicket(anyList(), -1234, "owner1"),
+        assertNotNull(permissionService.issuePermissionTicket(anyList(), TestConstants.TENANT_ID,
+                TestConstants.RESOURCE_OWNER_NAME, TestConstants.CLIENT_ID, TestConstants.USER_DOMAIN),
                 "Expected a not null object");
     }
 

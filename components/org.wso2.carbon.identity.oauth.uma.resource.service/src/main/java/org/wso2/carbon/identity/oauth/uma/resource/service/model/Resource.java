@@ -16,12 +16,8 @@
 
 package org.wso2.carbon.identity.oauth.uma.resource.service.model;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 /**
  * Results holder for resource management Code validation query.
@@ -32,27 +28,15 @@ public class Resource {
 
     private String name;
 
-    private String resourceOwnerId;
-
-    private String tenentId;
-
     private String type;
 
     private String iconUri;
 
     private String description;
 
-    private Map<String, String> metaData = new HashMap<>();
-
-    private List<String> resourcescopes = new ArrayList<>();
-
-    private List<String> resourceid = new ArrayList<>();
-
-    private Timestamp timestamp;
+    private List<String> resourceScopes = new ArrayList<>();
 
     private List<ScopeDataDO> scopeDataDoArray = new ArrayList<>();
-
-    private String resourceOwner;
 
     public String getResourceId() {
 
@@ -76,58 +60,12 @@ public class Resource {
 
     public List<String> getScopes() {
 
-        return resourcescopes;
+        return resourceScopes;
     }
-
 
     public void setScopes(List<String> scopes) {
 
-        this.resourcescopes = scopes;
-    }
-
-    public Timestamp getTimecreated() {
-
-        return timestamp;
-    }
-
-    public void setTimecreated(Timestamp timecreated) {
-
-        this.timestamp = timecreated;
-    }
-
-    public String getResourceOwnerId() {
-
-        return resourceOwnerId;
-    }
-
-    public void setResourceOwnerId(String resourceOwnerId) {
-
-        this.resourceOwnerId = resourceOwnerId;
-    }
-
-    public String getTenentId() {
-
-        return tenentId;
-    }
-
-    public void setTenentId(String tenentId) {
-
-        this.tenentId = tenentId;
-    }
-
-    public List<String> getResourceid() {
-
-        return resourceid;
-    }
-
-    public void setResourceid(List<String> resourceid) {
-
-        this.resourceid = resourceid;
-    }
-
-    public Map<String, String> getMetaData() {
-
-        return metaData;
+        this.resourceScopes = scopes;
     }
 
     public List<ScopeDataDO> getScopeDataDOArray() {
@@ -140,49 +78,34 @@ public class Resource {
         this.scopeDataDoArray = scopeDataDoArray;
     }
 
-    public String getResourceOwner() {
-
-        return resourceOwner;
-    }
-
-    public void setResourceOwner(String resourceOwner) {
-
-        this.resourceOwner = resourceOwner;
-    }
-
-    public Resource() {
-
-        this.timestamp = new Timestamp(System.currentTimeMillis());
-        this.resourceId = UUID.randomUUID().toString();
-    }
-
-    public Resource(String name) {
-
-        this.resourcescopes = resourcescopes;
-        this.name = name;
-    }
-
     public String getType() {
+
         return type;
     }
 
     public void setType(String type) {
+
         this.type = type;
     }
 
     public String getIconUri() {
+
         return iconUri;
     }
 
     public void setIconUri(String iconUri) {
+
         this.iconUri = iconUri;
     }
 
     public String getDescription() {
+
         return description;
     }
 
     public void setDescription(String description) {
+
         this.description = description;
     }
+
 }

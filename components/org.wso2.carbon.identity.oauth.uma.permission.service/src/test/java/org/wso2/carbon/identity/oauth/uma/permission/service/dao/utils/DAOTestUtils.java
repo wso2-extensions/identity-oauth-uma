@@ -29,6 +29,9 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.spy;
+
 /**
  * DB Utils.
  */
@@ -47,7 +50,7 @@ public class DAOTestUtils {
     private static final String STORE_PT_RESOURCE_SCOPES_QUERY = "INSERT INTO IDN_PT_RESOURCE_SCOPE " +
             "(ID, PT_RESOURCE_ID, PT_SCOPE_ID) VALUES (?, ?, ?)";
 
-    protected void initiateH2Base(String databaseName, String scriptPath) throws Exception {
+    public static void initiateH2Base(String databaseName, String scriptPath) throws Exception {
 
         BasicDataSource dataSource = new BasicDataSource();
         dataSource.setDriverClassName("org.h2.Driver");
@@ -60,7 +63,7 @@ public class DAOTestUtils {
         dataSourceMap.put(databaseName, dataSource);
     }
 
-    protected void closeH2Base(String databaseName) throws Exception {
+    public static void closeH2Base(String databaseName) throws Exception {
 
         BasicDataSource dataSource = dataSourceMap.get(databaseName);
         if (dataSource != null) {
@@ -74,6 +77,13 @@ public class DAOTestUtils {
             return dataSourceMap.get(database).getConnection();
         }
         throw new RuntimeException("No datasource initiated for database: " + database);
+    }
+
+    public static Connection spyConnection(Connection connection) throws SQLException {
+
+        Connection spy = spy(connection);
+        doNothing().when(spy).close();
+        return spy;
     }
 
     public static String getFilePath(String fileName) {
@@ -93,8 +103,8 @@ public class DAOTestUtils {
         throw new RuntimeException("No datasource initiated for database: " + datasourceName);
     }
 
-    protected void createPTTable(String databaseName, long id, String pt, Timestamp timecreated, long period,
-                                 String state, int tenantId) throws Exception {
+    public static void createPTTable(String databaseName, long id, String pt, Timestamp timecreated, long period,
+                                     String state, int tenantId) throws Exception {
 
         PreparedStatement preparedStatement = null;
         try (Connection connection = getConnection(databaseName)) {
@@ -113,7 +123,8 @@ public class DAOTestUtils {
         }
     }
 
-    protected void createPTResourceTable(String databaseName, long id, long ptResourceId, long ptId) throws Exception {
+    public static void createPTResourceTable(String databaseName, long id, long ptResourceId, long ptId) throws
+            Exception {
 
         PreparedStatement preparedStatement = null;
         try (Connection connection = getConnection(databaseName)) {
@@ -129,7 +140,7 @@ public class DAOTestUtils {
         }
     }
 
-    protected void createPTResourceScopeTable(String databaseName, long id, long ptResourceId, long scopeId) throws
+    public static void createPTResourceScopeTable(String databaseName, long id, long ptResourceId, long scopeId) throws
             Exception {
 
         PreparedStatement preparedStatement = null;
@@ -146,9 +157,9 @@ public class DAOTestUtils {
         }
     }
 
-    protected void createResourceTable(String databaseName, long id, String resourceId, String resourceName,
-                                       Timestamp timecreated, String resourceOwnerName, String clientId,
-                                       long tenantId, String userDomain) throws Exception {
+    public static void createResourceTable(String databaseName, long id, String resourceId, String resourceName,
+                                           Timestamp timecreated, String resourceOwnerName, String clientId,
+                                           long tenantId, String userDomain) throws Exception {
 
         PreparedStatement preparedStatement = null;
         try (Connection connection = getConnection(databaseName)) {
@@ -169,7 +180,7 @@ public class DAOTestUtils {
         }
     }
 
-    protected void createResourceScopeTable(String databaseName, long id, long resourceIdentity, String scopeName)
+    public static void createResourceScopeTable(String databaseName, long id, long resourceIdentity, String scopeName)
             throws Exception {
 
         PreparedStatement preparedStatement = null;

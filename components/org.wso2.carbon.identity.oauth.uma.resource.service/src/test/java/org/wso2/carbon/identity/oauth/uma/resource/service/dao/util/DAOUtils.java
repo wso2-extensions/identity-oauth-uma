@@ -27,12 +27,15 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.spy;
+
 public class DAOUtils {
 
     private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
     public static final String STORE_RESOURCE_DETAILS =
             "INSERT INTO IDN_RESOURCE(RESOURCE_ID,RESOURCE_NAME,TIME_CREATED," +
-                    "RESOURCE_OWNER_NAME,TENANT_ID,CLIENT_ID) VALUES (?,?,?,?,?,?)";
+                    "RESOURCE_OWNER_NAME,TENANT_ID,CLIENT_ID,USER_DOMAIN) VALUES (?,?,?,?,?,?,?)";
 
     public static final String STORE_RESOURCE_META_DETAILS =
             "INSERT INTO IDN_RESOURCE_META_DATA(RESOURCE_IDENTITY,PROPERTY_KEY,PROPERTY_VALUE)" +
@@ -42,7 +45,7 @@ public class DAOUtils {
             "INSERT INTO IDN_RESOURCE_SCOPE(RESOURCE_IDENTITY,SCOPE_NAME) VALUES ((SELECT ID FROM IDN_RESOURCE WHERE " +
                     "ID = ?),?)";
 
-    protected void initiateH2Base(String databaseName, String scriptPath) throws Exception {
+    public static void initiateH2Base(String databaseName, String scriptPath) throws Exception {
 
         BasicDataSource dataSource = new BasicDataSource();
         dataSource.setDriverClassName("org.h2.Driver");
@@ -55,7 +58,7 @@ public class DAOUtils {
         dataSourceMap.put(databaseName, dataSource);
     }
 
-    protected void closeH2Base(String databaseName) throws Exception {
+    public static void closeH2Base(String databaseName) throws Exception {
 
         BasicDataSource dataSource = dataSourceMap.get(databaseName);
         if (dataSource != null) {
@@ -80,9 +83,9 @@ public class DAOUtils {
         throw new IllegalArgumentException("DB Script file name cannot be empty.");
     }
 
-    protected void createResourceTable(String databaseName, String resourceId, String resourceName,
-                                       Timestamp timecreated, String resourceOwnerName, int tenantId,
-                                       String consumerKey) throws Exception {
+    public static void createResourceTable(String databaseName, String resourceId, String resourceName,
+                                           Timestamp timecreated, String resourceOwnerName, int tenantId,
+                                           String consumerKey, String userDomain) throws Exception {
 
         PreparedStatement preparedStatement = null;
         try (Connection connection = getConnection(databaseName)) {
@@ -93,6 +96,7 @@ public class DAOUtils {
             preparedStatement.setString(4, resourceOwnerName);
             preparedStatement.setInt(5, tenantId);
             preparedStatement.setString(6, consumerKey);
+            preparedStatement.setString(7, userDomain);
             preparedStatement.execute();
         } finally {
             if (preparedStatement != null) {
@@ -101,8 +105,8 @@ public class DAOUtils {
         }
     }
 
-    protected void createResourceMetaDataTable(String databaseName, String propertyKey, String propertyValue,
-                                               Long resourceIdFK) throws Exception {
+    public static void createResourceMetaDataTable(String databaseName, String propertyKey, String propertyValue,
+                                                   Long resourceIdFK) throws Exception {
 
         PreparedStatement preparedStatement = null;
         try (Connection connection = getConnection(databaseName)) {
@@ -118,7 +122,7 @@ public class DAOUtils {
         }
     }
 
-    protected void createResourceScopeTable(String database, Long resourceScopeIdFK, String scopeName)
+    public static void createResourceScopeTable(String database, Long resourceScopeIdFK, String scopeName)
             throws Exception {
 
         PreparedStatement preparedStatement = null;
@@ -131,5 +135,12 @@ public class DAOUtils {
                 preparedStatement.close();
             }
         }
+    }
+
+    public static Connection spyConnection(Connection connection) throws SQLException {
+
+        Connection spy = spy(connection);
+        doNothing().when(spy).close();
+        return spy;
     }
 }

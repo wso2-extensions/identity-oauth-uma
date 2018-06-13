@@ -24,6 +24,7 @@ import org.apache.cxf.common.util.CollectionUtils;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.auth.service.AuthenticationContext;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.oauth.uma.common.HandleErrorResponseConstants;
 import org.wso2.carbon.identity.oauth.uma.common.UMAConstants;
 import org.wso2.carbon.identity.oauth.uma.common.exception.UMAClientException;
@@ -35,11 +36,10 @@ import org.wso2.carbon.identity.oauth.uma.resource.endpoint.dto.ErrorDTO;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.dto.ReadResourceDTO;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.dto.ResourceDetailsDTO;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.dto.UpdateResourceDTO;
-
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.exceptions.ResourceEndpointException;
 import org.wso2.carbon.identity.oauth.uma.resource.endpoint.util.ResourceUtils;
-
 import org.wso2.carbon.identity.oauth.uma.resource.service.model.Resource;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -70,36 +70,34 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
     @Override
     public Response registerResource(ResourceDetailsDTO requestedResource, MessageContext context) {
 
-        String resourceOwner = getResourceOwner(context);
         int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
         String consumerKey = getConsumerKey(context);
+        String userNameWithDomain = getUserNameWithDomain(context);
+        String userDomain = null;
+        String resourceOwner = null;
+        if (userNameWithDomain != null) {
+            resourceOwner = UserCoreUtil.removeDomainFromName(userNameWithDomain);
+            userDomain = IdentityUtil.extractDomainFromName(userNameWithDomain);
+        }
 
-        if (isValidToken(context) && resourceOwner != null && consumerKey != null) {
-
-            if (log.isDebugEnabled()) {
-                log.debug("Access token is valid and all required context information " +
-                        "are existing in the token.");
-            }
-
+        if (isValidTokenScope(context) && resourceOwner != null && consumerKey != null) {
             if (CollectionUtils.isEmpty(requestedResource.getResource_Scopes())) {
-
                 if (log.isDebugEnabled()) {
-                    log.debug("Resource scopes not existing in the flow of resource registration. ");
+                    log.debug("Resource scopes not existing for resource registration request made for client: " +
+                            consumerKey + " resource owner: " + userNameWithDomain);
                 }
-                return Response.status(Response.Status.BAD_REQUEST).entity(getErrorDTO("Bad_Request",
-                        "ResourceId is not in format or message context is null. ")).build();
+                return Response.status(Response.Status.BAD_REQUEST).entity(getErrorDTO("invalid_request",
+                        "Resource scopes are missing")).build();
             }
             try {
                 Resource registerResource = ResourceUtils.getResourceService()
                         .registerResource(ResourceUtils.getResource(requestedResource), resourceOwner,
-                                tenantId, consumerKey);
+                                tenantId, consumerKey, userDomain);
                 CreateResourceDTO createResourceDTO = ResourceUtils.createResponse(registerResource);
-
                 return Response.status(Response.Status.CREATED).entity(createResourceDTO)
                         .location(getResourceLocationURI(createResourceDTO)).build();
             } catch (UMAException e) {
-                handleErrorResponse("Error when requesting context information: " +
-                        isValidToken(context) + getResourceOwner(context) + getConsumerKey(context), e);
+                handleErrorResponse("Error when registering resource for client: " + consumerKey, e);
             } catch (URISyntaxException e) {
                 log.error("string could not be parsed as a URI reference.", e);
             }
@@ -117,31 +115,15 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
     public Response getResource(String resourceId, MessageContext context) {
 
         try {
-            if (isValidToken(context)) {
-
-                if (log.isDebugEnabled()) {
-                    log.debug("Access token is valid and all required context information " +
-                            "are existing in the token.");
-                }
-
-                if (isResourceIdValid(resourceId)) {
-
-                    if (log.isDebugEnabled()) {
-                        log.debug("Valid resourceId :" + resourceId);
-                    }
-
-                    Resource resourceRegistration = ResourceUtils.getResourceService().getResourceById
-                            (resourceId);
-                    ReadResourceDTO readResourceDTO = ResourceUtils.readResponse(resourceRegistration);
-
-                    if (log.isDebugEnabled()) {
-                        log.debug("Obtained resource details relevant to specific resourceId.");
-                    }
-                    return Response.status(Response.Status.OK).entity(readResourceDTO).build();
-                }
+            if (isValidTokenScope(context)) {
+                Resource resourceRegistration = ResourceUtils.getResourceService().getResourceById
+                        (resourceId);
+                ReadResourceDTO readResourceDTO = ResourceUtils.readResponse(resourceRegistration);
+                return Response.status(Response.Status.OK).entity(readResourceDTO).build();
             }
         } catch (UMAException e) {
-            handleErrorResponse("Error when requesting information: " + isValidToken(context) + resourceId, e);
+            handleErrorResponse("Error when retrieving resource for client: " + getConsumerKey(context),
+                    e);
         }
         return getUnauthorizedResponseObject();
     }
@@ -155,28 +137,25 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
     @Override
     public Response getResourceIds(MessageContext context) {
 
-        String resourceOwner = getResourceOwner(context);
         String consumerKey = getConsumerKey(context);
+        String userNameWithDomain = getUserNameWithDomain(context);
+        String userDomain = null;
+        String resourceOwner = null;
+        if (userNameWithDomain != null) {
+            resourceOwner = UserCoreUtil.removeDomainFromName(userNameWithDomain);
+            userDomain = IdentityUtil.extractDomainFromName(userNameWithDomain);
+        }
 
-        if (isValidToken(context) && resourceOwner != null && consumerKey != null) {
-
-            if (log.isDebugEnabled()) {
-                log.debug("Access token is valid and all required context information " +
-                        "are existing in the token.");
-            }
-
+        if (isValidTokenScope(context) && resourceOwner != null && consumerKey != null) {
             try {
                 List<String> resourceRegistration = ResourceUtils.getResourceService()
-                        .getResourceIds(resourceOwner, consumerKey);
-                if (log.isDebugEnabled()) {
-                    log.debug("Obtained resources belong to a specific resource Owner.");
-                }
+                        .getResourceIds(resourceOwner, userDomain, consumerKey);
 
                 return Response.ok().entity(resourceRegistration).build();
 
             } catch (UMAException e) {
-                handleErrorResponse("Error when requesting context information : " +
-                        isValidToken(context) + getResourceOwner(context) + getConsumerKey(context), e);
+                handleErrorResponse("Error when listing resources for client: " +
+                        consumerKey + "resource owner: " + userNameWithDomain, e);
             }
         }
         return getUnauthorizedResponseObject();
@@ -193,32 +172,24 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
     public Response updateResource(String resourceId, ResourceDetailsDTO updatedResource, MessageContext context) {
 
         try {
-            if (isValidToken(context)) {
-
-                if (log.isDebugEnabled()) {
-                    log.debug("Access token is valid and all required context information " +
-                            "are existing in the token.");
+            if (isValidTokenScope(context) && isResourceIdExists(resourceId)) {
+                if (updatedResource.getResource_Scopes().isEmpty()) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Cannot update resource: " + resourceId + "as resource scopes are not provided");
+                    }
+                    return Response.status(Response.Status.BAD_REQUEST).entity(getErrorDTO("invalid_request",
+                            "Resource scopes are missing")).build();
                 }
-                if (isResourceIdValid(resourceId)) {
 
-                    if (log.isDebugEnabled()) {
-                        log.debug("Valid resourceId :" + resourceId);
-                    }
-
-                    Resource resourceRegistration = ResourceUtils.getResourceService().updateResource(resourceId,
-                            ResourceUtils.getResource(updatedResource));
-                    resourceRegistration.setResourceId(resourceId);
-                    UpdateResourceDTO updateResourceDTO = ResourceUtils.updateResponse(resourceRegistration);
-
-                    if (log.isDebugEnabled()) {
-                        log.debug("Updated resource details which was persisted on the database.");
-                    }
+                if (ResourceUtils.getResourceService().updateResource(resourceId,
+                        ResourceUtils.getResource(updatedResource))) {
+                    UpdateResourceDTO updateResourceDTO = new UpdateResourceDTO(resourceId);
 
                     return Response.status(Response.Status.CREATED).entity(updateResourceDTO).build();
                 }
             }
         } catch (UMAException e) {
-            handleErrorResponse("Error when requesting information: " + isValidToken(context) + resourceId, e);
+            handleErrorResponse("Error when updating resource for client: " + getConsumerKey(context), e);
         }
         return getUnauthorizedResponseObject();
     }
@@ -234,30 +205,13 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
     public Response deleteResource(String resourceId, MessageContext context) {
 
         try {
-            if (isValidToken(context)) {
-
-                if (log.isDebugEnabled()) {
-                    log.debug("Access token is valid and all required context information " +
-                            "are existing in the token.");
-                }
-
-                if (isResourceIdValid(resourceId)) {
-
-                    if (log.isDebugEnabled()) {
-                        log.debug("Valid resourceId :" + resourceId);
-                    }
-
-                    if (ResourceUtils.getResourceService().deleteResource(resourceId)) {
-
-                        if (log.isDebugEnabled()) {
-                            log.debug("Delete resource details successfully.");
-                        }
-                        return Response.status(Response.Status.NO_CONTENT).build();
-                    }
+            if (isValidTokenScope(context) && isResourceIdExists(resourceId)) {
+                if (ResourceUtils.getResourceService().deleteResource(resourceId)) {
+                    return Response.status(Response.Status.NO_CONTENT).build();
                 }
             }
         } catch (UMAException e) {
-            handleErrorResponse("Error when requesting information: " + isValidToken(context) + resourceId, e);
+            handleErrorResponse("Error when deleting resource for client: " + getConsumerKey(context), e);
         }
         return getUnauthorizedResponseObject();
     }
@@ -292,8 +246,8 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
         throw buildResourceEndpointException(status, errorCode, umaException.getMessage(), isStatusOnly);
     }
 
-    public ResourceEndpointException buildResourceEndpointException(Response.Status status, String errorCode,
-                                                                    String description, boolean isStatusOnly) {
+    private ResourceEndpointException buildResourceEndpointException(Response.Status status, String errorCode,
+                                                                     String description, boolean isStatusOnly) {
 
         if (isStatusOnly) {
             return new ResourceEndpointException(status);
@@ -303,32 +257,30 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
     }
 
     /**
-     * Validate resourceId
+     * Validate the presence of the resource id.
      *
-     * @param resourceId resourceId of the resource which need to get deleted
+     * @param resourceId resource id of the resource.
      * @return boolean
      */
-    private static final boolean isResourceIdValid(String resourceId) throws UMAClientException {
+    private boolean isResourceIdExists(String resourceId) throws UMAClientException {
 
-        if (resourceId == null || StringUtils.isEmpty(resourceId)) {
+        if (StringUtils.isEmpty(resourceId)) {
             if (log.isDebugEnabled()) {
-                log.debug("ResourceId is invalid :" + resourceId);
+                log.debug("Resource id is not present in the request");
             }
-            throw new UMAClientException(UMAConstants.ErrorMessages.ERROR_CODE_INVALID_RESOURCE_ID);
+            throw new UMAClientException(UMAConstants.ErrorMessages.ERROR_BAD_REQUEST_RESOURCE_ID_MISSING);
         } else {
             return true;
         }
     }
 
     /**
-     * Retrieve resource owner name
+     * Retrieve resource owner name with user store domain
      *
      * @param context message context
-     * @return resource owner name
      */
-    private String getResourceOwner(MessageContext context) {
+    private String getUserNameWithDomain(MessageContext context) {
 
-        String resourceOwnerName = null;
         if (context.getHttpServletRequest().getAttribute(AUTH_CONTEXT) instanceof AuthenticationContext) {
             AuthenticationContext authContext = (AuthenticationContext) context.getHttpServletRequest()
                     .getAttribute(AUTH_CONTEXT);
@@ -336,18 +288,17 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
                 return authContext.getUser().getUserName();
             }
         }
-        return resourceOwnerName;
+        return null;
     }
 
     /**
-     * Retrieve ConsumerKey
+     * Retrieve consumer key which represents the resource server.
      *
      * @param context message context
-     * @return clientId
+     * @return consumerKey
      */
     private String getConsumerKey(MessageContext context) {
 
-        String consumerKey = null;
         if (context.getHttpServletRequest().getAttribute(AUTH_CONTEXT) instanceof AuthenticationContext) {
             AuthenticationContext authContext = (AuthenticationContext) context.getHttpServletRequest()
                     .getAttribute(AUTH_CONTEXT);
@@ -355,7 +306,7 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
                 return String.valueOf(authContext.getParameter(CONSUMER_KEY));
             }
         }
-        return consumerKey;
+        return null;
     }
 
     /**
@@ -364,7 +315,7 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
      * @param context message context
      * @return scopes
      */
-    private boolean isValidToken(MessageContext context) {
+    private boolean isValidTokenScope(MessageContext context) {
 
         String[] tokenScopes = null;
         if (context.getHttpServletRequest().getAttribute(AUTH_CONTEXT) instanceof AuthenticationContext) {
@@ -392,7 +343,7 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
     private Response getUnauthorizedResponseObject() {
 
         if (log.isDebugEnabled()) {
-            log.debug("Context information not in the access token.");
+            log.debug("Required context information not available in the access token.");
         }
         return Response.status(Response.Status.UNAUTHORIZED).entity(getErrorDTO
                 ("Unauthorized", "Unauthorized User.")).build();

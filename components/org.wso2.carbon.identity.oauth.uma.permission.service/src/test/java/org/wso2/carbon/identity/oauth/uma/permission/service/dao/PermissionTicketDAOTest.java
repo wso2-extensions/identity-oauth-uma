@@ -19,13 +19,16 @@
 package org.wso2.carbon.identity.oauth.uma.permission.service.dao;
 
 import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.IObjectFactory;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
+import org.wso2.carbon.identity.oauth.uma.common.JdbcUtils;
 import org.wso2.carbon.identity.oauth.uma.common.exception.UMAException;
+import org.wso2.carbon.identity.oauth.uma.permission.service.TestConstants;
 import org.wso2.carbon.identity.oauth.uma.permission.service.dao.utils.DAOTestUtils;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.PermissionTicketModel;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.Resource;
@@ -37,35 +40,39 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
+import javax.sql.DataSource;
 
+import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 /**
  * Unit tests for PermissionTicketDAO.
  */
-@PrepareForTest(IdentityDatabaseUtil.class)
-public class PermissionTicketDAOTest extends DAOTestUtils {
+@PrepareForTest(JdbcUtils.class)
+public class PermissionTicketDAOTest extends PowerMockTestCase {
 
     private static final String DB_NAME = "UMA_DB";
 
     @BeforeClass
     public void setUp() throws Exception {
 
-        initiateH2Base(DB_NAME, getFilePath("permission.sql"));
+        DAOTestUtils.initiateH2Base(DB_NAME, DAOTestUtils.getFilePath("permission.sql"));
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        createResourceTable(DB_NAME, 1, "1", "photo01", timestamp, "owner1",
-                "1234", -1234, "PRIMARY");
-        createResourceScopeTable(DB_NAME, 1, 1, "scope01");
-        createPTTable(DB_NAME, 1, "12345", timestamp, 3600000, "ACTIVE", -1234);
-        createPTResourceTable(DB_NAME, 1, 1, 1);
-        createPTResourceScopeTable(DB_NAME, 1, 1, 1);
+        DAOTestUtils.createResourceTable(DB_NAME, 1, "1", "photo01", timestamp,
+                TestConstants.RESOURCE_OWNER_NAME, TestConstants.CLIENT_ID, TestConstants.TENANT_ID,
+                TestConstants.USER_DOMAIN);
+        DAOTestUtils.createResourceScopeTable(DB_NAME, 1, 1, "scope01");
+        DAOTestUtils.createPTTable(DB_NAME, 1, "12345", timestamp, 3600000, "ACTIVE",
+                TestConstants.TENANT_ID);
+        DAOTestUtils.createPTResourceTable(DB_NAME, 1, 1, 1);
+        DAOTestUtils.createPTResourceScopeTable(DB_NAME, 1, 1, 1);
     }
 
     @AfterClass
     public void tearDown() throws Exception {
 
-        closeH2Base(DB_NAME);
+        DAOTestUtils.closeH2Base(DB_NAME);
     }
 
     @ObjectFactory
@@ -75,16 +82,20 @@ public class PermissionTicketDAOTest extends DAOTestUtils {
     }
 
     @Test
-    public void testPersist() throws Exception {
+    public void testPersistPermissionTicket() throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
+        DataSource dataSource = mock(DataSource.class);
+        mockStatic(JdbcUtils.class);
+        when(JdbcUtils.getNewNamedTemplate()).thenReturn(new NamedJdbcTemplate(dataSource));
         try (Connection connection = DAOTestUtils.getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
+            Connection spy = DAOTestUtils.spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
             List<Resource> list = new ArrayList<>();
             list.add(getResource());
-            PermissionTicketDAO.persistPTandRequestedPermissions(list, getPermissionTicketDO(),
-                    "owner1");
+            PermissionTicketDAO.persistPermissionTicket(list, getPermissionTicketDO(),
+                    TestConstants.RESOURCE_OWNER_NAME, TestConstants.CLIENT_ID, TestConstants.USER_DOMAIN);
         }
+
     }
 
     /**
@@ -93,13 +104,16 @@ public class PermissionTicketDAOTest extends DAOTestUtils {
     @Test(expectedExceptions = UMAException.class)
     public void testPersistInvalidResourceId() throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
+        DataSource dataSource = mock(DataSource.class);
+        mockStatic(JdbcUtils.class);
+        when(JdbcUtils.getNewNamedTemplate()).thenReturn(new NamedJdbcTemplate(dataSource));
         try (Connection connection = DAOTestUtils.getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
+            Connection spy = DAOTestUtils.spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
             List<Resource> list = new ArrayList<>();
             list.add(getResourceWithInvalidResourceId());
-            PermissionTicketDAO.persistPTandRequestedPermissions(list, getPermissionTicketDO(),
-                    "owner1");
+            PermissionTicketDAO.persistPermissionTicket(list, getPermissionTicketDO(),
+                    TestConstants.RESOURCE_OWNER_NAME, TestConstants.CLIENT_ID, TestConstants.USER_DOMAIN);
         }
     }
 
@@ -109,28 +123,16 @@ public class PermissionTicketDAOTest extends DAOTestUtils {
     @Test(expectedExceptions = UMAException.class)
     public void testPersistInvalidResourceScope() throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
+        DataSource dataSource = mock(DataSource.class);
+        mockStatic(JdbcUtils.class);
+        when(JdbcUtils.getNewNamedTemplate()).thenReturn(new NamedJdbcTemplate(dataSource));
         try (Connection connection = DAOTestUtils.getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
+            Connection spy = DAOTestUtils.spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
             List<Resource> list = new ArrayList<>();
             list.add(getResourceWithInvalidResourceScope());
-            PermissionTicketDAO.persistPTandRequestedPermissions(list, getPermissionTicketDO(),
-                    "owner1");
-        }
-    }
-
-    /**
-     * Test persisting an empty resource or empty permission ticket
-     */
-    @Test(expectedExceptions = UMAException.class)
-    public void testPersistEmptyPermission() throws Exception {
-
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = DAOTestUtils.getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-            List<Resource> list = new ArrayList<>();
-            PermissionTicketDAO.persistPTandRequestedPermissions(list, new PermissionTicketModel(),
-                    "owner1");
+            PermissionTicketDAO.persistPermissionTicket(list, getPermissionTicketDO(),
+                    TestConstants.RESOURCE_OWNER_NAME, TestConstants.CLIENT_ID, TestConstants.USER_DOMAIN);
         }
     }
 
@@ -141,7 +143,7 @@ public class PermissionTicketDAOTest extends DAOTestUtils {
         permissionTicketModel.setStatus("ACTIVE");
         permissionTicketModel.setCreatedTime(Calendar.getInstance(TimeZone.getTimeZone("UTC")));
         permissionTicketModel.setValidityPeriod(3600000);
-        permissionTicketModel.setTenantId(-1234);
+        permissionTicketModel.setTenantId(TestConstants.TENANT_ID);
         return permissionTicketModel;
     }
 
