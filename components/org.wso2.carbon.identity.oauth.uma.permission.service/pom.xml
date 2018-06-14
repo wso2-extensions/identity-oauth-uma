@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
         <artifactId>identity-oauth-uma</artifactId>
-        <version>1.0.5-SNAPSHOT</version>
+        <version>1.0.6-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -56,12 +56,13 @@
                             org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.wso2.carbon.database.utils.jdbc.*;version="${org.wso2.carbon.database.utils.version.range}",
-                            org.wso2.carbon.identity.oauth.uma.common.*; version="${project.version}",
+                            org.wso2.carbon.identity.oauth.config;version="${org.wso2.carbon.identity.oauth.import.version.range}",
+                            org.wso2.carbon.identity.oauth.uma.common.*; version="${identity.oauth.uma.imp.pkg.version.range}",
                             org.wso2.carbon.utils; version="${carbon.kernel.imp.pkg.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.oauth.uma.permission.service.internal,
-                            org.wso2.carbon.identity.oauth.uma.permission.service.*;${project.version},
+                            org.wso2.carbon.identity.oauth.uma.permission.service.*;${identity.oauth.uma.exp.pkg.version},
                         </Export-Package>
                     </instructions>
                 </configuration>
@@ -83,11 +84,6 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco.version}</version>
-                <configuration>
-                    <excludes>
-                        <exclude>**/ReadPropertiesFile.class</exclude>
-                    </excludes>
-                </configuration>
                 <executions>
                     <execution>
                         <id>default-prepare-agent</id>
@@ -248,6 +244,11 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
             <artifactId>org.wso2.carbon.identity.oauth.uma.common</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.inbound.auth.oauth2</groupId>
+            <artifactId>org.wso2.carbon.identity.oauth</artifactId>
             <scope>provided</scope>
         </dependency>
     </dependencies>

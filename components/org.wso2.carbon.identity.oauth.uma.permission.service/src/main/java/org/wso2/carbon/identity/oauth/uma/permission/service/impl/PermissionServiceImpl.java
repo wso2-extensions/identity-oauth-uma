@@ -18,17 +18,18 @@
 
 package org.wso2.carbon.identity.oauth.uma.permission.service.impl;
 
+import org.wso2.carbon.identity.oauth.config.OAuthServerConfiguration;
+import org.wso2.carbon.identity.oauth.uma.common.UMAConstants;
 import org.wso2.carbon.identity.oauth.uma.common.exception.UMAClientException;
 import org.wso2.carbon.identity.oauth.uma.common.exception.UMAServerException;
 import org.wso2.carbon.identity.oauth.uma.permission.service.PermissionService;
-import org.wso2.carbon.identity.oauth.uma.permission.service.ReadPropertiesFile;
 import org.wso2.carbon.identity.oauth.uma.permission.service.dao.PermissionTicketDAO;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.PermissionTicketModel;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.Resource;
 
-import java.util.Calendar;
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
-import java.util.TimeZone;
 import java.util.UUID;
 
 /**
@@ -36,25 +37,39 @@ import java.util.UUID;
  */
 public class PermissionServiceImpl implements PermissionService {
 
-    private static final String UTC = "UTC";
-
     @Override
     public PermissionTicketModel issuePermissionTicket(List<Resource> resourceList, int tenantId, String
             resourceOwnerName, String clientId, String userDomain) throws UMAClientException, UMAServerException {
 
         PermissionTicketModel permissionTicketModel = new PermissionTicketModel();
-        ReadPropertiesFile.readFileConfigValues(permissionTicketModel);
 
         //TODO: Make this an extension point.
         String ticketString = UUID.randomUUID().toString();
         permissionTicketModel.setTicket(ticketString);
-        permissionTicketModel.setCreatedTime(Calendar.getInstance(TimeZone.getTimeZone(UTC)));
-        permissionTicketModel.setStatus("ACTIVE");
+        permissionTicketModel.setCreatedTime(new Timestamp(new Date().getTime()));
+        permissionTicketModel.setStatus(UMAConstants.PermissionTicketStates.PERMISSION_TICKET_STATE_ACTIVE);
         permissionTicketModel.setTenantId(tenantId);
+        long createdTimeInMillis = permissionTicketModel.getCreatedTime().getTime();
+        permissionTicketModel.setExpiryTime(calculatePermissionTicketExpiryTime(createdTimeInMillis));
 
         PermissionTicketDAO.persistPermissionTicket(resourceList, permissionTicketModel, resourceOwnerName, clientId,
                 userDomain);
 
         return permissionTicketModel;
     }
+
+    private Timestamp calculatePermissionTicketExpiryTime(long createdTimeInMillis) {
+
+        //TODO:Add a new configuration to define permission ticket validity period in identity.xml
+        //For now the validity time period available for authorization code in identity.xml is used as the validity
+        //time period for permission ticket.
+        long validityPeriodInMillis = OAuthServerConfiguration.getInstance().
+                getAuthorizationCodeValidityPeriodInSeconds() * 1000;
+
+        long expiryTimeInMillis = createdTimeInMillis + validityPeriodInMillis;
+
+        return new Timestamp(expiryTimeInMillis);
+
+    }
+
 }

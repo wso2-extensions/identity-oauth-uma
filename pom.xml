@@ -27,7 +27,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
     <artifactId>identity-oauth-uma</artifactId>
-    <version>1.0.5-SNAPSHOT</version>
+    <version>1.0.6-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>UMA 2.0</name>
 
@@ -385,6 +385,11 @@
     </dependencyManagement>
 
     <properties>
+
+        <!-- UMA Version-->
+        <identity.oauth.uma.exp.pkg.version>${project.version}</identity.oauth.uma.exp.pkg.version>
+        <identity.oauth.uma.imp.pkg.version.range>[1.0.0,2.0.0)</identity.oauth.uma.imp.pkg.version.range>
+
         <!--Swagger Dependency Version-->
         <jackson.version>1.8.6</jackson.version>
         <spring-web.version>4.1.6.RELEASE</spring-web.version>
@@ -435,6 +440,7 @@
         <org.wso2.carbon.identity.auth.service.version>1.1.11
         </org.wso2.carbon.identity.auth.service.version>
 
+        <!-- Identity Inbound Auth OAuth Version-->
         <org.wso2.carbon.identity.oauth.version>6.0.0</org.wso2.carbon.identity.oauth.version>
         <org.wso2.carbon.identity.oauth.import.version.range>[6.0.0, 7.0.0)</org.wso2.carbon.identity.oauth.import.version.range>
 

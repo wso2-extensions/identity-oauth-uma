@@ -29,8 +29,9 @@ import org.wso2.carbon.identity.oauth.uma.permission.service.model.PermissionTic
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.Resource;
 
 import java.sql.Timestamp;
-import java.util.Date;
+import java.util.Calendar;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * Data Access Layer functionality for Permission Endpoint. This includes persisting requested permissions
@@ -38,29 +39,37 @@ import java.util.List;
  */
 public class PermissionTicketDAO {
 
-    private static final String STORE_PT_QUERY = "INSERT INTO IDN_PERMISSION_TICKET " +
-            "(PT, TIME_CREATED, VALIDITY_PERIOD, TICKET_STATE, TENANT_ID) VALUES " +
+    private static final String UTC = "UTC";
+
+    private static final String STORE_PT_QUERY = "INSERT INTO IDN_UMA_PERMISSION_TICKET " +
+            "(PT, TIME_CREATED, EXPIRY_TIME, TICKET_STATE, TENANT_ID) VALUES " +
             "(:" + UMAConstants.SQLPlaceholders.PERMISSION_TICKET + ";,:" + UMAConstants.SQLPlaceholders.TIME_CREATED +
-            ";,:" + UMAConstants.SQLPlaceholders.VALIDITY_PERIOD + ";,:" + UMAConstants.SQLPlaceholders.STATE + ";,:" +
+            ";,:" + UMAConstants.SQLPlaceholders.EXPIRY_TIME + ";,:" + UMAConstants.SQLPlaceholders.STATE + ";,:" +
             UMAConstants.SQLPlaceholders.TENANT_ID + ";)";
-    private static final String STORE_PT_RESOURCE_IDS_QUERY = "INSERT INTO IDN_PT_RESOURCE " +
-            "(PT_RESOURCE_ID, PT_ID) VALUES " +
-            "((SELECT ID FROM IDN_RESOURCE WHERE RESOURCE_ID = :" + UMAConstants.SQLPlaceholders.RESOURCE_ID + ";),:"
-            + UMAConstants.SQLPlaceholders.ID + ";)";
-    private static final String STORE_PT_RESOURCE_SCOPES_QUERY = "INSERT INTO IDN_PT_RESOURCE_SCOPE " +
+    private static final String STORE_PT_RESOURCE_IDS_QUERY = "INSERT INTO IDN_UMA_PT_RESOURCE " +
+            "(PT_RESOURCE_ID, PT_ID) VALUES ((SELECT ID FROM IDN_UMA_RESOURCE WHERE RESOURCE_ID = :" +
+            UMAConstants.SQLPlaceholders.RESOURCE_ID + ";),:" + UMAConstants.SQLPlaceholders.ID + ";)";
+    private static final String STORE_PT_RESOURCE_SCOPES_QUERY = "INSERT INTO IDN_UMA_PT_RESOURCE_SCOPE " +
             "(PT_RESOURCE_ID, PT_SCOPE_ID) VALUES (:" + UMAConstants.SQLPlaceholders.ID + ";, " +
-            "(SELECT ID FROM IDN_RESOURCE_SCOPE WHERE SCOPE_NAME = :" + UMAConstants.SQLPlaceholders.RESOURCE_SCOPE
-            + "; AND RESOURCE_IDENTITY = (SELECT ID FROM IDN_RESOURCE WHERE RESOURCE_ID = :" +
+            "(SELECT ID FROM IDN_UMA_RESOURCE_SCOPE WHERE SCOPE_NAME = :" + UMAConstants.SQLPlaceholders.RESOURCE_SCOPE
+            + "; AND RESOURCE_IDENTITY = (SELECT ID FROM IDN_UMA_RESOURCE WHERE RESOURCE_ID = :" +
             UMAConstants.SQLPlaceholders.RESOURCE_ID + ";)))";
     private static final String VALIDATE_REQUESTED_RESOURCE_IDS_WITH_REGISTERED_RESOURCE_IDS = "SELECT ID " +
-            "FROM IDN_RESOURCE WHERE RESOURCE_ID = :" + UMAConstants.SQLPlaceholders.RESOURCE_ID + "; AND " +
+            "FROM IDN_UMA_RESOURCE WHERE RESOURCE_ID = :" + UMAConstants.SQLPlaceholders.RESOURCE_ID + "; AND " +
             "RESOURCE_OWNER_NAME = :" + UMAConstants.SQLPlaceholders.RESOURCE_OWNER_NAME + "; AND USER_DOMAIN = :" +
             UMAConstants.SQLPlaceholders.USER_DOMAIN + "; AND CLIENT_ID = :" +
             UMAConstants.SQLPlaceholders.CLIENT_ID + ";";
     private static final String VALIDATE_REQUESTED_RESOURCE_SCOPES_WITH_REGISTERED_RESOURCE_SCOPES = "SELECT ID FROM" +
-            " IDN_RESOURCE_SCOPE WHERE SCOPE_NAME = :" + UMAConstants.SQLPlaceholders.RESOURCE_SCOPE + "; AND " +
-            "RESOURCE_IDENTITY = (SELECT ID FROM IDN_RESOURCE WHERE RESOURCE_ID = :" +
+            " IDN_UMA_RESOURCE_SCOPE WHERE SCOPE_NAME = :" + UMAConstants.SQLPlaceholders.RESOURCE_SCOPE + "; AND " +
+            "RESOURCE_IDENTITY = (SELECT ID FROM IDN_UMA_RESOURCE WHERE RESOURCE_ID = :" +
             UMAConstants.SQLPlaceholders.RESOURCE_ID + ";)";
+    private static final String GET_PERMISSION_TICKET_STATE = "SELECT TICKET_STATE FROM IDN_UMA_PERMISSION_TICKET " +
+            "WHERE PT = :" + UMAConstants.SQLPlaceholders.PERMISSION_TICKET + ";";
+    private static final String GET_PERMISSION_TICKET_EXPIRY_TIME = "SELECT EXPIRY_TIME FROM " +
+            "IDN_UMA_PERMISSION_TICKET WHERE PT = :" + UMAConstants.SQLPlaceholders.PERMISSION_TICKET + ";";
+    private static final String UPDATE_PERMISSION_TICKET_STATE = "UPDATE IDN_UMA_PERMISSION_TICKET SET TICKET_STATE = :"
+            + UMAConstants.SQLPlaceholders.STATE + "; WHERE PT = :" + UMAConstants.SQLPlaceholders.PERMISSION_TICKET +
+            ";";
 
     /**
      * Issue a permission ticket. Permission ticket represents the resources requested by the resource server on
@@ -90,10 +99,11 @@ public class PermissionTicketDAO {
                                     namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.PERMISSION_TICKET,
                                             permissionTicketModel.getTicket());
                                     namedPreparedStatement.setTimeStamp(UMAConstants.SQLPlaceholders.TIME_CREATED,
-                                            new Timestamp(new Date().getTime()), permissionTicketModel.
-                                                    getCreatedTime());
-                                    namedPreparedStatement.setLong(UMAConstants.SQLPlaceholders.VALIDITY_PERIOD,
-                                            permissionTicketModel.getValidityPeriod());
+                                            permissionTicketModel.getCreatedTime(),
+                                            Calendar.getInstance(TimeZone.getTimeZone(UTC)));
+                                    namedPreparedStatement.setTimeStamp(UMAConstants.SQLPlaceholders.EXPIRY_TIME,
+                                            permissionTicketModel.getExpiryTime(),
+                                            Calendar.getInstance(TimeZone.getTimeZone(UTC)));
                                     namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.STATE,
                                             permissionTicketModel.getStatus());
                                     namedPreparedStatement.setLong(UMAConstants.SQLPlaceholders.TENANT_ID,
@@ -107,6 +117,66 @@ public class PermissionTicketDAO {
             throw new UMAServerException(UMAConstants.ErrorMessages
                     .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_PT, e);
         }
+    }
+
+    /**
+     * Checks if the permission ticket sent by the client when requesting RPT has expired.
+     *
+     * @param permissionTicket permission ticket sent by the client.
+     * @throws UMAServerException Exception thrown when there is a database error.
+     */
+    public static boolean isPermissionTicketExpired(String permissionTicket) throws UMAServerException {
+
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedTemplate();
+        Timestamp expiryTime;
+        String ticketState;
+
+        try {
+            ticketState = namedJdbcTemplate.fetchSingleRecord(GET_PERMISSION_TICKET_STATE,
+                    (resultSet, rowNumber) -> resultSet.getString(1),
+                    namedPreparedStatement -> {
+                        namedPreparedStatement.setString(
+                                UMAConstants.SQLPlaceholders.PERMISSION_TICKET, permissionTicket);
+                    });
+
+            if (ticketState.equals(UMAConstants.PermissionTicketStates.PERMISSION_TICKET_STATE_ACTIVE)) {
+                expiryTime = namedJdbcTemplate.fetchSingleRecord(GET_PERMISSION_TICKET_EXPIRY_TIME,
+                        (resultSet, rowNumber) -> resultSet.getTimestamp(1),
+                        namedPreparedStatement -> {
+                            namedPreparedStatement.setString(
+                                    UMAConstants.SQLPlaceholders.PERMISSION_TICKET, permissionTicket);
+                        });
+                if (expiryTime.getTime() < System.currentTimeMillis()) {
+                    String permissionTicketState = UMAConstants.PermissionTicketStates.PERMISSION_TICKET_STATE_EXPIRED;
+                    updatePermissionTicketState(permissionTicket, permissionTicketState);
+                    return true;
+                }
+            } else {
+                return true;
+            }
+        } catch (DataAccessException e) {
+            throw new UMAServerException(UMAConstants.ErrorMessages
+                    .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_CHECK_PERMISSION_TICKET_STATE, e);
+        }
+        return false;
+    }
+
+    private static void updatePermissionTicketState(String permissionTicket, String permissionTicketState) throws
+            UMAServerException {
+
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedTemplate();
+
+        try {
+            namedJdbcTemplate.executeUpdate(UPDATE_PERMISSION_TICKET_STATE, namedPreparedStatement -> {
+                namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.PERMISSION_TICKET,
+                        permissionTicket);
+                namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.STATE, permissionTicketState);
+            });
+        } catch (DataAccessException e) {
+            throw new UMAServerException(UMAConstants.ErrorMessages
+                    .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_UPDATE_PERMISSION_TICKET_STATE, e);
+        }
+
     }
 
     private static void checkResourceIdsExistence(List<Resource> resourceList, String

@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.oauth.uma.permission.service.model;
 
-import java.util.Calendar;
+import java.sql.Timestamp;
 
 /**
  * PermissionTicketModel holds all permission ticket related parameters.
@@ -27,9 +27,9 @@ public class PermissionTicketModel {
 
     private String ticket;
     private String status;
-    private Calendar createdTime;
-    private long validityPeriod;
+    private Timestamp createdTime;
     private int tenantId;
+    private Timestamp expiryTime;
 
     public String getTicket() {
 
@@ -51,22 +51,12 @@ public class PermissionTicketModel {
         this.status = status;
     }
 
-    public long getValidityPeriod() {
-
-        return validityPeriod;
-    }
-
-    public void setValidityPeriod(long validityPeriod) {
-
-        this.validityPeriod = validityPeriod;
-    }
-
-    public Calendar getCreatedTime() {
+    public Timestamp getCreatedTime() {
 
         return createdTime;
     }
 
-    public void setCreatedTime(Calendar createdTime) {
+    public void setCreatedTime(Timestamp createdTime) {
 
         this.createdTime = createdTime;
     }
@@ -79,5 +69,15 @@ public class PermissionTicketModel {
     public void setTenantId(int tenantId) {
 
         this.tenantId = tenantId;
+    }
+
+    public Timestamp getExpiryTime() {
+
+        return expiryTime;
+    }
+
+    public void setExpiryTime(Timestamp expiryTime) {
+
+        this.expiryTime = expiryTime;
     }
 }

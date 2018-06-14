@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
         <artifactId>identity-oauth-uma</artifactId>
-        <version>1.0.5-SNAPSHOT</version>
+        <version>1.0.6-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -90,12 +90,11 @@
                             org.apache.commons.logging;version="${commons-logging.osgi.version.range}",
                             org.osgi.framework;version="${osgi.framework.imp.pkg.version.range}",
                             org.wso2.carbon.database.utils.*;version="${org.wso2.carbon.database.utils.version.range}",
-                            org.wso2.carbon.identity.oauth.uma.common;version="${project.version}",
-                            org.wso2.carbon.identity.oauth.uma.common.exception;version="${project.version}",
+                            org.wso2.carbon.identity.oauth.uma.common.*;version="${identity.oauth.uma.imp.pkg.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.oauth.uma.resource.service.internal,
-                            org.wso2.carbon.identity.oauth.uma.resource.service.*;${project.version}
+                            org.wso2.carbon.identity.oauth.uma.resource.service.*;${identity.oauth.uma.exp.pkg.version}
                         </Export-Package>
                         <DynamicImport-Package>*</DynamicImport-Package>
                     </instructions>

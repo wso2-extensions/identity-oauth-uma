@@ -36,9 +36,7 @@ import org.wso2.carbon.identity.oauth.uma.permission.service.model.Resource;
 import java.sql.Connection;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
-import java.util.TimeZone;
 import java.util.UUID;
 import javax.sql.DataSource;
 
@@ -53,17 +51,18 @@ import static org.powermock.api.mockito.PowerMockito.when;
 public class PermissionTicketDAOTest extends PowerMockTestCase {
 
     private static final String DB_NAME = "UMA_DB";
+    private Timestamp createdTime = new Timestamp(System.currentTimeMillis());
+    private Timestamp expiredTime = new Timestamp(System.currentTimeMillis() + 300000);
 
     @BeforeClass
     public void setUp() throws Exception {
 
         DAOTestUtils.initiateH2Base(DB_NAME, DAOTestUtils.getFilePath("permission.sql"));
-        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        DAOTestUtils.createResourceTable(DB_NAME, 1, "1", "photo01", timestamp,
+        DAOTestUtils.createResourceTable(DB_NAME, 1, "1", "photo01", createdTime,
                 TestConstants.RESOURCE_OWNER_NAME, TestConstants.CLIENT_ID, TestConstants.TENANT_ID,
                 TestConstants.USER_DOMAIN);
         DAOTestUtils.createResourceScopeTable(DB_NAME, 1, 1, "scope01");
-        DAOTestUtils.createPTTable(DB_NAME, 1, "12345", timestamp, 3600000, "ACTIVE",
+        DAOTestUtils.createPTTable(DB_NAME, 1, "12345", createdTime, expiredTime, TestConstants.TICKET_STATE,
                 TestConstants.TENANT_ID);
         DAOTestUtils.createPTResourceTable(DB_NAME, 1, 1, 1);
         DAOTestUtils.createPTResourceScopeTable(DB_NAME, 1, 1, 1);
@@ -140,9 +139,9 @@ public class PermissionTicketDAOTest extends PowerMockTestCase {
 
         PermissionTicketModel permissionTicketModel = new PermissionTicketModel();
         permissionTicketModel.setTicket(UUID.randomUUID().toString());
-        permissionTicketModel.setStatus("ACTIVE");
-        permissionTicketModel.setCreatedTime(Calendar.getInstance(TimeZone.getTimeZone("UTC")));
-        permissionTicketModel.setValidityPeriod(3600000);
+        permissionTicketModel.setStatus(TestConstants.TICKET_STATE);
+        permissionTicketModel.setCreatedTime(createdTime);
+        permissionTicketModel.setExpiryTime(expiredTime);
         permissionTicketModel.setTenantId(TestConstants.TENANT_ID);
         return permissionTicketModel;
     }

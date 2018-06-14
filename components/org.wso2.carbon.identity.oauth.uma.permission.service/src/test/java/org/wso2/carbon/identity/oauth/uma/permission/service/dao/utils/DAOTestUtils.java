@@ -38,16 +38,15 @@ import static org.mockito.Mockito.spy;
 public class DAOTestUtils {
 
     private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
-    private static final String STORE_RESOURCE_QUERY = "INSERT INTO IDN_RESOURCE (ID, RESOURCE_ID, RESOURCE_NAME, " +
-            "TIME_CREATED, RESOURCE_OWNER_NAME, CLIENT_ID, TENANT_ID, USER_DOMAIN) VALUES (?,?,?,?,?,?,?,?)";
-    private static final String STORE_RESOURCE_SCOPE_QUERY = "INSERT INTO IDN_RESOURCE_SCOPE (ID, RESOURCE_IDENTITY, " +
-            "SCOPE_NAME) VALUES (?,?,?)";
-    private static final String STORE_PT_QUERY = "INSERT INTO IDN_PERMISSION_TICKET " +
-            "(ID, PT, TIME_CREATED, VALIDITY_PERIOD, TICKET_STATE, TENANT_ID) VALUES (?,?,?,?,?,?)";
-    private static final String STORE_PT_RESOURCE_IDS_QUERY = "INSERT INTO IDN_PT_RESOURCE " +
-            "(ID, PT_RESOURCE_ID, PT_ID) VALUES " +
-            "(?, ?, ?)";
-    private static final String STORE_PT_RESOURCE_SCOPES_QUERY = "INSERT INTO IDN_PT_RESOURCE_SCOPE " +
+    private static final String STORE_RESOURCE_QUERY = "INSERT INTO IDN_UMA_RESOURCE (ID, RESOURCE_ID, RESOURCE_NAME, "
+            + "TIME_CREATED, RESOURCE_OWNER_NAME, CLIENT_ID, TENANT_ID, USER_DOMAIN) VALUES (?,?,?,?,?,?,?,?)";
+    private static final String STORE_RESOURCE_SCOPE_QUERY = "INSERT INTO IDN_UMA_RESOURCE_SCOPE (ID, " +
+            "RESOURCE_IDENTITY, SCOPE_NAME) VALUES (?,?,?)";
+    private static final String STORE_PT_QUERY = "INSERT INTO IDN_UMA_PERMISSION_TICKET " +
+            "(ID, PT, TIME_CREATED, EXPIRY_TIME, TICKET_STATE, TENANT_ID) VALUES (?,?,?,?,?,?)";
+    private static final String STORE_PT_RESOURCE_IDS_QUERY = "INSERT INTO IDN_UMA_PT_RESOURCE " +
+            "(ID, PT_RESOURCE_ID, PT_ID) VALUES (?, ?, ?)";
+    private static final String STORE_PT_RESOURCE_SCOPES_QUERY = "INSERT INTO IDN_UMA_PT_RESOURCE_SCOPE " +
             "(ID, PT_RESOURCE_ID, PT_SCOPE_ID) VALUES (?, ?, ?)";
 
     public static void initiateH2Base(String databaseName, String scriptPath) throws Exception {
@@ -103,16 +102,16 @@ public class DAOTestUtils {
         throw new RuntimeException("No datasource initiated for database: " + datasourceName);
     }
 
-    public static void createPTTable(String databaseName, long id, String pt, Timestamp timecreated, long period,
-                                     String state, int tenantId) throws Exception {
+    public static void createPTTable(String databaseName, long id, String pt, Timestamp createdTime,
+                                     Timestamp expiredTime, String state, int tenantId) throws Exception {
 
         PreparedStatement preparedStatement = null;
         try (Connection connection = getConnection(databaseName)) {
             preparedStatement = connection.prepareStatement(STORE_PT_QUERY);
             preparedStatement.setLong(1, id);
             preparedStatement.setString(2, pt);
-            preparedStatement.setTimestamp(3, timecreated);
-            preparedStatement.setLong(4, period);
+            preparedStatement.setTimestamp(3, createdTime);
+            preparedStatement.setTimestamp(4, expiredTime);
             preparedStatement.setString(5, state);
             preparedStatement.setLong(6, tenantId);
             preparedStatement.execute();
