@@ -63,10 +63,9 @@ public class PermissionTicketDAO {
             " IDN_UMA_RESOURCE_SCOPE WHERE SCOPE_NAME = :" + UMAConstants.SQLPlaceholders.RESOURCE_SCOPE + "; AND " +
             "RESOURCE_IDENTITY = (SELECT ID FROM IDN_UMA_RESOURCE WHERE RESOURCE_ID = :" +
             UMAConstants.SQLPlaceholders.RESOURCE_ID + ";)";
-    private static final String GET_PERMISSION_TICKET_STATE = "SELECT TICKET_STATE FROM IDN_UMA_PERMISSION_TICKET " +
-            "WHERE PT = :" + UMAConstants.SQLPlaceholders.PERMISSION_TICKET + ";";
-    private static final String GET_PERMISSION_TICKET_EXPIRY_TIME = "SELECT EXPIRY_TIME FROM " +
-            "IDN_UMA_PERMISSION_TICKET WHERE PT = :" + UMAConstants.SQLPlaceholders.PERMISSION_TICKET + ";";
+    private static final String GET_EXPIRY_TIME_FOR_ACTIVE_PERMISSION_TICKET = "SELECT EXPIRY_TIME FROM " +
+            "IDN_UMA_PERMISSION_TICKET WHERE PT = :" + UMAConstants.SQLPlaceholders.PERMISSION_TICKET + "; AND " +
+            "TICKET_STATE = :" + UMAConstants.SQLPlaceholders.STATE + ";";
     private static final String UPDATE_PERMISSION_TICKET_STATE = "UPDATE IDN_UMA_PERMISSION_TICKET SET TICKET_STATE = :"
             + UMAConstants.SQLPlaceholders.STATE + "; WHERE PT = :" + UMAConstants.SQLPlaceholders.PERMISSION_TICKET +
             ";";
@@ -129,29 +128,22 @@ public class PermissionTicketDAO {
 
         NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedTemplate();
         Timestamp expiryTime;
-        String ticketState;
 
         try {
-            ticketState = namedJdbcTemplate.fetchSingleRecord(GET_PERMISSION_TICKET_STATE,
-                    (resultSet, rowNumber) -> resultSet.getString(1),
+            expiryTime = namedJdbcTemplate.fetchSingleRecord(GET_EXPIRY_TIME_FOR_ACTIVE_PERMISSION_TICKET,
+                    (resultSet, rowNumber) -> resultSet.getTimestamp(1),
                     namedPreparedStatement -> {
                         namedPreparedStatement.setString(
                                 UMAConstants.SQLPlaceholders.PERMISSION_TICKET, permissionTicket);
+                        namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.STATE,
+                                UMAConstants.PermissionTicketStates.PERMISSION_TICKET_STATE_ACTIVE);
                     });
-
-            if (ticketState.equals(UMAConstants.PermissionTicketStates.PERMISSION_TICKET_STATE_ACTIVE)) {
-                expiryTime = namedJdbcTemplate.fetchSingleRecord(GET_PERMISSION_TICKET_EXPIRY_TIME,
-                        (resultSet, rowNumber) -> resultSet.getTimestamp(1),
-                        namedPreparedStatement -> {
-                            namedPreparedStatement.setString(
-                                    UMAConstants.SQLPlaceholders.PERMISSION_TICKET, permissionTicket);
-                        });
-                if (expiryTime.getTime() < System.currentTimeMillis()) {
-                    String permissionTicketState = UMAConstants.PermissionTicketStates.PERMISSION_TICKET_STATE_EXPIRED;
-                    updatePermissionTicketState(permissionTicket, permissionTicketState);
-                    return true;
-                }
-            } else {
+            if (expiryTime == null) {
+                return true;
+            }
+            if (expiryTime.getTime() < System.currentTimeMillis()) {
+                String permissionTicketState = UMAConstants.PermissionTicketStates.PERMISSION_TICKET_STATE_EXPIRED;
+                updatePermissionTicketState(permissionTicket, permissionTicketState);
                 return true;
             }
         } catch (DataAccessException e) {
