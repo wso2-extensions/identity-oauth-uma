@@ -29,7 +29,7 @@ import org.wso2.carbon.identity.oauth.uma.authorization.connector.PolicyEvaluato
 import org.wso2.carbon.identity.oauth.uma.xacml.service.handler.XACMLUMAHandler;
 
 /**
-* Service component for UMA resource endpoint.
+* Service component for UMA xacml component.
 */
 @Component(name = "org.wso2.carbon.identity.oauth.uma.resource.service.internal.RegisterServiceComponent",
         immediate = true)

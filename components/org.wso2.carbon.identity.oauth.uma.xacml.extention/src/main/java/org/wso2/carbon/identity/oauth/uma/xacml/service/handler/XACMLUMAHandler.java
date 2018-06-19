@@ -57,10 +57,6 @@ public class XACMLUMAHandler implements PolicyEvaluator {
     private static final String RULE_EFFECT_PERMIT = "Permit";
     private static final String RULE_EFFECT_NOT_APPLICABLE = "NotApplicable";
 
-    public XACMLUMAHandler() {
-
-    }
-
     /**
      * @param userName
      * @param resource
@@ -151,5 +147,4 @@ public class XACMLUMAHandler implements PolicyEvaluator {
             throw new FrameworkException("Exception occurred when getting decision from xacml response.", e);
         }
     }
-
 }

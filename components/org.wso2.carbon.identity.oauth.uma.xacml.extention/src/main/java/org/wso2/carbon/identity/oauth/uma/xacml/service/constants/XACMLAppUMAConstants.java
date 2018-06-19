@@ -23,7 +23,6 @@ package org.wso2.carbon.identity.oauth.uma.xacml.service.constants;
  */
 public class XACMLAppUMAConstants {
 
-    public static final String SP_CATEGORY = "http://wso2.org/identity/sp";
     public static final String RESOURCE_CATEGORY = "http://wso2.org/identity/identity-resource";
     public static final String ACTION_CATEGORY = "http://wso2.org/identity/identity-action";
     public static final String USER_CATEGORY = "http://wso2.org/identity/user";
