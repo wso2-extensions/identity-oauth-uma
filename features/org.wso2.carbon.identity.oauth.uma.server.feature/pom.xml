@@ -149,7 +149,6 @@
                                         <include>api#identity#oauth2#uma#resourceregistration#v1.0.war</include>
                                         <include>api#identity#oauth2#uma#permission#v1.0.war</include>
                                         <include>**/*.sql</include>
-                                        <include>uma.properties</include>
                                         <include>p2.inf</include>
                                     </includes>
                                 </resource>

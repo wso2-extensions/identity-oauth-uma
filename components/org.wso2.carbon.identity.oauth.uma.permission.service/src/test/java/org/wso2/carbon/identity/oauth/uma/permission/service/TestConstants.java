@@ -24,5 +24,6 @@ public class TestConstants {
     public static final String RESOURCE_OWNER_NAME = "admin";
     public static final String CLIENT_ID = "1234";
     public static final int TENANT_ID = -1234;
+    public static final String TICKET_STATE = "ACTIVE";
 
 }

@@ -34,16 +34,16 @@ public class DAOUtils {
 
     private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
     public static final String STORE_RESOURCE_DETAILS =
-            "INSERT INTO IDN_RESOURCE(RESOURCE_ID,RESOURCE_NAME,TIME_CREATED," +
+            "INSERT INTO IDN_UMA_RESOURCE(RESOURCE_ID,RESOURCE_NAME,TIME_CREATED," +
                     "RESOURCE_OWNER_NAME,TENANT_ID,CLIENT_ID,USER_DOMAIN) VALUES (?,?,?,?,?,?,?)";
 
     public static final String STORE_RESOURCE_META_DETAILS =
-            "INSERT INTO IDN_RESOURCE_META_DATA(RESOURCE_IDENTITY,PROPERTY_KEY,PROPERTY_VALUE)" +
-                    "VALUES ((SELECT ID FROM IDN_RESOURCE WHERE ID = ?),?,?);";
+            "INSERT INTO IDN_UMA_RESOURCE_META_DATA(RESOURCE_IDENTITY,PROPERTY_KEY,PROPERTY_VALUE)" +
+                    "VALUES ((SELECT ID FROM IDN_UMA_RESOURCE WHERE ID = ?),?,?);";
 
     public static final String STORE_SCOPES =
-            "INSERT INTO IDN_RESOURCE_SCOPE(RESOURCE_IDENTITY,SCOPE_NAME) VALUES ((SELECT ID FROM IDN_RESOURCE WHERE " +
-                    "ID = ?),?)";
+            "INSERT INTO IDN_UMA_RESOURCE_SCOPE(RESOURCE_IDENTITY,SCOPE_NAME) VALUES ((SELECT ID FROM " +
+                    "IDN_UMA_RESOURCE WHERE ID = ?),?)";
 
     public static void initiateH2Base(String databaseName, String scriptPath) throws Exception {
 

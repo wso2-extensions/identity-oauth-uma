@@ -19,24 +19,31 @@
 package org.wso2.carbon.identity.oauth.uma.permission.service.impl;
 
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.IObjectFactory;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.oauth.uma.permission.service.ReadPropertiesFile;
+import org.wso2.carbon.identity.oauth.config.OAuthServerConfiguration;
 import org.wso2.carbon.identity.oauth.uma.permission.service.TestConstants;
 import org.wso2.carbon.identity.oauth.uma.permission.service.dao.PermissionTicketDAO;
+import org.wso2.carbon.identity.oauth.uma.permission.service.model.Resource;
 
-import static org.mockito.Matchers.anyList;
+import java.util.ArrayList;
+
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertNotNull;
 
-@PrepareForTest({ReadPropertiesFile.class, PermissionTicketDAO.class})
+@PrepareForTest({PermissionTicketDAO.class, OAuthServerConfiguration.class})
 public class PermissionServiceImplTest {
 
     @InjectMocks
     private PermissionServiceImpl permissionService;
+
+    @Mock
+    private OAuthServerConfiguration oAuthServerConfiguration;
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -53,9 +60,11 @@ public class PermissionServiceImplTest {
     @Test
     public void testIssuePermissionTicket() throws Exception {
 
-        mockStatic(ReadPropertiesFile.class);
+        mockStatic(OAuthServerConfiguration.class);
+        when(OAuthServerConfiguration.getInstance()).thenReturn(oAuthServerConfiguration);
+        when(oAuthServerConfiguration.getAuthorizationCodeValidityPeriodInSeconds()).thenReturn(300L);
         mockStatic(PermissionTicketDAO.class);
-        assertNotNull(permissionService.issuePermissionTicket(anyList(), TestConstants.TENANT_ID,
+        assertNotNull(permissionService.issuePermissionTicket(new ArrayList<Resource>(), TestConstants.TENANT_ID,
                 TestConstants.RESOURCE_OWNER_NAME, TestConstants.CLIENT_ID, TestConstants.USER_DOMAIN),
                 "Expected a not null object");
     }

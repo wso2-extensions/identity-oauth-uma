@@ -25,7 +25,6 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
  */
 public class UMAConstants {
 
-    public static final String UMA_PERMISSION_ENDPOINT_CONFIG_PATH = "uma.properties";
     public static final String REGISTERED_RESOURCE_PATH = "/api/identity/oauth2/uma/resourceregistration/v1.0/resource";
     public static final String RESOURCE_PATH =
             IdentityUtil.getServerURL(REGISTERED_RESOURCE_PATH, true, true);
@@ -54,7 +53,11 @@ public class UMAConstants {
         ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_LIST_RESOURCES("60012", "Server error occurred while listing resources."),
         ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_CHECK_RESOURCE_SCOPE_EXISTENCE("60013", "Server error occurred while " +
                 "checking whether resource scopes are existing."),
-        ERROR_UNEXPECTED("60014", "Unexpected error.");
+        ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_UPDATE_PERMISSION_TICKET_STATE("60014", "Server error occurred while " +
+                "updating permission ticket state."),
+        ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_CHECK_PERMISSION_TICKET_STATE("60015", "Server error occurred while " +
+                "checking whether the permission ticket has expired."),
+        ERROR_UNEXPECTED("60016", "Unexpected error.");
 
         private final String code;
         private final String message;
@@ -89,7 +92,7 @@ public class UMAConstants {
 
         public static final String PERMISSION_TICKET = "permission_ticket";
         public static final String TIME_CREATED = "time_created";
-        public static final String VALIDITY_PERIOD = "validity_period";
+        public static final String EXPIRY_TIME = "expiry_time";
         public static final String STATE = "state";
         public static final String TENANT_ID = "tenant_id";
         public static final String RESOURCE_ID = "resource_id";
@@ -102,5 +105,15 @@ public class UMAConstants {
         public static final String PROPERTY_KEY = "property_key";
         public static final String PROPERTY_VALUE = "property_value";
         public static final String SCOPE_NAME = "scope_name";
+    }
+
+    /**
+     * Permission ticket states.
+     */
+    public static class PermissionTicketStates {
+
+        public static final String PERMISSION_TICKET_STATE_ACTIVE = "ACTIVE";
+        public static final String PERMISSION_TICKET_STATE_REVOKED = "REVOKED";
+        public static final String PERMISSION_TICKET_STATE_EXPIRED = "EXPIRED";
     }
 }
