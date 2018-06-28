@@ -45,6 +45,7 @@
         <module>components/org.wso2.carbon.identity.oauth.uma.resource.service</module>
         <module>components/org.wso2.carbon.identity.oauth.uma.common</module>
         <module>features/org.wso2.carbon.identity.oauth.uma.server.feature</module>
+        <module>components/org.wso2.carbon.identity.oauth.uma.xacml.service</module>
     </modules>
 
     <repositories>
@@ -293,6 +294,21 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.application.common</artifactId>
+                <version>${carbon.identity.framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.entitlement</artifactId>
+                <version>${carbon.identity.framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
+                <version>${carbon.identity.framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.entitlement.common</artifactId>
                 <version>${carbon.identity.framework.version}</version>
             </dependency>
 
