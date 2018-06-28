@@ -45,7 +45,7 @@
         <module>components/org.wso2.carbon.identity.oauth.uma.resource.service</module>
         <module>components/org.wso2.carbon.identity.oauth.uma.common</module>
         <module>features/org.wso2.carbon.identity.oauth.uma.server.feature</module>
-        <module>components/org.wso2.carbon.identity.oauth.uma.xacml.service</module>
+        <module>components/org.wso2.carbon.identity.oauth.uma.xacml.extention</module>
     </modules>
 
     <repositories>
