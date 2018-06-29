@@ -25,8 +25,6 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.entitlement.EntitlementService;
-import org.wso2.carbon.identity.oauth.uma.authorization.connector.PolicyEvaluator;
-import org.wso2.carbon.identity.oauth.uma.xacml.service.handler.XACMLUMAHandler;
 
 /**
 * Service component for UMA xacml component.
@@ -39,8 +37,6 @@ public class AppUMAServiceComponents {
 
     @Activate
     protected void activate(BundleContext bundleContext) {
-
-        bundleContext.registerService(PolicyEvaluator.class.getName(), new XACMLUMAHandler(), null);
     }
 
     @Reference(
