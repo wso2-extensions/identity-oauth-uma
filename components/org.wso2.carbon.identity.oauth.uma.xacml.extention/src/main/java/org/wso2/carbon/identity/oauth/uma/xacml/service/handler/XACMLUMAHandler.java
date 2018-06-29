@@ -32,7 +32,6 @@ import org.wso2.carbon.identity.entitlement.common.EntitlementPolicyConstants;
 import org.wso2.carbon.identity.entitlement.common.dto.RequestDTO;
 import org.wso2.carbon.identity.entitlement.common.dto.RowDTO;
 import org.wso2.carbon.identity.entitlement.common.util.PolicyCreatorUtil;
-import org.wso2.carbon.identity.oauth.uma.authorization.connector.PolicyEvaluator;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.Resource;
 import org.wso2.carbon.identity.oauth.uma.xacml.service.constants.XACMLAppUMAConstants;
 import org.wso2.carbon.identity.oauth.uma.xacml.service.internal.AppUMADataholder;
@@ -48,7 +47,7 @@ import javax.xml.stream.XMLStreamException;
  * Resource validation implementation. This uses XACML policies to evaluate resource defined by the relevant
  * service provider and the scopes related to the resource.
  */
-public class XACMLUMAHandler implements PolicyEvaluator {
+public class XACMLUMAHandler {
 
     private static final Log log = LogFactory.getLog(XACMLUMAHandler.class);
     private static final String DECISION_XPATH = "//ns:Result/ns:Decision/text()";
