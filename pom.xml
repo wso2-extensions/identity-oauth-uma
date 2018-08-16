@@ -455,7 +455,7 @@
         <commons-lang.wso2.osgi.version.range>[2.6.0,3.0.0)</commons-lang.wso2.osgi.version.range>
 
         <org.slf4j.verison>1.6.1</org.slf4j.verison>
-        <cxf-rt.version>3.1.4</cxf-rt.version>
+        <cxf-rt.version>3.1.16</cxf-rt.version>
         <maven.checkstyle.plugin>2.17</maven.checkstyle.plugin>
         <osgi.core.version>1.4.0</osgi.core.version>
 
