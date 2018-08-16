@@ -214,6 +214,10 @@
             <artifactId>swagger-jaxrs</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.fasterxml.jackson.jaxrs</groupId>
+            <artifactId>jackson-jaxrs-json-provider</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
             <artifactId>org.wso2.carbon.identity.oauth.uma.permission.service</artifactId>
             <scope>provided</scope>

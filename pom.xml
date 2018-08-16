@@ -224,6 +224,11 @@
                 <artifactId>swagger-jaxrs</artifactId>
                 <version>${swagger-jaxrs.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.jaxrs</groupId>
+                <artifactId>jackson-jaxrs-json-provider</artifactId>
+                <version>${com.fasterxml.jackson.version}</version>
+            </dependency>
 
             <!--Test Dependencies-->
             <dependency>
@@ -409,7 +414,8 @@
         <!--Swagger Dependency Version-->
         <jackson.version>1.8.6</jackson.version>
         <spring-web.version>4.1.6.RELEASE</spring-web.version>
-        <swagger-jaxrs.version>1.5.2</swagger-jaxrs.version>
+        <swagger-jaxrs.version>1.5.20</swagger-jaxrs.version>
+        <com.fasterxml.jackson.version>2.9.6</com.fasterxml.jackson.version>
 
         <!--Test Dependencies-->
         <junit.version>4.12</junit.version>
