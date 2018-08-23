@@ -46,6 +46,7 @@
         <module>components/org.wso2.carbon.identity.oauth.uma.common</module>
         <module>features/org.wso2.carbon.identity.oauth.uma.server.feature</module>
         <module>components/org.wso2.carbon.identity.oauth.uma.xacml.extention</module>
+        <module>components/org.wso2.carbon.identity.oauth.uma.grant</module>
     </modules>
 
     <repositories>
