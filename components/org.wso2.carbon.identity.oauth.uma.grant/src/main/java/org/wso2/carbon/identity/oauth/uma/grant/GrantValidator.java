@@ -11,20 +11,26 @@
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
+ * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
 
-package org.wso2.carbon.identity.uma.grant;
+package org.wso2.carbon.identity.oauth.uma.grant;
+
+import org.apache.oltu.oauth2.common.validators.AbstractValidator;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
- * Constant class to build up UMA request.
+ * Validator class to validate UMA request.
  */
-public class UMAGrantConstants {
+public class GrantValidator extends AbstractValidator<HttpServletRequest> {
 
-    public static final String UMA_GRANT_PARAM = "grantType";
-    public static final String PERMISSION_TICKET = "permissionTicket";
-    public static final String ID_TOKEN = "idtoken";
+    public GrantValidator() {
 
+        requiredParams.add(UMAGrantConstants.GRANT_PARAM);
+        requiredParams.add(UMAGrantConstants.PERMISSION_TICKET);
+        requiredParams.add(UMAGrantConstants.CLAIM_TOKEN);
+    }
 }

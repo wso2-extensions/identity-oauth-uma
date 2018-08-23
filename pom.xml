@@ -44,9 +44,9 @@
         <module>components/org.wso2.carbon.identity.oauth.uma.resource.endpoint</module>
         <module>components/org.wso2.carbon.identity.oauth.uma.resource.service</module>
         <module>components/org.wso2.carbon.identity.oauth.uma.common</module>
-        <module>features/org.wso2.carbon.identity.oauth.uma.server.feature</module>
         <module>components/org.wso2.carbon.identity.oauth.uma.xacml.extention</module>
         <module>components/org.wso2.carbon.identity.oauth.uma.grant</module>
+        <module>features/org.wso2.carbon.identity.oauth.uma.server.feature</module>
     </modules>
 
     <repositories>
@@ -387,6 +387,16 @@
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
+                <artifactId>org.wso2.carbon.identity.oauth.uma.grant</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
+                <artifactId>org.wso2.carbon.identity.oauth.uma.xacml.extension</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
                 <artifactId>org.wso2.carbon.identity.oauth.uma.resource.endpoint</artifactId>
                 <version>${project.version}</version>
                 <type>war</type>
@@ -432,7 +442,7 @@
         <cxf-bundle.wso2.version>2.7.16.wso2v1</cxf-bundle.wso2.version>
 
         <!-- Carbon Identity Framework version -->
-        <carbon.identity.framework.version>5.11.248</carbon.identity.framework.version>
+        <carbon.identity.framework.version>5.12.106</carbon.identity.framework.version>
         <carbon.identity.framework.imp.pkg.version.range>[5.0.0, 6.0.0)
         </carbon.identity.framework.imp.pkg.version.range>
 

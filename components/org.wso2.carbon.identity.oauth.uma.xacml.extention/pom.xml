@@ -25,7 +25,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>org.wso2.carbon.identity.oauth.uma.xacml.extention</artifactId>
+    <artifactId>org.wso2.carbon.identity.oauth.uma.xacml.extension</artifactId>
     <packaging>bundle</packaging>
 
     <build>
