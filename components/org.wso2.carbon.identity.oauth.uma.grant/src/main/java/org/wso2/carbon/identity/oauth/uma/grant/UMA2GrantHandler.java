@@ -127,19 +127,15 @@ public class UMA2GrantHandler extends AbstractAuthorizationGrantHandler {
      * Validate the permission ticket against the subject.
      * @param permissionTicket Permission ticket.
      * @param subject Subject identifier.
-     * @return True if validation is success.
+     * @return True if validation is successful.
      * @throws IdentityOAuth2Exception
      */
     private boolean validatePermissionTicket(String permissionTicket, String subject) throws IdentityOAuth2Exception {
 
-        PermissionTicketDAO permissionTicketDAO = new PermissionTicketDAO();
         List<Resource> resources;
 
         try {
-            if (PermissionTicketDAO.isPermissionTicketExpired(permissionTicket)) {
-                return false;
-            }
-            resources = permissionTicketDAO.validatePermissionTicket(permissionTicket);
+            resources = PermissionTicketDAO.validatePermissionTicket(permissionTicket);
             for (PolicyEvaluator policyEvaluator : UMA2GrantServiceComponent.getPolicyEvaluators()) {
                 if (!policyEvaluator.isAuthorized(subject, resources)) {
                     return false;
@@ -148,7 +144,8 @@ public class UMA2GrantHandler extends AbstractAuthorizationGrantHandler {
             return true;
         } catch (UMAClientException e) {
             if (log.isDebugEnabled()) {
-                log.debug("Invalid permission ticket.", e);
+                log.debug("Error while requesting Requesting Party Token (RPT). Invalid permission " +
+                        "ticket: " + permissionTicket, e);
             }
             return false;
         } catch (UMAServerException e) {

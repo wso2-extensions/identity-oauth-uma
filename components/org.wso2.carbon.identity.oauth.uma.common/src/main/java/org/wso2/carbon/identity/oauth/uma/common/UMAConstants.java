@@ -57,12 +57,9 @@ public class UMAConstants {
                 "updating permission ticket state."),
         ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_CHECK_PERMISSION_TICKET_STATE("60015", "Server error occurred while " +
                 "checking whether the permission ticket has expired."),
-        ERROR_BAD_REQUEST_INVALID_RESOURCE_ID_IN_PERMISSION_TICKET ("60016", "Permission request failed with invalid " +
-                "resource ID's present in the database."),
-        ERROR_BAD_REQUEST_INVALID_RESOURCE_SCOPES_IN_PERMISSION_TICKET("60017", "Permission request failed with invalid"
-                + " resource scopes present in the database."),
-        ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_REQUESTED_PERMISSIONS("60018", "Server error occurred while " +
+        ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_REQUESTED_PERMISSIONS("60016", "Server error occurred while " +
                 "persisting requested permissions."),
+        ERROR_BAD_REQUEST_INVALID_PERMISSION_TICKET("60017", "Invalid permission ticket."),
         ERROR_UNEXPECTED("60019", "Unexpected error.");
 
         private final String code;

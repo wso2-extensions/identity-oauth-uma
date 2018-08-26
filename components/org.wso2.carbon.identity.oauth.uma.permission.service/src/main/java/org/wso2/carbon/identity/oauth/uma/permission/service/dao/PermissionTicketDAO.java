@@ -75,18 +75,18 @@ public class PermissionTicketDAO {
     private static final String UPDATE_PERMISSION_TICKET_STATE = "UPDATE IDN_UMA_PERMISSION_TICKET SET TICKET_STATE = :"
             + UMAConstants.SQLPlaceholders.STATE + "; WHERE PT = :" + UMAConstants.SQLPlaceholders.PERMISSION_TICKET +
             ";";
-    private static final String VALIDATE_PERMISSION_TICKET = "SELECT PT FROM IDN_PERMISSION_TICKET WHERE PT = ? ;";
-    private static final String RETRIEVE_RESOURCE_ID_STORE_IN_PT = "SELECT RESOURCE_ID FROM IDN_RESOURCE INNER JOIN " +
-            "IDN_PT_RESOURCE on IDN_RESOURCE.ID = IDN_PT_RESOURCE.PT_RESOURCE_ID INNER JOIN IDN_PERMISSION_TICKET " +
-            "ON IDN_PT_RESOURCE.PT_ID = IDN_PERMISSION_TICKET.ID WHERE IDN_PERMISSION_TICKET.PT = ?;";
-
-    private static final String RETRIEVE_RESOURCE_SCOPES_STORE_IN_PT = "SELECT RESOURCE.RESOURCE_ID," +
-            "IDN_SCOPES.SCOPE_NAME " +
-            "FROM IDN_RESOURCE_SCOPE AS IDN_SCOPES INNER JOIN IDN_PT_RESOURCE_SCOPE PT_SCOPES ON " +
-            "IDN_SCOPES.ID = PT_SCOPES.PT_SCOPE_ID INNER JOIN IDN_PT_RESOURCE PT_RESOURCE " +
-            "ON PT_SCOPES.PT_RESOURCE_ID = PT_RESOURCE.ID INNER JOIN IDN_PERMISSION_TICKET " +
-            "ON PT_RESOURCE.PT_ID = IDN_PERMISSION_TICKET.ID INNER JOIN IDN_RESOURCE RESOURCE ON " +
-            "RESOURCE.ID = IDN_SCOPES.RESOURCE_IDENTITY WHERE IDN_PERMISSION_TICKET.PT = ?;";
+    private static final String VALIDATE_PERMISSION_TICKET = "SELECT PT FROM IDN_UMA_PERMISSION_TICKET WHERE PT = ? ;";
+    private static final String RETRIEVE_RESOURCE_ID_STORE_IN_PT = "SELECT RESOURCE_ID FROM IDN_UMA_RESOURCE " +
+            "INNER JOIN IDN_UMA_PT_RESOURCE ON IDN_UMA_RESOURCE.ID = IDN_UMA_PT_RESOURCE.PT_RESOURCE_ID INNER JOIN " +
+            "IDN_UMA_PERMISSION_TICKET ON IDN_UMA_PT_RESOURCE.PT_ID = IDN_UMA_PERMISSION_TICKET.ID WHERE " +
+            "IDN_UMA_PERMISSION_TICKET.PT = ?";
+    private static final String RETRIEVE_RESOURCE_SCOPES_STORE_IN_PT = "SELECT RESOURCE.RESOURCE_ID, " +
+            "IDN_SCOPES.SCOPE_NAME FROM IDN_UMA_RESOURCE_SCOPE AS IDN_SCOPES INNER JOIN " +
+            "IDN_UMA_PT_RESOURCE_SCOPE PT_SCOPES ON IDN_SCOPES.ID = PT_SCOPES.PT_SCOPE_ID INNER JOIN " +
+            "IDN_UMA_PT_RESOURCE PT_RESOURCE ON PT_SCOPES.PT_RESOURCE_ID = PT_RESOURCE.ID INNER JOIN " +
+            "IDN_UMA_PERMISSION_TICKET ON PT_RESOURCE.PT_ID = IDN_UMA_PERMISSION_TICKET.ID INNER JOIN " +
+            "IDN_UMA_RESOURCE RESOURCE ON RESOURCE.ID = IDN_SCOPES.RESOURCE_IDENTITY WHERE " +
+            "IDN_UMA_PERMISSION_TICKET.PT = ?";
 
     /**
      * Issue a permission ticket. Permission ticket represents the resources requested by the resource server on
@@ -141,8 +141,10 @@ public class PermissionTicketDAO {
      *
      * @param permissionTicket permission ticket sent by the client.
      * @throws UMAServerException Exception thrown when there is a database error.
+     * @throws UMAClientException Exception thrown when the permission ticket sent by the client has expired.
      */
-    public static boolean isPermissionTicketExpired(String permissionTicket) throws UMAServerException {
+    private static void checkPermissionTicketExpiration(String permissionTicket) throws UMAServerException,
+            UMAClientException {
 
         NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedTemplate();
         Timestamp expiryTime;
@@ -156,19 +158,21 @@ public class PermissionTicketDAO {
                         namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.STATE,
                                 UMAConstants.PermissionTicketStates.PERMISSION_TICKET_STATE_ACTIVE);
                     });
+
             if (expiryTime == null) {
-                return true;
+                throw new UMAClientException(UMAConstants.ErrorMessages.ERROR_BAD_REQUEST_INVALID_PERMISSION_TICKET);
             }
+
             if (expiryTime.getTime() < System.currentTimeMillis()) {
                 String permissionTicketState = UMAConstants.PermissionTicketStates.PERMISSION_TICKET_STATE_EXPIRED;
                 updatePermissionTicketState(permissionTicket, permissionTicketState);
-                return true;
+                throw new UMAClientException(UMAConstants.ErrorMessages.ERROR_BAD_REQUEST_INVALID_PERMISSION_TICKET);
             }
         } catch (DataAccessException e) {
             throw new UMAServerException(UMAConstants.ErrorMessages
                     .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_CHECK_PERMISSION_TICKET_STATE, e);
         }
-        return false;
+
     }
 
     private static void updatePermissionTicketState(String permissionTicket, String permissionTicketState) throws
@@ -301,12 +305,12 @@ public class PermissionTicketDAO {
     /**
      * Validating permission Ticket and obtain resource id's and resource scopes which client requested.
      *
-     * @param permissionTicket
-     * @return resource
+     * @param permissionTicket A correlation handle representing requested permissions by the client.
+     * @return resource list represented by the permission ticket.
      * @throws UMAClientException
      * @throws UMAServerException
      */
-    public List<Resource> validatePermissionTicket(String permissionTicket) throws UMAClientException,
+    public static List<Resource> validatePermissionTicket(String permissionTicket) throws UMAClientException,
             UMAServerException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
@@ -315,9 +319,10 @@ public class PermissionTicketDAO {
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
                     if (!resultSet.next()) {
                         throw new UMAClientException(UMAConstants.ErrorMessages
-                                .ERROR_BAD_REQUEST_INVALID_RESOURCE_ID);
+                                .ERROR_BAD_REQUEST_INVALID_PERMISSION_TICKET);
                     } else {
-                        List<Resource> list = retrieveResourceIdInPT(permissionTicket);
+                        checkPermissionTicketExpiration(permissionTicket);
+                        List<Resource> list = retrieveResourceIdsInPT(permissionTicket);
                         retrieveResourceScopesInPT(permissionTicket, list);
                         return list;
 
@@ -330,8 +335,7 @@ public class PermissionTicketDAO {
         }
     }
 
-    private static List<Resource> retrieveResourceIdInPT(String permissionTicket) throws UMAClientException,
-            UMAServerException {
+    private static List<Resource> retrieveResourceIdsInPT(String permissionTicket) throws UMAServerException {
 
         Resource resource;
         List<Resource> listOfResourceIds = new ArrayList<Resource>();
@@ -339,18 +343,12 @@ public class PermissionTicketDAO {
             PreparedStatement preparedStatement = connection.prepareStatement(RETRIEVE_RESOURCE_ID_STORE_IN_PT);
             preparedStatement.setString(1, permissionTicket);
             ResultSet resultSet = preparedStatement.executeQuery();
-            if (!resultSet.next()) {
-                throw new UMAClientException(UMAConstants.ErrorMessages.
-                        ERROR_BAD_REQUEST_INVALID_RESOURCE_ID_IN_PERMISSION_TICKET, "Permission request failed with"
-                        + "invalid resource id's consist in permission ticket. ");
-            } else {
-                do {
-                    resource = new Resource();
-                    if (resultSet.getString(1) != null) {
-                        resource.setResourceId(resultSet.getString(1));
-                        listOfResourceIds.add(resource);
-                    }
-                } while (resultSet.next());
+            while (resultSet.next()) {
+                resource = new Resource();
+                if (resultSet.getString(1) != null) {
+                    resource.setResourceId(resultSet.getString(1));
+                    listOfResourceIds.add(resource);
+                }
             }
         } catch (SQLException e) {
             throw new UMAServerException(UMAConstants.ErrorMessages
@@ -360,34 +358,26 @@ public class PermissionTicketDAO {
         return listOfResourceIds;
     }
 
-    private static List<Resource> retrieveResourceScopesInPT(String permissionTicket, List<Resource> resource)
-            throws UMAClientException, UMAServerException {
+    private static void retrieveResourceScopesInPT(String permissionTicket, List<Resource> resources)
+            throws UMAServerException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(RETRIEVE_RESOURCE_SCOPES_STORE_IN_PT);
             preparedStatement.setString(1, permissionTicket);
             ResultSet resultSet = preparedStatement.executeQuery();
-            if (!resultSet.next()) {
-                throw new UMAClientException(UMAConstants.ErrorMessages.
-                        ERROR_BAD_REQUEST_INVALID_RESOURCE_SCOPES_IN_PERMISSION_TICKET,
-                        "Permission request failed with"
-                                + "invalid resource scopes consist in permission ticket. ");
-            } else {
-                do {
-                    for (Resource resourceList : resource) {
-                        if (resultSet.getString(1) == resourceList.getResourceId()) {
-                            if (!resourceList.getResourceScopes().contains(resultSet.getString(2))) {
-                                resourceList.getResourceScopes().add(resultSet.getString(2));
-                            }
+            while (resultSet.next()) {
+                for (Resource resourceList : resources) {
+                    if (resultSet.getString(1).equals(resourceList.getResourceId())) {
+                        if (!resourceList.getResourceScopes().contains(resultSet.getString(2))) {
+                            resourceList.getResourceScopes().add(resultSet.getString(2));
                         }
                     }
                 }
-                while (resultSet.next());
             }
+
         } catch (SQLException e) {
             throw new UMAServerException(UMAConstants.ErrorMessages
                     .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_REQUESTED_PERMISSIONS, e);
         }
-        return resource;
     }
 }

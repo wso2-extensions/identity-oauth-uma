@@ -55,11 +55,12 @@ public class XACMLUMAHandler {
     private static final String XACML_NS_PREFIX = "ns";
     private static final String RULE_EFFECT_PERMIT = "Permit";
     private static final String RULE_EFFECT_NOT_APPLICABLE = "NotApplicable";
+    private static final String RULE_EFFECT_DENY = "Deny";
 
     /**
-     * @param userName
-     * @param resource
-     * @return
+     * @param userName Requesting Party username.
+     * @param resource Resource list (resource ids and scopes) requested by the requesting party.
+     * @return True if policy evaluation is successful.
      * @throws IdentityOAuth2Exception
      */
     public boolean isAuthorized(String userName, List<Resource> resource) throws IdentityOAuth2Exception {
@@ -86,11 +87,13 @@ public class XACMLUMAHandler {
                 }
                 String authzResponse = evaluateXACMLResponse(responseString);
                 if (RULE_EFFECT_NOT_APPLICABLE.equalsIgnoreCase(authzResponse)) {
-                    log.warn(String.format(
-                            "No applicable rule for service provider '%s@%s', Hence authorizing the user by default. " +
-                                    "Add an authorization policy (or unset authorization) to fix this warning."
-                                    + "UserName: " + userName));
-                    isValid = true;
+                    log.debug(String.format("No applicable rule found for request made by requesting party: %s for " +
+                            "resource id: %s", userName, singleResource.getResourceId()));
+                    return false;
+                } else if (RULE_EFFECT_DENY.equalsIgnoreCase(authzResponse)) {
+                    log.debug(String.format("Permission denied for request made by requesting party: %s for " +
+                            "resource id: %s", userName, singleResource.getResourceId()));
+                    return false;
                 } else if (RULE_EFFECT_PERMIT.equalsIgnoreCase(authzResponse)) {
                     isValid = true;
                 }
