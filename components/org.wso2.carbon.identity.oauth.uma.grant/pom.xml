@@ -16,16 +16,19 @@
   ~  specific language governing permissions and limitations
   ~  under the License.
   -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>identity-oauth-uma</artifactId>
         <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
         <version>1.0.13-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>org.wso2.carbon.identity.oauth.uma.xacml.extention</artifactId>
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>org.wso2.carbon.identity.oauth.uma.grant</artifactId>
+
     <packaging>bundle</packaging>
 
     <build>
@@ -56,14 +59,6 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-scr-plugin</artifactId>
                 <executions>
@@ -84,18 +79,36 @@
                     <instructions>
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
-                        <Private-Package>org.wso2.carbon.identity.oauth.uma.xacml.service.internal</Private-Package>
+                        <Private-Package>org.wso2.carbon.identity.oauth.uma.grant.internal</Private-Package>
                         <Import-Package>
-                            org.wso2.carbon.identity.core.util.*;version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
+
+                            javax.servlet.http.*,
+                            org.apache.commons.logging.*,
+                            org.apache.commons.lang.*,
+                            org.apache.oltu.oauth2.common.validators.*,
+
+                            com.nimbusds.jose.*,
+                            com.nimbusds.jwt.*,
+
+                            org.wso2.carbon.identity.core.util.*;version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework.model.*,
+                            org.wso2.carbon.identity.base.*,
+                            org.wso2.carbon.utils.multitenancy.*,
+                            org.wso2.carbon.core.util.*,
+
                             org.wso2.carbon.identity.oauth.uma.common.*; version="${project.version}",
+                            org.wso2.carbon.identity.oauth.uma.xacml.*; version="${project.version}",
+                            org.wso2.carbon.identity.oauth.uma.permission.service.*; version="${project.version}",
+
+                            org.wso2.carbon.identity.oauth2.*,
+
                         </Import-Package>
                         <Export-Package>
-                            !org.wso2.carbon.identity.oauth.uma.xacml.service.internal,
-                            org.wso2.carbon.identity.oauth.uma.xacml.service.*;${project.version}
+                            !org.wso2.carbon.identity.oauth.uma.grant.internal,
+                            org.wso2.carbon.identity.oauth.uma.grant.*;${project.version}
                         </Export-Package>
-                        <DynamicImport-Package>*</DynamicImport-Package>
                     </instructions>
                 </configuration>
             </plugin>
@@ -115,19 +128,21 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.core</artifactId>
         </dependency>
+        <!--Test Dependencies-->
         <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.entitlement.common</artifactId>
-            <scope>provided</scope>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.application.common</artifactId>
-            <scope>provided</scope>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-testng</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
@@ -154,6 +169,7 @@
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.scr.ds-annotations</artifactId>
@@ -164,16 +180,43 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.entitlement</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
-            <artifactId>org.wso2.carbon.identity.oauth.uma.permission.service</artifactId>
+            <artifactId>org.wso2.carbon.identity.oauth.uma.common</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.inbound.auth.oauth2</groupId>
             <artifactId>org.wso2.carbon.identity.oauth</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
+            <artifactId>org.wso2.carbon.identity.oauth.uma.permission.service</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
+            <artifactId>org.wso2.carbon.identity.oauth.uma.xacml.extension</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.application.common</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.entitlement</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.entitlement.common</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

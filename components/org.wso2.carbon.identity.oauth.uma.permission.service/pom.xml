@@ -56,6 +56,7 @@
                             org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.wso2.carbon.database.utils.jdbc.*;version="${org.wso2.carbon.database.utils.version.range}",
+                            org.wso2.carbon.identity.core.util; version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.identity.oauth.config;version="${org.wso2.carbon.identity.oauth.import.version.range}",
                             org.wso2.carbon.identity.oauth.uma.common.*; version="${identity.oauth.uma.imp.pkg.version.range}",
                             org.wso2.carbon.utils; version="${carbon.kernel.imp.pkg.version.range}",

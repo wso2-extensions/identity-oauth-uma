@@ -37,6 +37,8 @@ public class AppUMAServiceComponents {
 
     @Activate
     protected void activate(BundleContext bundleContext) {
+
+        log.info("XACML UMA Handler activated successfully.");
     }
 
     @Reference(
