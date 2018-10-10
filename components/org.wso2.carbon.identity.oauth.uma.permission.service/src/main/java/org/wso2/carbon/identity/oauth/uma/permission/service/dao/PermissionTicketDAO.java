@@ -151,7 +151,8 @@ public class PermissionTicketDAO {
 
         try {
             expiryTime = namedJdbcTemplate.fetchSingleRecord(GET_EXPIRY_TIME_FOR_ACTIVE_PERMISSION_TICKET,
-                    (resultSet, rowNumber) -> resultSet.getTimestamp(1),
+                    (resultSet, rowNumber) -> resultSet.getTimestamp(1,
+                            Calendar.getInstance(TimeZone.getTimeZone(UTC))),
                     namedPreparedStatement -> {
                         namedPreparedStatement.setString(
                                 UMAConstants.SQLPlaceholders.PERMISSION_TICKET, permissionTicket);
