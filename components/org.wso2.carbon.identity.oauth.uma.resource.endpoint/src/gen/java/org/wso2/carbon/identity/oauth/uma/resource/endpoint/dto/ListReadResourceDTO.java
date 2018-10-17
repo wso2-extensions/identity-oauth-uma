@@ -28,9 +28,9 @@ public class ListReadResourceDTO {
     private List<String> resourceId = new ArrayList<String>();
 
     /**
-     * Returning list of resource Id after successfull registration.
+     * Returning list of resource Id after successful registration.
      **/
-    @ApiModelProperty(value = " Returning list of resource Id after successfull registration.")
+    @ApiModelProperty(value = " Returning list of resource Id after successful registration.")
     @JsonProperty("resourceId")
     public List<String> getResourceId() {
 

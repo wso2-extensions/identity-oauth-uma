@@ -26,24 +26,24 @@ import javax.validation.constraints.NotNull;
 @ApiModel(description = "")
 public class UpdateResourceDTO {
 
-    private String resourceId;
+    private String _id;
 
 
     public UpdateResourceDTO(String resourceId) {
-        this.resourceId = resourceId;
+        this._id = resourceId;
     }
 
     /**
-     * Returning resource description after successfull updating.
+     * Returning resource description after successful updating.
      **/
-    @ApiModelProperty(value = " Returning resource description after successfull updating.")
-    @JsonProperty("resourceId")
+    @ApiModelProperty(value = " Returning resource description after successful updating.")
+    @JsonProperty("_id")
     public String getResourceId() {
-        return resourceId;
+        return _id;
     }
 
     public void setResourceId(String resourceId) {
-        this.resourceId = resourceId;
+        this._id = resourceId;
     }
 
 
@@ -52,7 +52,7 @@ public class UpdateResourceDTO {
         StringBuilder sb = new StringBuilder();
         sb.append("class UpdateResourceDTO {\n");
 
-        sb.append("  resourceId: ").append(resourceId).append("\n");
+        sb.append("  _id: ").append(_id).append("\n");
         sb.append("}\n");
         return sb.toString();
     }

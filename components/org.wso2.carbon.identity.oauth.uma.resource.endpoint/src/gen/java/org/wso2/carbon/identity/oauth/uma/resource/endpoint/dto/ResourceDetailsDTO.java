@@ -48,7 +48,7 @@ public class ResourceDetailsDTO {
      * An array of strings indicating the available scopes for this resource.\n
      **/
     @ApiModelProperty(required = true, value = "An array of strings indicating the available scopes for this resource.\n")
-    @JsonProperty("resource_scope")
+    @JsonProperty("resource_scopes")
     public List<String> getResource_Scopes() {
         return resource_scopes;
     }

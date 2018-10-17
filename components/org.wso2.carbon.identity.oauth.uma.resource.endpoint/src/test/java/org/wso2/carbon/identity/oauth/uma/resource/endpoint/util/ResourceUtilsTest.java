@@ -73,7 +73,7 @@ public class ResourceUtilsTest {
         resource.setType("http://www.example.com/rsrcs/photoalbum");
 
         ReadResourceDTO readResourceDTO = ResourceUtils.readResponse(resource);
-        assertNotEquals(readResourceDTO.getResource_scope(), resource.getScopeDataDOArray(), "Actual scopes " +
+        assertNotEquals(readResourceDTO.getResource_scopes(), resource.getScopeDataDOArray(), "Actual scopes " +
                 "are not match for expected scopes");
         assertEquals(readResourceDTO.getIcon_uri(), resource.getIconUri(), "Actual IconUri  match for" +
                 " expected IconUri");
