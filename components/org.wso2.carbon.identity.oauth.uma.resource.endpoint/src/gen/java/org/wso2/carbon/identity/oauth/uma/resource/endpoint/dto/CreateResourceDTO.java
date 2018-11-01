@@ -24,39 +24,24 @@ import com.fasterxml.jackson.annotation.*;
 @ApiModel(description = "")
 public class CreateResourceDTO {
 
-    private String resourceId;
-    private String policy_uri;
+    private String _id;
 
     /**
-     * Returning resource Id after successfull registration.
+     * Returning resource Id after successful registration.
      **/
-    @ApiModelProperty(value = " Returning resource Id after successfull registration.")
-    @JsonProperty("resourceId")
+    @ApiModelProperty(value = " Returning resource Id after successful registration.")
+    @JsonProperty("_id")
     public String getResourceId() {
 
-        return resourceId;
+        return _id;
     }
 
     public void setResourceId(String resourceId) {
 
-        this.resourceId = resourceId;
+        this._id = resourceId;
     }
 
 
-    /**
-     * Policy_URI used for user access
-     **/
-    @ApiModelProperty(value = " Policy_URI used for user access")
-    @JsonProperty("policy_uri")
-    public String getPolicy_uri() {
-
-        return policy_uri ;
-    }
-
-    public void setPolicy_uri(String policy_uri) {
-
-        this.policy_uri = policy_uri;
-    }
 
 
     @Override
@@ -65,8 +50,7 @@ public class CreateResourceDTO {
         StringBuilder sb = new StringBuilder();
         sb.append("class CreateResourceDTO {\n");
 
-        sb.append("  resourceId: ").append(resourceId).append("\n");
-        sb.append("  policy_uri: ").append(policy_uri).append("\n");
+        sb.append("  _id: ").append(_id).append("\n");
         sb.append("}\n");
         return sb.toString();
     }

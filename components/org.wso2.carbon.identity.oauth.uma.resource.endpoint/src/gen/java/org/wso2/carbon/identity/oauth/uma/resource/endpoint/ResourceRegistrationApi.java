@@ -49,7 +49,7 @@ public class ResourceRegistrationApi  {
 
          @io.swagger.annotations.ApiResponse(code = 204, message = "No content.") })
 
- public Response deleteResource(@ApiParam(value = "ID ofthe  resource",required=true ) @PathParam("resourceId") String resourceId, @Context MessageContext context)
+ public Response deleteResource(@ApiParam(value = "ID of the  resource",required=true ) @PathParam("resourceId") String resourceId, @Context MessageContext context)
  {
   return delegate.deleteResource(resourceId,context);
  }
@@ -65,7 +65,7 @@ public class ResourceRegistrationApi  {
 
          @io.swagger.annotations.ApiResponse(code = 404, message = "Not Found.Resource does not exist.") })
 
- public Response getResource(@ApiParam(value = "ID ofthe  resource",required=true ) @PathParam("resourceId") String resourceId,@Context MessageContext context)
+ public Response getResource(@ApiParam(value = "ID of the  resource",required=true ) @PathParam("resourceId") String resourceId,@Context MessageContext context)
  {
   return delegate.getResource(resourceId,context);
  }
@@ -109,7 +109,7 @@ public class ResourceRegistrationApi  {
 
          @io.swagger.annotations.ApiResponse(code = 404, message = "Resource not found") })
 
- public Response updateResource(@ApiParam(value = "ID ofthe  resource",required=true ) @PathParam("resourceId") String resourceId,
+ public Response updateResource(@ApiParam(value = "ID of the  resource",required=true ) @PathParam("resourceId") String resourceId,
                                 @ApiParam(value = "The resource description which resource owner used to update in Authorization server."  ) ResourceDetailsDTO updateresource, @Context MessageContext context)
  {
   return delegate.updateResource(resourceId,updateresource,context);

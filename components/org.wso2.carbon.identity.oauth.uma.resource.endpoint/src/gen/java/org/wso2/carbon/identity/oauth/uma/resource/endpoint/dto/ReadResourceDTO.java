@@ -26,34 +26,34 @@ import java.util.List;
 @ApiModel(description = "")
 public class ReadResourceDTO {
 
-    private String resourceId;
+    private String _id;
     private String name;
     private String type;
     private String icon_uri;
     private String description;
-    private List<String> resource_scope;
+    private List<String> resource_scopes;
 
 
     /**
-     * Returning resource Id after successfull registration.
+     * Returning resource Id after successful registration.
      **/
-    @ApiModelProperty(value = " Returning resource Id after successfull registration.")
-    @JsonProperty("resourceId")
+    @ApiModelProperty(value = " Returning resource Id after successful registration.")
+    @JsonProperty("_id")
     public String getResourceId() {
 
-        return resourceId;
+        return _id;
     }
 
     public void setResourceId(String resourceId) {
 
-        this.resourceId = resourceId;
+        this._id = resourceId;
     }
 
 
     /**
-     * Returning name after successfull registration.
+     * Returning name after successful registration.
      **/
-    @ApiModelProperty(value = " Returning name after successfull registration.")
+    @ApiModelProperty(value = " Returning name after successful registration.")
     @JsonProperty("name")
     public String getName() {
 
@@ -67,9 +67,9 @@ public class ReadResourceDTO {
 
 
     /**
-     * Returning type after successfull registration.
+     * Returning type after successful registration.
      **/
-    @ApiModelProperty(value = " Returning type after successfull registration.")
+    @ApiModelProperty(value = " Returning type after successful registration.")
     @JsonProperty("type")
     public String getType() {
 
@@ -82,9 +82,9 @@ public class ReadResourceDTO {
     }
 
     /**
-     * Returning icon_uri after successfull registration.
+     * Returning icon_uri after successful registration.
      **/
-    @ApiModelProperty(value = " Returning icon_uri after successfull registration.")
+    @ApiModelProperty(value = " Returning icon_uri after successful registration.")
     @JsonProperty("icon_uri")
     public String getIcon_uri() {
 
@@ -98,9 +98,9 @@ public class ReadResourceDTO {
 
 
     /**
-     * Returning description after successfull registration.
+     * Returning description after successful registration.
      **/
-    @ApiModelProperty(value = " Returning description after successfull registration.")
+    @ApiModelProperty(value = " Returning description after successful registration.")
     @JsonProperty("description")
     public String getDescription() {
 
@@ -112,14 +112,14 @@ public class ReadResourceDTO {
         this.description = description;
     }
 
-    public List<String> getResource_scope() {
+    public List<String> getResource_scopes() {
 
-        return resource_scope;
+        return resource_scopes;
     }
 
-    public void setResource_scope(List<String> resource_scope) {
+    public void setResource_scopes(List<String> resource_scopes) {
 
-        this.resource_scope = resource_scope;
+        this.resource_scopes = resource_scopes;
     }
 
     @Override
@@ -128,9 +128,9 @@ public class ReadResourceDTO {
         StringBuilder sb = new StringBuilder();
         sb.append("class ReadResourceDTO {\n");
 
-        sb.append("  resourceId: ").append(resourceId).append("\n");
+        sb.append("  _id: ").append(_id).append("\n");
         sb.append("  name: ").append(name).append("\n");
-        sb.append("  scope: ").append(resource_scope).append("\n");
+        sb.append("  scope: ").append(resource_scopes).append("\n");
         sb.append("  type: ").append(type).append("\n");
         sb.append("  icon_uri: ").append(icon_uri).append("\n");
         sb.append("  description: ").append(description).append("\n");
