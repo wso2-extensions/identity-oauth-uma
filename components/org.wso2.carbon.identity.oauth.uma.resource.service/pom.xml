@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
         <artifactId>identity-oauth-uma</artifactId>
-        <version>1.0.17-SNAPSHOT</version>
+        <version>1.0.17</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
