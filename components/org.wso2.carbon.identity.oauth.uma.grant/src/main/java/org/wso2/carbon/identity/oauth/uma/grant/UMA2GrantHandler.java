@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.oauth.uma.permission.service.dao.PermissionTicke
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.Resource;
 import org.wso2.carbon.identity.oauth2.IdentityOAuth2Exception;
 import org.wso2.carbon.identity.oauth2.ResponseHeader;
+import org.wso2.carbon.identity.oauth2.dto.OAuth2AccessTokenRespDTO;
 import org.wso2.carbon.identity.oauth2.model.RequestParameter;
 import org.wso2.carbon.identity.oauth2.token.OAuthTokenReqMessageContext;
 import org.wso2.carbon.identity.oauth2.token.handlers.grant.AbstractAuthorizationGrantHandler;
@@ -63,8 +64,8 @@ public class UMA2GrantHandler extends AbstractAuthorizationGrantHandler {
     public boolean validateGrant(OAuthTokenReqMessageContext tokReqMsgCtx) throws IdentityOAuth2Exception {
 
         String grantType = null;
-        String permissionTicket = null;
         String idToken = null;
+        String permissionTicket = null;
 
         // Extract request parameters.
         RequestParameter[] parameters = tokReqMsgCtx.getOauth2AccessTokenReqDTO().getRequestParameters();
@@ -121,6 +122,40 @@ public class UMA2GrantHandler extends AbstractAuthorizationGrantHandler {
             tokReqMsgCtx.addProperty(UMAGrantConstants.RESPONSE_HEADERS, new ResponseHeader[]{responseHeader});
             return false;
         }
+    }
+
+    @Override
+    public OAuth2AccessTokenRespDTO issue(OAuthTokenReqMessageContext tokReqMsgCtx) throws IdentityOAuth2Exception {
+
+        OAuth2AccessTokenRespDTO oAuth2AccessTokenRespDTO = super.issue(tokReqMsgCtx);
+        String accessToken = oAuth2AccessTokenRespDTO.getAccessToken();
+
+        // Extract request parameters.
+        RequestParameter[] parameters = tokReqMsgCtx.getOauth2AccessTokenReqDTO().getRequestParameters();
+
+        String permissionTicket = null;
+        for (RequestParameter parameter : parameters) {
+
+            // Extract permission ticket.
+            if (UMAGrantConstants.PERMISSION_TICKET.equals(parameter.getKey())) {
+                if (parameter.getValue() != null) {
+                    permissionTicket = parameter.getValue()[0];
+                }
+            }
+        }
+
+        if (StringUtils.isEmpty(permissionTicket)) {
+            throw new IdentityOAuth2Exception("Permission ticket is not available in the oauth token request " +
+                    "message context.");
+        }
+
+        try {
+            PermissionTicketDAO.saveAccessTokenAgainstPermissionTicket(accessToken, permissionTicket);
+        } catch (UMAServerException e) {
+            throw new IdentityOAuth2Exception("Error occurred while issuing access token.", e);
+        }
+
+        return oAuth2AccessTokenRespDTO;
     }
 
     /**

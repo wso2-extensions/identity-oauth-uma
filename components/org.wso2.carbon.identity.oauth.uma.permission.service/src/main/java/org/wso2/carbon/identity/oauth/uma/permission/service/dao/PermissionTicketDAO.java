@@ -76,10 +76,12 @@ public class PermissionTicketDAO {
             + UMAConstants.SQLPlaceholders.STATE + "; WHERE PT = :" + UMAConstants.SQLPlaceholders.PERMISSION_TICKET +
             ";";
     private static final String VALIDATE_PERMISSION_TICKET = "SELECT PT FROM IDN_UMA_PERMISSION_TICKET WHERE PT = ? ;";
+
     private static final String RETRIEVE_RESOURCE_ID_STORE_IN_PT = "SELECT RESOURCE_ID FROM IDN_UMA_RESOURCE " +
             "INNER JOIN IDN_UMA_PT_RESOURCE ON IDN_UMA_RESOURCE.ID = IDN_UMA_PT_RESOURCE.PT_RESOURCE_ID INNER JOIN " +
             "IDN_UMA_PERMISSION_TICKET ON IDN_UMA_PT_RESOURCE.PT_ID = IDN_UMA_PERMISSION_TICKET.ID WHERE " +
             "IDN_UMA_PERMISSION_TICKET.PT = ?";
+
     private static final String RETRIEVE_RESOURCE_SCOPES_STORE_IN_PT = "SELECT RESOURCE.RESOURCE_ID, " +
             "IDN_SCOPES.SCOPE_NAME FROM IDN_UMA_RESOURCE_SCOPE AS IDN_SCOPES INNER JOIN " +
             "IDN_UMA_PT_RESOURCE_SCOPE PT_SCOPES ON IDN_SCOPES.ID = PT_SCOPES.PT_SCOPE_ID INNER JOIN " +
@@ -87,6 +89,12 @@ public class PermissionTicketDAO {
             "IDN_UMA_PERMISSION_TICKET ON PT_RESOURCE.PT_ID = IDN_UMA_PERMISSION_TICKET.ID INNER JOIN " +
             "IDN_UMA_RESOURCE RESOURCE ON RESOURCE.ID = IDN_SCOPES.RESOURCE_IDENTITY WHERE " +
             "IDN_UMA_PERMISSION_TICKET.PT = ?";
+
+    private static final String SAVE_ACCESS_TOKEN_AGAINST_PERMISSION_TICKET =
+            "UPDATE IDN_UMA_PERMISSION_TICKET SET ACCESS_TOKEN = ? WHERE PT = ?";
+
+    private static final String RETRIEVE_PERMISSION_TICKET_FOR_ACCESS_TOKEN =
+            "SELECT PT FROM IDN_UMA_PERMISSION_TICKET WHERE ACCESS_TOKEN = ?";
 
     /**
      * Issue a permission ticket. Permission ticket represents the resources requested by the resource server on
@@ -335,6 +343,49 @@ public class PermissionTicketDAO {
         }
     }
 
+    public static List<Resource> getResourcesForPermissionTicket(String permissionTicket)
+            throws UMAClientException, UMAServerException {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(VALIDATE_PERMISSION_TICKET)) {
+                preparedStatement.setString(1, permissionTicket);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (!resultSet.next()) {
+                        throw new UMAClientException("No permission ticket found in DB.");
+                    } else {
+                        List<Resource> list = retrieveResourceIdsInPT(permissionTicket);
+                        retrieveResourceScopesInPT(permissionTicket, list);
+                        return list;
+
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new UMAServerException(UMAConstants.ErrorMessages
+                    .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_REQUESTED_PERMISSIONS, e);
+        }
+    }
+
+
+    public static String retrievePermissionTicketForAccessToken(String accessToken) throws UMAServerException {
+
+        String permissionTicket = null;
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+            PreparedStatement preparedStatement = connection
+                    .prepareStatement(RETRIEVE_PERMISSION_TICKET_FOR_ACCESS_TOKEN);
+            preparedStatement.setString(1, accessToken);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    permissionTicket = resultSet.getString("PT");
+                }
+            }
+        } catch (SQLException e) {
+            throw new UMAServerException("Error occurred while retrieving permission ticket.", e);
+        }
+
+        return permissionTicket;
+    }
+
     private static List<Resource> retrieveResourceIdsInPT(String permissionTicket) throws UMAServerException {
 
         Resource resource;
@@ -378,6 +429,21 @@ public class PermissionTicketDAO {
         } catch (SQLException e) {
             throw new UMAServerException(UMAConstants.ErrorMessages
                     .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_REQUESTED_PERMISSIONS, e);
+        }
+    }
+
+    public static void saveAccessTokenAgainstPermissionTicket(String accessToken, String permissionTicket)
+            throws UMAServerException {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+            PreparedStatement preparedStatement = connection
+                    .prepareStatement(SAVE_ACCESS_TOKEN_AGAINST_PERMISSION_TICKET);
+            preparedStatement.setString(1, accessToken);
+            preparedStatement.setString(2, permissionTicket);
+            preparedStatement.executeUpdate();
+            connection.commit();
+        } catch (SQLException e) {
+            throw new UMAServerException("Error occurred while updating the access token for the permission ticket.");
         }
     }
 }

@@ -58,6 +58,13 @@ public class PermissionServiceImpl implements PermissionService {
         return permissionTicketModel;
     }
 
+    @Override
+    public List<Resource> validateAccessToken(String accessToken) throws UMAClientException, UMAServerException {
+
+        String permissionTicket = PermissionTicketDAO.retrievePermissionTicketForAccessToken(accessToken);
+        return PermissionTicketDAO.getResourcesForPermissionTicket(permissionTicket);
+    }
+
     private Timestamp calculatePermissionTicketExpiryTime(long createdTimeInMillis) {
 
         //TODO:Add a new configuration to define permission ticket validity period in identity.xml
