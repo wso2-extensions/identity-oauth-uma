@@ -198,50 +198,46 @@ paths:
 definitions:
   createResource:
     properties:
-      resourceId:
+      _id:
         type: string
-        description: ' Returning resource Id after successfull registration.'
+        description: ' Returning resource Id after successful registration.'
         example: |
           0f77c1f2-64c3-452d-b622-4519b6906949
-      policy_uri:
-        type: string
-        description: ' Policy_URI used for user access'
-        example: 'http://as.example.com/rs/222/resource/KX3A-39WE/policy'
   readResource:
     properties:
-      resourceId:
+      _id:
         type: string
-        description: ' Returning resource Id after successfull registration.'
+        description: ' Returning resource Id after successful registration.'
         example: 0f77c1f2-64c3-452d-b622-4519b6906949
       name:
         type: string
-        description: ' Returning name after successfull registration.'
+        description: ' Returning name after successful registration.'
         example: Resource Descripton-1
-      scope:
+      resource_scopes:
         type: string
-        description: ' Returning resource scopes after successfull registration.'
+        description: ' Returning resource scopes after successful registration.'
         example: 'View,Edit,Delete'
       type:
         type: string
-        description: ' Returning type after successfull registration.'
+        description: ' Returning type after successful registration.'
         example: 'http://www.example.com/rs/photoalbum'
       icon_uri:
         type: string
-        description: ' Returning icon_uri after successfull registration.'
+        description: ' Returning icon_uri after successful registration.'
         example: 'http://www.example.com/icons/sharesocial.png'
       description:
         type: string
-        description: ' Returning description after successfull registration.'
+        description: ' Returning description after successful registration.'
   updateResource:
     properties:
       resourceId:
         type: string
-        description: ' Returning resource description after successfull updating.'
+        description: ' Returning resource description after successful updating.'
   listReadResource:
     properties:
       resourceId:
         type: array
-        description: ' Returning list of resource Id after successfull registration.'
+        description: ' Returning list of resource Id after successful registration.'
         items:
           type: string
 
@@ -309,6 +305,6 @@ parameters:
   resourceId:
     name: resourceId
     in: path
-    description: ID ofthe  resource
+    description: ID of the  resource
     required: true
     type: string

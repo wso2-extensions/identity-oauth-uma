@@ -80,7 +80,7 @@ public class ResourceUtils {
         readResourceDTO.setType(resourceRegistration.getType());
         readResourceDTO.setDescription(resourceRegistration.getDescription());
         readResourceDTO.setIcon_uri(resourceRegistration.getIconUri());
-        readResourceDTO.setResource_scope(resourceRegistration.getScopes());
+        readResourceDTO.setResource_scopes(resourceRegistration.getScopes());
         return readResourceDTO;
     }
 

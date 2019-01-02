@@ -152,7 +152,7 @@ public class UMA2GrantHandler extends AbstractAuthorizationGrantHandler {
         try {
             PermissionTicketDAO.saveAccessTokenAgainstPermissionTicket(accessToken, permissionTicket);
         } catch (UMAServerException e) {
-            throw new IdentityOAuth2Exception("Error occurred while issuing access token.", e);
+            throw new IdentityOAuth2Exception("Internal server error occurred while issuing access token.", e);
         }
 
         return oAuth2AccessTokenRespDTO;

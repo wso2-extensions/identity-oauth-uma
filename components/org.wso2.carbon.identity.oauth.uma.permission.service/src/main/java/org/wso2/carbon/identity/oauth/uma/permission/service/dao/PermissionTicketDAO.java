@@ -75,19 +75,17 @@ public class PermissionTicketDAO {
     private static final String UPDATE_PERMISSION_TICKET_STATE = "UPDATE IDN_UMA_PERMISSION_TICKET SET TICKET_STATE = :"
             + UMAConstants.SQLPlaceholders.STATE + "; WHERE PT = :" + UMAConstants.SQLPlaceholders.PERMISSION_TICKET +
             ";";
-    private static final String VALIDATE_PERMISSION_TICKET = "SELECT PT FROM IDN_UMA_PERMISSION_TICKET WHERE PT = ? ;";
-
+    private static final String VALIDATE_PERMISSION_TICKET = "SELECT PT FROM IDN_UMA_PERMISSION_TICKET WHERE PT = ?";
     private static final String RETRIEVE_RESOURCE_ID_STORE_IN_PT = "SELECT RESOURCE_ID FROM IDN_UMA_RESOURCE " +
             "INNER JOIN IDN_UMA_PT_RESOURCE ON IDN_UMA_RESOURCE.ID = IDN_UMA_PT_RESOURCE.PT_RESOURCE_ID INNER JOIN " +
             "IDN_UMA_PERMISSION_TICKET ON IDN_UMA_PT_RESOURCE.PT_ID = IDN_UMA_PERMISSION_TICKET.ID WHERE " +
             "IDN_UMA_PERMISSION_TICKET.PT = ?";
-
-    private static final String RETRIEVE_RESOURCE_SCOPES_STORE_IN_PT = "SELECT RESOURCE.RESOURCE_ID, " +
-            "IDN_SCOPES.SCOPE_NAME FROM IDN_UMA_RESOURCE_SCOPE AS IDN_SCOPES INNER JOIN " +
+    private static final String RETRIEVE_RESOURCE_SCOPES_STORE_IN_PT = "SELECT RES.RESOURCE_ID, " +
+            "IDN_SCOPES.SCOPE_NAME FROM IDN_UMA_RESOURCE_SCOPE IDN_SCOPES INNER JOIN " +
             "IDN_UMA_PT_RESOURCE_SCOPE PT_SCOPES ON IDN_SCOPES.ID = PT_SCOPES.PT_SCOPE_ID INNER JOIN " +
             "IDN_UMA_PT_RESOURCE PT_RESOURCE ON PT_SCOPES.PT_RESOURCE_ID = PT_RESOURCE.ID INNER JOIN " +
             "IDN_UMA_PERMISSION_TICKET ON PT_RESOURCE.PT_ID = IDN_UMA_PERMISSION_TICKET.ID INNER JOIN " +
-            "IDN_UMA_RESOURCE RESOURCE ON RESOURCE.ID = IDN_SCOPES.RESOURCE_IDENTITY WHERE " +
+            "IDN_UMA_RESOURCE RES ON RES.ID = IDN_SCOPES.RESOURCE_IDENTITY WHERE " +
             "IDN_UMA_PERMISSION_TICKET.PT = ?";
 
     private static final String SAVE_ACCESS_TOKEN_AGAINST_PERMISSION_TICKET =
@@ -159,7 +157,8 @@ public class PermissionTicketDAO {
 
         try {
             expiryTime = namedJdbcTemplate.fetchSingleRecord(GET_EXPIRY_TIME_FOR_ACTIVE_PERMISSION_TICKET,
-                    (resultSet, rowNumber) -> resultSet.getTimestamp(1),
+                    (resultSet, rowNumber) -> resultSet.getTimestamp(1,
+                            Calendar.getInstance(TimeZone.getTimeZone(UTC))),
                     namedPreparedStatement -> {
                         namedPreparedStatement.setString(
                                 UMAConstants.SQLPlaceholders.PERMISSION_TICKET, permissionTicket);
@@ -356,7 +355,6 @@ public class PermissionTicketDAO {
                         List<Resource> list = retrieveResourceIdsInPT(permissionTicket);
                         retrieveResourceScopesInPT(permissionTicket, list);
                         return list;
-
                     }
                 }
             }
@@ -365,7 +363,6 @@ public class PermissionTicketDAO {
                     .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_REQUESTED_PERMISSIONS, e);
         }
     }
-
 
     public static String retrievePermissionTicketForAccessToken(String accessToken) throws UMAServerException {
 
