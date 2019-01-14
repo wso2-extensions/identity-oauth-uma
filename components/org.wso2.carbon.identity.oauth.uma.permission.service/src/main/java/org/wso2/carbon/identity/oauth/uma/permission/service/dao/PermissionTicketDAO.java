@@ -88,6 +88,12 @@ public class PermissionTicketDAO {
             "IDN_UMA_RESOURCE RES ON RES.ID = IDN_SCOPES.RESOURCE_IDENTITY WHERE " +
             "IDN_UMA_PERMISSION_TICKET.PT = ?";
 
+    private static final String UPDATE_PERMISSION_TICKET_WITH_TOKEN_ID =
+            "UPDATE IDN_UMA_PERMISSION_TICKET SET TOKEN_ID = ? WHERE PT = ?";
+
+    private static final String RETRIEVE_PERMISSION_TICKET_FOR_TOKEN_ID =
+            "SELECT PT FROM IDN_UMA_PERMISSION_TICKET WHERE TOKEN_ID = ?";
+
     /**
      * Issue a permission ticket. Permission ticket represents the resources requested by the resource server on
      * client's behalf
@@ -336,19 +342,63 @@ public class PermissionTicketDAO {
         }
     }
 
+    public static List<Resource> getResourcesForPermissionTicket(String permissionTicket)
+            throws UMAClientException, UMAServerException {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(VALIDATE_PERMISSION_TICKET)) {
+                preparedStatement.setString(1, permissionTicket);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (!resultSet.next()) {
+                        return new ArrayList<>();
+                    } else {
+                        List<Resource> list = retrieveResourceIdsInPT(permissionTicket);
+                        retrieveResourceScopesInPT(permissionTicket, list);
+                        return list;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new UMAServerException(UMAConstants.ErrorMessages
+                    .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_REQUESTED_PERMISSIONS, e);
+        }
+    }
+
+
+    public static String retrievePermissionTicketForTokenId(String tokenId) throws UMAServerException {
+
+        String permissionTicket = null;
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+            try (PreparedStatement preparedStatement = connection.prepareStatement
+                    (RETRIEVE_PERMISSION_TICKET_FOR_TOKEN_ID)) {
+                preparedStatement.setString(1, tokenId);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    while (resultSet.next()) {
+                        permissionTicket = resultSet.getString("PT");
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new UMAServerException("Error occurred while retrieving permission ticket.", e);
+        }
+        return permissionTicket;
+    }
+
     private static List<Resource> retrieveResourceIdsInPT(String permissionTicket) throws UMAServerException {
 
         Resource resource;
         List<Resource> listOfResourceIds = new ArrayList<Resource>();
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
-            PreparedStatement preparedStatement = connection.prepareStatement(RETRIEVE_RESOURCE_ID_STORE_IN_PT);
-            preparedStatement.setString(1, permissionTicket);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
-                resource = new Resource();
-                if (resultSet.getString(1) != null) {
-                    resource.setResourceId(resultSet.getString(1));
-                    listOfResourceIds.add(resource);
+            try (PreparedStatement preparedStatement = connection.prepareStatement(RETRIEVE_RESOURCE_ID_STORE_IN_PT)) {
+                preparedStatement.setString(1, permissionTicket);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    while (resultSet.next()) {
+                        resource = new Resource();
+                        if (resultSet.getString(1) != null) {
+                            resource.setResourceId(resultSet.getString(1));
+                            listOfResourceIds.add(resource);
+                        }
+                    }
                 }
             }
         } catch (SQLException e) {
@@ -363,22 +413,40 @@ public class PermissionTicketDAO {
             throws UMAServerException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
-            PreparedStatement preparedStatement = connection.prepareStatement(RETRIEVE_RESOURCE_SCOPES_STORE_IN_PT);
-            preparedStatement.setString(1, permissionTicket);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
-                for (Resource resourceList : resources) {
-                    if (resultSet.getString(1).equals(resourceList.getResourceId())) {
-                        if (!resourceList.getResourceScopes().contains(resultSet.getString(2))) {
-                            resourceList.getResourceScopes().add(resultSet.getString(2));
+            try (PreparedStatement preparedStatement = connection.prepareStatement
+                    (RETRIEVE_RESOURCE_SCOPES_STORE_IN_PT)) {
+                preparedStatement.setString(1, permissionTicket);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    while (resultSet.next()) {
+                        for (Resource resourceList : resources) {
+                            if (resultSet.getString(1).equals(resourceList.getResourceId())) {
+                                if (!resourceList.getResourceScopes().contains(resultSet.getString(2))) {
+                                    resourceList.getResourceScopes().add(resultSet.getString(2));
+                                }
+                            }
                         }
                     }
                 }
             }
-
         } catch (SQLException e) {
             throw new UMAServerException(UMAConstants.ErrorMessages
                     .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_PERSIST_REQUESTED_PERMISSIONS, e);
+        }
+    }
+
+    public static void saveTokenIdAgainstPermissionTicket(String tokenId, String permissionTicket)
+            throws UMAServerException {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+            try (PreparedStatement preparedStatement = connection
+                    .prepareStatement(UPDATE_PERMISSION_TICKET_WITH_TOKEN_ID)) {
+                preparedStatement.setString(1, tokenId);
+                preparedStatement.setString(2, permissionTicket);
+                preparedStatement.executeUpdate();
+                connection.commit();
+            }
+        } catch (SQLException e) {
+            throw new UMAServerException("Error occurred while updating the token ID for the permission ticket.", e);
         }
     }
 }

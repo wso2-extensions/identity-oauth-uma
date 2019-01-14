@@ -60,6 +60,7 @@
                             org.wso2.carbon.identity.oauth.config;version="${org.wso2.carbon.identity.oauth.import.version.range}",
                             org.wso2.carbon.identity.oauth.uma.common.*; version="${identity.oauth.uma.imp.pkg.version.range}",
                             org.wso2.carbon.utils; version="${carbon.kernel.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.oauth2.*; version="${org.wso2.carbon.identity.oauth.import.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.oauth.uma.permission.service.internal,
