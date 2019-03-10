@@ -40,7 +40,7 @@ public class UMAIntrospectionDataProvider extends AbstractIdentityHandler implem
     private final PermissionService permissionService;
     private static final String RESOURCE_ID = "resource_id";
     private static final String RESOURCE_SCOPE = "resource_scopes";
-    private static final String PERMISSION = "permission";
+    private static final String PERMISSIONS = "permissions";
     private static Log log = LogFactory.getLog(UMAIntrospectionDataProvider.class);
 
 
@@ -73,7 +73,7 @@ public class UMAIntrospectionDataProvider extends AbstractIdentityHandler implem
                         data.put(RESOURCE_SCOPE, resource.getResourceScopes());
                         permissions.add(data);
                     }
-                    introspectionData.put(PERMISSION, permissions);
+                    introspectionData.put(PERMISSIONS, permissions);
                 } else {
                     if (log.isDebugEnabled()) {
                         log.debug(String.format("No resources found for the token issued to Client ID: %s and User: %s",

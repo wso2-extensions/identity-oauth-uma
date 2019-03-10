@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.oauth.uma.permission.service.dao;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
@@ -108,7 +107,7 @@ public class PermissionTicketDAO {
     private static final String IS_TOKEN_ID_COLUMN_EXISTS_INFORMIX = "SELECT FIRST 1 TOKEN_ID FROM " +
                                                                     "IDN_UMA_PERMISSION_TICKET";
     private static final String IS_TOKEN_ID_COLUMN_EXISTS_ORACLE = "SELECT TOKEN_ID FROM IDN_UMA_PERMISSION_TICKET " +
-                                                                  "WHERE ROWNUM < 2";
+                                                                   "WHERE ROWNUM < 2";
     private static final String WARNING_TOKEN_ID_COLUMN_NOT_EXIST =
             "Column: TOKEN_ID in table: IDN_UMA_PERMISSION_TICKET does not exist. Hence token introspection for UMA " +
             "grant will not be fully functional. Please refer the migration guide of the related product version to " +
@@ -489,22 +488,20 @@ public class PermissionTicketDAO {
         return tokenIdColumnAvailable;
     }
 
-
     private static boolean checkTokenIdColumnInTable() {
 
         String sql;
         boolean isTokenIdColumnsExist = false;
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
             if (connection.getMetaData().getDriverName().contains("MySQL") ||
-                connection.getMetaData().getDriverName().contains("H2")) {
+                connection.getMetaData().getDriverName().contains("H2") ||
+                connection.getMetaData().getDriverName().contains("PostgreSQL")) {
                 sql = IS_TOKEN_ID_COLUMN_EXISTS_MYSQL;
             } else if (connection.getMetaData().getDatabaseProductName().contains("DB2")) {
                 sql = IS_TOKEN_ID_COLUMN_EXISTS_DB2;
             } else if (connection.getMetaData().getDriverName().contains("MS SQL") ||
                        connection.getMetaData().getDriverName().contains("Microsoft")) {
                 sql = IS_TOKEN_ID_COLUMN_EXISTS_MSSQL;
-            } else if (connection.getMetaData().getDriverName().contains("PostgreSQL")) {
-                sql = IS_TOKEN_ID_COLUMN_EXISTS_MYSQL;
             } else if (connection.getMetaData().getDriverName().contains("Informix")) {
                 // Driver name = "IBM Informix JDBC Driver for IBM Informix Dynamic Server"
                 sql = IS_TOKEN_ID_COLUMN_EXISTS_INFORMIX;
