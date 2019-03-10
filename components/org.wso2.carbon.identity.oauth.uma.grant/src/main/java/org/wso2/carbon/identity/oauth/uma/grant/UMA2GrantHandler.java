@@ -151,9 +151,6 @@ public class UMA2GrantHandler extends AbstractAuthorizationGrantHandler {
 
         try {
             PermissionTicketDAO.saveTokenIdAgainstPermissionTicket(tokenId, permissionTicket);
-            if (log.isDebugEnabled()) {
-                log.debug("Stored permission ticket for token ID: " + tokenId + ",  client ID: " + clientId);
-            }
         } catch (UMAServerException e) {
             throw new IdentityOAuth2Exception("Error occurred while issuing access token for client ID: " + clientId,
                                               e);

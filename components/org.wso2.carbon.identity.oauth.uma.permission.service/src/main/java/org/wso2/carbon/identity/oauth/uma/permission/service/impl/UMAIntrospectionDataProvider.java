@@ -18,6 +18,7 @@ package org.wso2.carbon.identity.oauth.uma.permission.service.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.core.handler.AbstractIdentityHandler;
 import org.wso2.carbon.identity.oauth.uma.common.exception.UMAException;
 import org.wso2.carbon.identity.oauth.uma.permission.service.PermissionService;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.Resource;
@@ -34,7 +35,7 @@ import java.util.Map;
 /**
  * Introspection data provider for the tokens issued with UMA grant.
  */
-public class UMAIntrospectionDataProvider implements IntrospectionDataProvider {
+public class UMAIntrospectionDataProvider extends AbstractIdentityHandler implements IntrospectionDataProvider {
 
     private final PermissionService permissionService;
     private static final String RESOURCE_ID = "resource_id";
@@ -53,32 +54,36 @@ public class UMAIntrospectionDataProvider implements IntrospectionDataProvider {
             throws IdentityOAuth2Exception {
 
         Map<String, Object> introspectionData = new HashMap<>();
-        try {
-            List<Resource> resources = permissionService.validateAccessToken(oAuth2TokenValidationRequestDTO
-                                                                                     .getAccessToken().getIdentifier());
-            if (resources != null && !resources.isEmpty()) {
-                if (log.isDebugEnabled()) {
-                    log.debug(String.format("Resources found for the token issued to Client ID: %s and User: %s",
-                                            oAuth2IntrospectionResponseDTO.getClientId(),
-                                            oAuth2IntrospectionResponseDTO.getUsername()));
+
+        if (isEnabled()) {
+            try {
+                List<Resource> resources = permissionService.validateAccessToken(oAuth2TokenValidationRequestDTO
+                                                                                         .getAccessToken()
+                                                                                         .getIdentifier());
+                if (resources != null && !resources.isEmpty()) {
+                    if (log.isDebugEnabled()) {
+                        log.debug(String.format("Resources found for the token issued to Client ID: %s and User: %s",
+                                                oAuth2IntrospectionResponseDTO.getClientId(),
+                                                oAuth2IntrospectionResponseDTO.getUsername()));
+                    }
+                    List<Map<String, Object>> permissions = new ArrayList<>();
+                    for (Resource resource : resources) {
+                        Map<String, Object> data = new HashMap<>();
+                        data.put(RESOURCE_ID, resource.getResourceId());
+                        data.put(RESOURCE_SCOPE, resource.getResourceScopes());
+                        permissions.add(data);
+                    }
+                    introspectionData.put(PERMISSION, permissions);
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug(String.format("No resources found for the token issued to Client ID: %s and User: %s",
+                                                oAuth2IntrospectionResponseDTO.getClientId(),
+                                                oAuth2IntrospectionResponseDTO.getUsername()));
+                    }
                 }
-                List<Map<String, Object>> permissions = new ArrayList<>();
-                for (Resource resource : resources) {
-                    Map<String, Object> data = new HashMap<>();
-                    data.put(RESOURCE_ID, resource.getResourceId());
-                    data.put(RESOURCE_SCOPE, resource.getResourceScopes());
-                    permissions.add(data);
-                }
-                introspectionData.put(PERMISSION, permissions);
-            } else {
-                if (log.isDebugEnabled()) {
-                    log.debug(String.format("No resources found for the token issued to Client ID: %s and User: %s",
-                                            oAuth2IntrospectionResponseDTO.getClientId(),
-                                            oAuth2IntrospectionResponseDTO.getUsername()));
-                }
+            } catch (UMAException e) {
+                throw new IdentityOAuth2Exception("Error occurred while retrieving resources.", e);
             }
-        } catch (UMAException e) {
-            throw new IdentityOAuth2Exception("Error occurred while retrieving resources.", e);
         }
         return introspectionData;
     }

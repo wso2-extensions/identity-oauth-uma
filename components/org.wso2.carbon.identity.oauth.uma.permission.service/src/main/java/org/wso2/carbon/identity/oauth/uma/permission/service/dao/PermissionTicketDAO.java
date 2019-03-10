@@ -18,9 +18,13 @@
 
 package org.wso2.carbon.identity.oauth.uma.permission.service.dao;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.oauth.uma.common.JdbcUtils;
 import org.wso2.carbon.identity.oauth.uma.common.UMAConstants;
@@ -46,6 +50,7 @@ import java.util.TimeZone;
 public class PermissionTicketDAO {
 
     private static final String UTC = "UTC";
+    private static final Log log = LogFactory.getLog(PermissionTicketDAO.class);
 
     private static final String STORE_PT_QUERY = "INSERT INTO IDN_UMA_PERMISSION_TICKET " +
             "(PT, TIME_CREATED, EXPIRY_TIME, TICKET_STATE, TENANT_ID) VALUES " +
@@ -93,6 +98,23 @@ public class PermissionTicketDAO {
 
     private static final String RETRIEVE_PERMISSION_TICKET_FOR_TOKEN_ID =
             "SELECT PT FROM IDN_UMA_PERMISSION_TICKET WHERE TOKEN_ID = ?";
+
+    private static final String IS_TOKEN_ID_COLUMN_EXISTS_MYSQL = "SELECT TOKEN_ID FROM IDN_UMA_PERMISSION_TICKET " +
+                                                                  "LIMIT 1";
+    private static final String IS_TOKEN_ID_COLUMN_EXISTS_DB2 = "SELECT TOKEN_ID FROM IDN_UMA_PERMISSION_TICKET FETCH" +
+                                                                " FIRST 1 ROWS ONLY";
+    private static final String IS_TOKEN_ID_COLUMN_EXISTS_MSSQL = "SELECT TOP 1 TOKEN_ID FROM " +
+                                                                  "IDN_UMA_PERMISSION_TICKET";
+    private static final String IS_TOKEN_ID_COLUMN_EXISTS_INFORMIX = "SELECT FIRST 1 TOKEN_ID FROM " +
+                                                                    "IDN_UMA_PERMISSION_TICKET";
+    private static final String IS_TOKEN_ID_COLUMN_EXISTS_ORACLE = "SELECT TOKEN_ID FROM IDN_UMA_PERMISSION_TICKET " +
+                                                                  "WHERE ROWNUM < 2";
+    private static final String WARNING_TOKEN_ID_COLUMN_NOT_EXIST =
+            "Column: TOKEN_ID in table: IDN_UMA_PERMISSION_TICKET does not exist. Hence token introspection for UMA " +
+            "grant will not be fully functional. Please refer the migration guide of the related product version to " +
+            "update the feature.";
+
+    private static Boolean tokenIdColumnAvailable;
 
     /**
      * Issue a permission ticket. Permission ticket represents the resources requested by the resource server on
@@ -314,8 +336,8 @@ public class PermissionTicketDAO {
      *
      * @param permissionTicket A correlation handle representing requested permissions by the client.
      * @return resource list represented by the permission ticket.
-     * @throws UMAClientException
-     * @throws UMAServerException
+     * @throws UMAClientException If error occurs due to invalid permission ticket.
+     * @throws UMAServerException If server error occurs while validating permission ticket.
      */
     public static List<Resource> validatePermissionTicket(String permissionTicket) throws UMAClientException,
             UMAServerException {
@@ -368,18 +390,20 @@ public class PermissionTicketDAO {
     public static String retrievePermissionTicketForTokenId(String tokenId) throws UMAServerException {
 
         String permissionTicket = null;
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
-            try (PreparedStatement preparedStatement = connection.prepareStatement
-                    (RETRIEVE_PERMISSION_TICKET_FOR_TOKEN_ID)) {
-                preparedStatement.setString(1, tokenId);
-                try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                    while (resultSet.next()) {
-                        permissionTicket = resultSet.getString("PT");
+        if (isTokenIdColumnAvailable()) {
+            try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+                try (PreparedStatement preparedStatement = connection.prepareStatement
+                        (RETRIEVE_PERMISSION_TICKET_FOR_TOKEN_ID)) {
+                    preparedStatement.setString(1, tokenId);
+                    try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                        while (resultSet.next()) {
+                            permissionTicket = resultSet.getString("PT");
+                        }
                     }
                 }
+            } catch (SQLException e) {
+                throw new UMAServerException("Error occurred while retrieving permission ticket.", e);
             }
-        } catch (SQLException e) {
-            throw new UMAServerException("Error occurred while retrieving permission ticket.", e);
         }
         return permissionTicket;
     }
@@ -387,7 +411,7 @@ public class PermissionTicketDAO {
     private static List<Resource> retrieveResourceIdsInPT(String permissionTicket) throws UMAServerException {
 
         Resource resource;
-        List<Resource> listOfResourceIds = new ArrayList<Resource>();
+        List<Resource> listOfResourceIds = new ArrayList<>();
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
             try (PreparedStatement preparedStatement = connection.prepareStatement(RETRIEVE_RESOURCE_ID_STORE_IN_PT)) {
                 preparedStatement.setString(1, permissionTicket);
@@ -419,10 +443,9 @@ public class PermissionTicketDAO {
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
                     while (resultSet.next()) {
                         for (Resource resourceList : resources) {
-                            if (resultSet.getString(1).equals(resourceList.getResourceId())) {
-                                if (!resourceList.getResourceScopes().contains(resultSet.getString(2))) {
-                                    resourceList.getResourceScopes().add(resultSet.getString(2));
-                                }
+                            if (resultSet.getString(1).equals(resourceList.getResourceId()) &&
+                                !resourceList.getResourceScopes().contains(resultSet.getString(2))) {
+                                resourceList.getResourceScopes().add(resultSet.getString(2));
                             }
                         }
                     }
@@ -437,16 +460,74 @@ public class PermissionTicketDAO {
     public static void saveTokenIdAgainstPermissionTicket(String tokenId, String permissionTicket)
             throws UMAServerException {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
-            try (PreparedStatement preparedStatement = connection
-                    .prepareStatement(UPDATE_PERMISSION_TICKET_WITH_TOKEN_ID)) {
-                preparedStatement.setString(1, tokenId);
-                preparedStatement.setString(2, permissionTicket);
-                preparedStatement.executeUpdate();
-                connection.commit();
+        if (isTokenIdColumnAvailable()) {
+            try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+                try (PreparedStatement preparedStatement = connection
+                        .prepareStatement(UPDATE_PERMISSION_TICKET_WITH_TOKEN_ID)) {
+                    preparedStatement.setString(1, tokenId);
+                    preparedStatement.setString(2, permissionTicket);
+                    preparedStatement.executeUpdate();
+                    connection.commit();
+                }
+            } catch (SQLException e) {
+                throw new UMAServerException("Error occurred while updating the token ID for the permission ticket.",
+                                             e);
             }
-        } catch (SQLException e) {
-            throw new UMAServerException("Error occurred while updating the token ID for the permission ticket.", e);
+            if (log.isDebugEnabled()) {
+                log.debug("Stored permission ticket for token ID: " + tokenId);
+            }
+        } else {
+            log.warn(WARNING_TOKEN_ID_COLUMN_NOT_EXIST);
         }
+    }
+
+    private static boolean isTokenIdColumnAvailable() {
+
+        if (tokenIdColumnAvailable == null) {
+            tokenIdColumnAvailable =  checkTokenIdColumnInTable();
+        }
+        return tokenIdColumnAvailable;
+    }
+
+
+    private static boolean checkTokenIdColumnInTable() {
+
+        String sql;
+        boolean isTokenIdColumnsExist = false;
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+            if (connection.getMetaData().getDriverName().contains("MySQL") ||
+                connection.getMetaData().getDriverName().contains("H2")) {
+                sql = IS_TOKEN_ID_COLUMN_EXISTS_MYSQL;
+            } else if (connection.getMetaData().getDatabaseProductName().contains("DB2")) {
+                sql = IS_TOKEN_ID_COLUMN_EXISTS_DB2;
+            } else if (connection.getMetaData().getDriverName().contains("MS SQL") ||
+                       connection.getMetaData().getDriverName().contains("Microsoft")) {
+                sql = IS_TOKEN_ID_COLUMN_EXISTS_MSSQL;
+            } else if (connection.getMetaData().getDriverName().contains("PostgreSQL")) {
+                sql = IS_TOKEN_ID_COLUMN_EXISTS_MYSQL;
+            } else if (connection.getMetaData().getDriverName().contains("Informix")) {
+                // Driver name = "IBM Informix JDBC Driver for IBM Informix Dynamic Server"
+                sql = IS_TOKEN_ID_COLUMN_EXISTS_INFORMIX;
+            } else {
+                sql = IS_TOKEN_ID_COLUMN_EXISTS_ORACLE;
+            }
+            try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        isTokenIdColumnsExist = true;
+                    }
+                }
+            } catch (SQLException e) {
+                // Ignore since this exception is thrown when the column isn not available.
+                isTokenIdColumnsExist = false;
+            }
+        } catch (IdentityRuntimeException e) {
+            log.error("Error while obtaining connection to check the existence of column TOKEN_ID in table " +
+                      "IDN_UMA_PERMISSION_TICKET.", e);
+        } catch (SQLException e) {
+            log.error("Error while reading connection metadata to check the existence of column TOKEN_ID " +
+                      "in table IDN_UMA_PERMISSION_TICKET.", e);
+        }
+        return isTokenIdColumnsExist;
     }
 }
