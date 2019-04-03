@@ -63,7 +63,6 @@ public class ResourceServiceImpl implements ResourceService {
     public Resource getResourceById(String resourceId) throws UMAServerException, UMAClientException {
 
         return ResourceDAO.retrieveResource(resourceId);
-
     }
 
     /**
@@ -90,6 +89,21 @@ public class ResourceServiceImpl implements ResourceService {
     public boolean deleteResource(String resourceId) throws UMAServerException, UMAClientException {
 
         return ResourceDAO.deleteResource(resourceId);
+    }
 
+    /**
+     * Check whether the resource belongs to the given user.
+     *
+     * @param resourceId resource ID of the resource
+     * @param userName   name of the user.
+     * @param userDomain user store domain of the user.
+     * @param clientId   client id representing the resource server.
+     * @throws UMAServerException
+     */
+    @Override
+    public boolean isResourceOwner(String resourceId, String userName, String userDomain, String clientId)
+            throws UMAServerException {
+
+        return ResourceDAO.isResourceOwner(resourceId, userName, userDomain, clientId);
     }
 }

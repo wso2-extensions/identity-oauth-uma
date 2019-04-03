@@ -385,4 +385,36 @@ public class ResourceDAO {
         }
         return id;
     }
+
+    /**
+     * Check whether the resource belongs to the given user.
+     *
+     * @param resourceId resource ID of the resource.
+     * @param userName   name of the user.
+     * @param userDomain user store domain of the user.
+     * @param clientId   client id representing the resource server.
+     * @throws UMAServerException
+     */
+    public static boolean isResourceOwner(String resourceId, String userName, String userDomain,
+            String clientId) throws UMAServerException {
+
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedTemplate();
+        Integer id;
+        try {
+            id = namedJdbcTemplate.fetchSingleRecord(SQLQueries.CHECK_RESOURCE_OWNER,
+                    (resultSet, rowNumber) -> resultSet.getInt(1), namedPreparedStatement -> {
+                        namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.RESOURCE_ID, resourceId);
+                        namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.RESOURCE_OWNER_NAME, userName);
+                        namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.USER_DOMAIN, userDomain);
+                        namedPreparedStatement.setString(UMAConstants.SQLPlaceholders.CLIENT_ID, clientId);
+                    });
+        } catch (DataAccessException e) {
+            throw new UMAServerException(UMAConstants.ErrorMessages.ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_GET_RESOURCE,
+                    e);
+        }
+        if (id != null) {
+            return true;
+        }
+        return false;
+    }
 }
