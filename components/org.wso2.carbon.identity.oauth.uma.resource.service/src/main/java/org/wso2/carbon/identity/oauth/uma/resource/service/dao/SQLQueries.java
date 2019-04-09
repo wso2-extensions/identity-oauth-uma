@@ -59,6 +59,12 @@ public class SQLQueries {
             UMAConstants.SQLPlaceholders.USER_DOMAIN + "; AND CLIENT_ID = :" + UMAConstants.SQLPlaceholders.CLIENT_ID
             + ";";
 
+    public static final String CHECK_RESOURCE_OWNER =
+            "SELECT ID FROM IDN_UMA_RESOURCE WHERE " + "RESOURCE_ID = :" + UMAConstants.SQLPlaceholders.RESOURCE_ID
+                    + "; AND RESOURCE_OWNER_NAME = :" + UMAConstants.SQLPlaceholders.RESOURCE_OWNER_NAME
+                    + "; AND USER_DOMAIN = :" + UMAConstants.SQLPlaceholders.USER_DOMAIN + "; AND CLIENT_ID = :"
+                    + UMAConstants.SQLPlaceholders.CLIENT_ID + ";";
+
     public static final String UPDATE_RESOURCE = "UPDATE IDN_UMA_RESOURCE SET RESOURCE_NAME = :"
             + UMAConstants.SQLPlaceholders.RESOURCE_NAME + "; WHERE ID = :"
             + UMAConstants.SQLPlaceholders.ID + ";";

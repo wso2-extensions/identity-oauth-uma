@@ -41,4 +41,7 @@ public interface ResourceService {
 
     boolean updateResource(String resourceId, Resource resourceRegistration)
             throws UMAServerException, UMAClientException;
+
+    boolean isResourceOwner(String resourceId, String userName, String userDomain, String consumerKey)
+            throws UMAServerException, UMAClientException;
 }
