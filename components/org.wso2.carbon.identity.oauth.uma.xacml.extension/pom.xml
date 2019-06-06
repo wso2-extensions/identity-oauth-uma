@@ -20,7 +20,7 @@
     <parent>
         <artifactId>identity-oauth-uma</artifactId>
         <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
-        <version>1.0.18-SNAPSHOT</version>
+        <version>1.0.24-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -39,10 +39,10 @@
                         <phase>validate</phase>
                         <configuration>
                             <configLocation>
-                                https://raw.githubusercontent.com/wso2/code-quality-tools/master/checkstyle/checkstyle.xml
+                                https://raw.githubusercontent.com/wso2/code-quality-tools/v1.2/checkstyle/checkstyle.xml
                             </configLocation>
                             <suppressionsLocation>
-                                https://raw.githubusercontent.com/wso2/code-quality-tools/master/checkstyle/suppressions.xml
+                                https://raw.githubusercontent.com/wso2/code-quality-tools/v1.2/checkstyle/suppressions.xml
                             </suppressionsLocation>
                             <encoding>UTF-8</encoding>
                             <consoleOutput>true</consoleOutput>

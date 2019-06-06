@@ -31,7 +31,15 @@ import java.util.List;
 public interface PermissionService {
 
     PermissionTicketModel issuePermissionTicket(List<Resource> resourceList, int tenantId, String resourceOwnerName,
-                                                String clientId, String userDomain) throws UMAClientException,
-            UMAServerException;
+                                                String clientId, String userDomain)
+            throws UMAClientException, UMAServerException;
 
+    /**
+     * Validate the access token issued for permission ticket.
+     * @param accessToken Access token string.
+     * @return List of resources associated with this access token.
+     * @throws UMAClientException Client side related error.
+     * @throws UMAServerException Server side related error.
+     */
+    List<Resource> validateAccessToken(String accessToken) throws UMAClientException, UMAServerException;
 }

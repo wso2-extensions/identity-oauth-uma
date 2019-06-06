@@ -26,6 +26,9 @@ import org.wso2.carbon.identity.oauth.uma.permission.service.PermissionService;
 import org.wso2.carbon.identity.oauth.uma.permission.service.dao.PermissionTicketDAO;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.PermissionTicketModel;
 import org.wso2.carbon.identity.oauth.uma.permission.service.model.Resource;
+import org.wso2.carbon.identity.oauth2.IdentityOAuth2Exception;
+import org.wso2.carbon.identity.oauth2.model.AccessTokenDO;
+import org.wso2.carbon.identity.oauth2.util.OAuth2Util;
 
 import java.sql.Timestamp;
 import java.util.Date;
@@ -58,6 +61,19 @@ public class PermissionServiceImpl implements PermissionService {
         return permissionTicketModel;
     }
 
+    @Override
+    public List<Resource> validateAccessToken(String accessToken) throws UMAClientException, UMAServerException {
+
+        try {
+            AccessTokenDO tokenDO = OAuth2Util.getAccessTokenDOfromTokenIdentifier(accessToken);
+            String tokenId = tokenDO.getTokenId();
+            String permissionTicket = PermissionTicketDAO.retrievePermissionTicketForTokenId(tokenId);
+            return PermissionTicketDAO.getResourcesForPermissionTicket(permissionTicket);
+        } catch (IdentityOAuth2Exception e) {
+            throw new UMAServerException("Error occurred while retrieving token information.", e);
+        }
+    }
+
     private Timestamp calculatePermissionTicketExpiryTime(long createdTimeInMillis) {
 
         //TODO:Add a new configuration to define permission ticket validity period in identity.xml
@@ -69,7 +85,5 @@ public class PermissionServiceImpl implements PermissionService {
         long expiryTimeInMillis = createdTimeInMillis + validityPeriodInMillis;
 
         return new Timestamp(expiryTimeInMillis);
-
     }
-
 }

@@ -112,7 +112,7 @@ public class ResourceRegistrationApiServiceImplTest extends PowerMockTestCase {
         when(mockAuthenticationContext.getParameter(anyString())).thenReturn(tokenScopes);
         when(resourceService.deleteResource("232e7415-3bcb-4ef9-9527-ac4dacc6aa83")).thenReturn(true);
         assertEquals(resourcesApiService.deleteResource("232e7415-3bcb-4ef9-9527-ac4dacc6aa83",
-                mockMessageContext).getStatus(), Response.Status.NO_CONTENT.getStatusCode());
+                mockMessageContext).getStatus(), Response.Status.UNAUTHORIZED.getStatusCode());
     }
 
     @Test
@@ -136,6 +136,6 @@ public class ResourceRegistrationApiServiceImplTest extends PowerMockTestCase {
         when(mockAuthenticationContext.getParameter(anyString())).thenReturn(tokenScopes);
         when(resourceService.getResourceById("232e7415-3bcb-4ef9-9527-ac4dacc6aa83")).thenReturn(resource);
         assertEquals(resourcesApiService.getResource("232e7415-3bcb-4ef9-9527-ac4dacc6aa83",
-                mockMessageContext).getStatus(), Response.Status.OK.getStatusCode());
+                mockMessageContext).getStatus(), Response.Status.UNAUTHORIZED.getStatusCode());
     }
 }

@@ -27,7 +27,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
     <artifactId>identity-oauth-uma</artifactId>
-    <version>1.0.18-SNAPSHOT</version>
+    <version>1.0.24-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>UMA 2.0</name>
 
@@ -170,10 +170,10 @@
                         <phase>validate</phase>
                         <configuration>
                             <configLocation>
-                                https://raw.githubusercontent.com/wso2/code-quality-tools/master/checkstyle/checkstyle.xml
+                                https://raw.githubusercontent.com/wso2/code-quality-tools/v1.2/checkstyle/checkstyle.xml
                             </configLocation>
                             <suppressionsLocation>
-                                https://raw.githubusercontent.com/wso2/code-quality-tools/master/checkstyle/suppressions.xml
+                                https://raw.githubusercontent.com/wso2/code-quality-tools/v1.2/checkstyle/suppressions.xml
                             </suppressionsLocation>
                             <encoding>UTF-8</encoding>
                             <consoleOutput>true</consoleOutput>
@@ -474,7 +474,7 @@
         </org.wso2.carbon.identity.auth.service.version>
 
         <!-- Identity Inbound Auth OAuth Version-->
-        <org.wso2.carbon.identity.oauth.version>6.0.0</org.wso2.carbon.identity.oauth.version>
+        <org.wso2.carbon.identity.oauth.version>6.0.89</org.wso2.carbon.identity.oauth.version>
         <org.wso2.carbon.identity.oauth.import.version.range>[6.0.0, 7.0.0)</org.wso2.carbon.identity.oauth.import.version.range>
 
         <carbon.database.utils.version>2.0.7</carbon.database.utils.version>

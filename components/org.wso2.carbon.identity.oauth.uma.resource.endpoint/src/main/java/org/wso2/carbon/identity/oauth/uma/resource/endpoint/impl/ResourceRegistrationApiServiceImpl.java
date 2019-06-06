@@ -115,7 +115,7 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
     public Response getResource(String resourceId, MessageContext context) {
 
         try {
-            if (isValidTokenScope(context)) {
+            if (isValidTokenScope(context) && isResourceOwner(resourceId, context)) {
                 Resource resourceRegistration = ResourceUtils.getResourceService().getResourceById
                         (resourceId);
                 ReadResourceDTO readResourceDTO = ResourceUtils.readResponse(resourceRegistration);
@@ -172,7 +172,8 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
     public Response updateResource(String resourceId, ResourceDetailsDTO updatedResource, MessageContext context) {
 
         try {
-            if (isValidTokenScope(context) && isResourceIdExists(resourceId)) {
+            if (isValidTokenScope(context) && isResourceIdExists(resourceId) && isResourceOwner(resourceId,
+                    context)) {
                 if (updatedResource.getResource_Scopes().isEmpty()) {
                     if (log.isDebugEnabled()) {
                         log.debug("Cannot update resource: " + resourceId + "as resource scopes are not provided");
@@ -205,7 +206,8 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
     public Response deleteResource(String resourceId, MessageContext context) {
 
         try {
-            if (isValidTokenScope(context) && isResourceIdExists(resourceId)) {
+            if (isValidTokenScope(context) && isResourceIdExists(resourceId) && isResourceOwner(resourceId,
+                    context)) {
                 if (ResourceUtils.getResourceService().deleteResource(resourceId)) {
                     return Response.status(Response.Status.NO_CONTENT).build();
                 }
@@ -353,5 +355,36 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
 
         return new URI(RESOURCE_PATH + "/" + response.getResourceId());
 
+    }
+
+    /**
+     * Check whether the resource belongs to the authenticated user.
+     *
+     * @param resourceId resource ID of the resource.
+     * @param context    message context.
+     * @return true if the resourceId belongs to the authenticated user.
+     */
+    private boolean isResourceOwner(String resourceId, MessageContext context) {
+
+        String consumerKey = getConsumerKey(context);
+        String userNameWithDomain = getUserNameWithDomain(context);
+        String userDomain = null;
+        String userName = null;
+        if (userNameWithDomain != null) {
+            userName = UserCoreUtil.removeDomainFromName(userNameWithDomain);
+            userDomain = IdentityUtil.extractDomainFromName(userNameWithDomain);
+        }
+
+        try {
+            if (userName != null && consumerKey != null) {
+                return ResourceUtils.getResourceService()
+                        .isResourceOwner(resourceId, userName, userDomain, consumerKey);
+            }
+        } catch (UMAException e) {
+            handleErrorResponse(
+                    "Error when checking whether the resource id:" + resourceId + " belongs to user: " + userName
+                            + ", userDomain: " + userDomain + " and client ID: " + consumerKey, e);
+        }
+        return false;
     }
 }
