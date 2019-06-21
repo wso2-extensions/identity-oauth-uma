@@ -420,7 +420,7 @@
 
         <!-- UMA Version-->
         <identity.oauth.uma.exp.pkg.version>${project.version}</identity.oauth.uma.exp.pkg.version>
-        <identity.oauth.uma.imp.pkg.version.range>[1.0.0,2.0.0)</identity.oauth.uma.imp.pkg.version.range>
+        <identity.oauth.uma.imp.pkg.version.range>[1.1.0,2.0.0)</identity.oauth.uma.imp.pkg.version.range>
 
         <!--Swagger Dependency Version-->
         <jackson.version>1.8.6</jackson.version>
@@ -442,13 +442,13 @@
         <cxf-bundle.wso2.version>2.7.16.wso2v1</cxf-bundle.wso2.version>
 
         <!-- Carbon Identity Framework version -->
-        <carbon.identity.framework.version>5.12.106</carbon.identity.framework.version>
-        <carbon.identity.framework.imp.pkg.version.range>[5.0.0, 6.0.0)
+        <carbon.identity.framework.version>5.13.4</carbon.identity.framework.version>
+        <carbon.identity.framework.imp.pkg.version.range>[5.13.0, 6.0.0)
         </carbon.identity.framework.imp.pkg.version.range>
 
         <!-- Carbon kernel version -->
         <carbon.kernel.version>4.4.16</carbon.kernel.version>
-        <carbon.kernel.imp.pkg.version.range>[4.4.0, 5.0.0)</carbon.kernel.imp.pkg.version.range>
+        <carbon.kernel.imp.pkg.version.range>[4.5.0, 5.0.0)</carbon.kernel.imp.pkg.version.range>
 
         <!-- OSGi/Equinox dependency version -->
         <osgi.service.component.imp.pkg.version.range>[1.2.0, 2.0.0)</osgi.service.component.imp.pkg.version.range>
@@ -474,8 +474,8 @@
         </org.wso2.carbon.identity.auth.service.version>
 
         <!-- Identity Inbound Auth OAuth Version-->
-        <org.wso2.carbon.identity.oauth.version>6.0.89</org.wso2.carbon.identity.oauth.version>
-        <org.wso2.carbon.identity.oauth.import.version.range>[6.0.0, 7.0.0)</org.wso2.carbon.identity.oauth.import.version.range>
+        <org.wso2.carbon.identity.oauth.version>6.1.0</org.wso2.carbon.identity.oauth.version>
+        <org.wso2.carbon.identity.oauth.import.version.range>[6.1.0, 7.0.0)</org.wso2.carbon.identity.oauth.import.version.range>
 
         <carbon.database.utils.version>2.0.7</carbon.database.utils.version>
 
