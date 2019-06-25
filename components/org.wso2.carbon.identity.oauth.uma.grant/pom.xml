@@ -87,8 +87,8 @@
                             org.apache.commons.lang.*,
                             org.apache.oltu.oauth2.common.validators.*,
 
-                            com.nimbusds.jose.*,
-                            com.nimbusds.jwt.*,
+                            com.nimbusds.jose.*; version="${nimbusds.osgi.version.range}",
+                            com.nimbusds.jwt.*; version="${nimbusds.osgi.version.range}",
 
                             org.wso2.carbon.identity.core.util.*;version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework.model.*,
