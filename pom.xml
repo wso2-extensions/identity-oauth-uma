@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2</groupId>
         <artifactId>wso2</artifactId>
-        <version>1</version>
+        <version>1.2</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -124,19 +124,6 @@
             <plugins>
                 <plugin>
                     <groupId>org.apache.felix</groupId>
-                    <artifactId>maven-scr-plugin</artifactId>
-                    <version>${maven.scr.plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <id>generate-scr-scr-descriptor</id>
-                            <goals>
-                                <goal>scr</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.felix</groupId>
                     <artifactId>maven-bundle-plugin</artifactId>
                     <version>${maven.bundle.plugin.version}</version>
                     <extensions>true</extensions>
@@ -183,6 +170,25 @@
                         <goals>
                             <goal>check</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <!--This parameter disables doclint-->
+                            <doclint>none</doclint>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -420,7 +426,7 @@
 
         <!-- UMA Version-->
         <identity.oauth.uma.exp.pkg.version>${project.version}</identity.oauth.uma.exp.pkg.version>
-        <identity.oauth.uma.imp.pkg.version.range>[1.1.0,2.0.0)</identity.oauth.uma.imp.pkg.version.range>
+        <identity.oauth.uma.imp.pkg.version.range>[1.2.0,2.0.0)</identity.oauth.uma.imp.pkg.version.range>
 
         <!--Swagger Dependency Version-->
         <jackson.version>1.8.6</jackson.version>
@@ -442,12 +448,12 @@
         <cxf-bundle.wso2.version>2.7.16.wso2v1</cxf-bundle.wso2.version>
 
         <!-- Carbon Identity Framework version -->
-        <carbon.identity.framework.version>5.13.4</carbon.identity.framework.version>
-        <carbon.identity.framework.imp.pkg.version.range>[5.13.0, 6.0.0)
+        <carbon.identity.framework.version>5.14.0</carbon.identity.framework.version>
+        <carbon.identity.framework.imp.pkg.version.range>[5.14.0, 6.0.0)
         </carbon.identity.framework.imp.pkg.version.range>
 
         <!-- Carbon kernel version -->
-        <carbon.kernel.version>4.4.16</carbon.kernel.version>
+        <carbon.kernel.version>4.5.0-m3</carbon.kernel.version>
         <carbon.kernel.imp.pkg.version.range>[4.5.0, 5.0.0)</carbon.kernel.imp.pkg.version.range>
 
         <!-- OSGi/Equinox dependency version -->
@@ -456,8 +462,7 @@
         <apache.felix.scr.ds.annotations.version>1.2.4</apache.felix.scr.ds.annotations.version>
 
         <!--Maven Plugin Version-->
-        <maven.scr.plugin.version>1.20.0</maven.scr.plugin.version>
-        <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
+        <maven.bundle.plugin.version>3.2.0</maven.bundle.plugin.version>
         <maven.compiler.plugin.version>2.3.1</maven.compiler.plugin.version>
         <carbon.p2.plugin.version>1.5.3</carbon.p2.plugin.version>
 
@@ -474,8 +479,8 @@
         </org.wso2.carbon.identity.auth.service.version>
 
         <!-- Identity Inbound Auth OAuth Version-->
-        <org.wso2.carbon.identity.oauth.version>6.1.0</org.wso2.carbon.identity.oauth.version>
-        <org.wso2.carbon.identity.oauth.import.version.range>[6.1.0, 7.0.0)</org.wso2.carbon.identity.oauth.import.version.range>
+        <org.wso2.carbon.identity.oauth.version>6.2.0</org.wso2.carbon.identity.oauth.version>
+        <org.wso2.carbon.identity.oauth.import.version.range>[6.2.0, 7.0.0)</org.wso2.carbon.identity.oauth.import.version.range>
 
         <carbon.database.utils.version>2.0.7</carbon.database.utils.version>
 
