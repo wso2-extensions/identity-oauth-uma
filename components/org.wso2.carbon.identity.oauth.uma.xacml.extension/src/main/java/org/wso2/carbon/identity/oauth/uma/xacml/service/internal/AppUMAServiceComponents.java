@@ -29,7 +29,7 @@ import org.wso2.carbon.identity.entitlement.EntitlementService;
 /**
 * Service component for UMA xacml component.
 */
-@Component(name = "org.wso2.carbon.identity.oauth.uma.resource.service.internal.RegisterServiceComponent",
+@Component(name = "org.wso2.carbon.identity.oauth.uma.xacml.service.internal.AppUMAServiceComponents",
         immediate = true)
 public class AppUMAServiceComponents {
 
