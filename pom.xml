@@ -426,7 +426,7 @@
 
         <!-- UMA Version-->
         <identity.oauth.uma.exp.pkg.version>${project.version}</identity.oauth.uma.exp.pkg.version>
-        <identity.oauth.uma.imp.pkg.version.range>[1.2.0,2.0.0)</identity.oauth.uma.imp.pkg.version.range>
+        <identity.oauth.uma.imp.pkg.version.range>[1.1.0,2.0.0)</identity.oauth.uma.imp.pkg.version.range>
 
         <!--Swagger Dependency Version-->
         <jackson.version>1.8.6</jackson.version>
