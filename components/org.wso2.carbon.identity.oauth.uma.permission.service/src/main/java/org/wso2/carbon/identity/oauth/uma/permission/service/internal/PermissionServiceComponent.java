@@ -35,7 +35,7 @@ import org.wso2.carbon.identity.oauth2.IntrospectionDataProvider;
            immediate = true)
 public class PermissionServiceComponent {
 
-    private static Log log = LogFactory.getLog(PermissionServiceComponent.class);
+    private static final Log log = LogFactory.getLog(PermissionServiceComponent.class);
 
     @Activate
     protected void activate(BundleContext bundleContext) {

@@ -41,7 +41,7 @@ public class UMAIntrospectionDataProvider extends AbstractIdentityHandler implem
     private static final String RESOURCE_ID = "resource_id";
     private static final String RESOURCE_SCOPE = "resource_scopes";
     private static final String PERMISSIONS = "permissions";
-    private static Log log = LogFactory.getLog(UMAIntrospectionDataProvider.class);
+    private static final Log log = LogFactory.getLog(UMAIntrospectionDataProvider.class);
 
 
     public UMAIntrospectionDataProvider(PermissionService permissionService) {

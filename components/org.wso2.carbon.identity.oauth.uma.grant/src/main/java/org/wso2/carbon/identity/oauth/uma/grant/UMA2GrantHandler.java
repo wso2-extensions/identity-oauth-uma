@@ -57,7 +57,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class UMA2GrantHandler extends AbstractAuthorizationGrantHandler {
 
-    private static Log log = LogFactory.getLog(UMA2GrantHandler.class);
+    private static final Log log = LogFactory.getLog(UMA2GrantHandler.class);
     private Map<Integer, Key> privateKeys = new ConcurrentHashMap<>();
 
     @Override
