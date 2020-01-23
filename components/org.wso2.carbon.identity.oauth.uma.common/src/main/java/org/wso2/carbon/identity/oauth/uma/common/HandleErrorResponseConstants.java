@@ -28,13 +28,16 @@ import java.util.Map;
  */
 public final class HandleErrorResponseConstants {
 
-    public static final Map<String, String[]> RESPONSE_DATA_MAP = new HashMap<String, String[]>() {
-        {
-            put("60001", new String[]{"404", "not_found"});
-            put("60002", new String[]{"400", "invalid_request"});
-            put("60003", new String[]{"409", "conflict"});
-            put("60004", new String[]{"400", "invalid_resource_id"});
-            put("60005", new String[]{"400", "invalid_scope"});
-        }
-    };
+    public static final Map<String, String[]> RESPONSE_DATA_MAP = new HashMap<>();
+
+    static {
+
+        RESPONSE_DATA_MAP.put("60001", new String[]{"404", "not_found"});
+        RESPONSE_DATA_MAP.put("60002", new String[]{"400", "invalid_request"});
+        RESPONSE_DATA_MAP.put("60003", new String[]{"409", "conflict"});
+        RESPONSE_DATA_MAP.put("60004", new String[]{"400", "invalid_resource_id"});
+        RESPONSE_DATA_MAP.put("60005", new String[]{"400", "invalid_scope"});
+        RESPONSE_DATA_MAP.put("60017", new String[]{"400", "invalid_grant"});
+    }
+
 }
