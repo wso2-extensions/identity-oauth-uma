@@ -28,6 +28,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.oauth.uma.common.exception.UMAClientException;
@@ -106,10 +107,19 @@ public class UMA2GrantHandler extends AbstractAuthorizationGrantHandler {
             throw new IdentityOAuth2Exception("Empty id-token.");
         }
 
-        String subject = getSubjectFromIDToken(idToken, tokReqMsgCtx.getOauth2AccessTokenReqDTO().getTenantDomain());
+        String applicationTenantDomain = tokReqMsgCtx.getOauth2AccessTokenReqDTO().getTenantDomain();
+        String subject = getSubjectFromIDToken(idToken, applicationTenantDomain);
+        boolean isValidTicket;
 
-        // Validate the permission ticket against the subject.
-        if (validatePermissionTicket(permissionTicket, subject)) {
+        FrameworkUtils.startTenantFlow(applicationTenantDomain);
+        try {
+            // Validate the permission ticket against the subject.
+            isValidTicket = validatePermissionTicket(permissionTicket, subject);
+        } finally {
+            FrameworkUtils.endTenantFlow();
+        }
+
+        if (isValidTicket) {
             AuthenticatedUser authenticatedUser = new AuthenticatedUser();
             authenticatedUser.setUserName(subject);
             tokReqMsgCtx.setAuthorizedUser(authenticatedUser);
