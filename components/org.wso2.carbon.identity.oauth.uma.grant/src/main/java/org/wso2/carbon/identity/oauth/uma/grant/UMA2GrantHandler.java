@@ -122,6 +122,7 @@ public class UMA2GrantHandler extends AbstractAuthorizationGrantHandler {
         if (isValidTicket) {
             AuthenticatedUser authenticatedUser = new AuthenticatedUser();
             authenticatedUser.setUserName(subject);
+            authenticatedUser.setTenantDomain(applicationTenantDomain);
             tokReqMsgCtx.setAuthorizedUser(authenticatedUser);
             tokReqMsgCtx.setScope(tokReqMsgCtx.getOauth2AccessTokenReqDTO().getScope());
             return true;
