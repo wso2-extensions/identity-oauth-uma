@@ -204,7 +204,7 @@ public class ResourceDAO {
             if (log.isDebugEnabled()) {
                 log.debug("Successfully deleted resource description for resource id: " + resourceId);
             }
-        } catch (DataAccessException e) {
+        } catch (DataAccessException | TransactionException e) {
             throw new UMAServerException(UMAConstants.ErrorMessages
                     .ERROR_INTERNAL_SERVER_ERROR_FAILED_TO_DELETE_RESOURCE, e);
         }
@@ -273,12 +273,16 @@ public class ResourceDAO {
 
     }
 
-    private static void deleteResourceData(int id) throws UMAServerException, DataAccessException {
+    private static void deleteResourceData(int id) throws UMAServerException, DataAccessException,
+            TransactionException {
 
         NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedTemplate();
-        namedJdbcTemplate.executeUpdate(SQLQueries.DELETE_RESOURCE, namedPreparedStatement ->
-                namedPreparedStatement.setInt(UMAConstants.SQLPlaceholders.ID, id));
 
+        namedJdbcTemplate.withTransaction(namedTemplate -> {
+            namedTemplate.executeUpdate(SQLQueries.DELETE_RESOURCE, namedPreparedStatement ->
+                    namedPreparedStatement.setInt(UMAConstants.SQLPlaceholders.ID, id));
+            return null;
+        });
     }
 
     private static void updateResourceDetails(int id, Resource resourceRegistration) throws
