@@ -27,7 +27,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
     <artifactId>identity-oauth-uma</artifactId>
-    <version>1.1.10-SNAPSHOT</version>
+    <version>1.1.10</version>
     <packaging>pom</packaging>
     <name>UMA 2.0</name>
 
@@ -35,7 +35,7 @@
         <url>https://github.com/wso2-extensions/identity-oauth-uma.git</url>
         <developerConnection>scm:git:https://github.com/wso2-extensions/identity-oauth-uma.git</developerConnection>
         <connection>scm:git:https://github.com/wso2-extensions/identity-oauth-uma.git</connection>
-        <tag>HEAD</tag>
+        <tag>v1.1.10</tag>
     </scm>
 
     <modules>
