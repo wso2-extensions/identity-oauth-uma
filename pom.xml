@@ -27,7 +27,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
     <artifactId>identity-oauth-uma</artifactId>
-    <version>1.1.12-SNAPSHOT</version>
+    <version>1.2.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>UMA 2.0</name>
 
@@ -453,7 +453,7 @@
         </carbon.identity.framework.imp.pkg.version.range>
 
         <!-- Carbon kernel version -->
-        <carbon.kernel.version>4.5.0</carbon.kernel.version>
+        <carbon.kernel.version>4.6.0</carbon.kernel.version>
         <carbon.kernel.imp.pkg.version.range>[4.5.0, 5.0.0)</carbon.kernel.imp.pkg.version.range>
 
         <!-- OSGi/Equinox dependency version -->
