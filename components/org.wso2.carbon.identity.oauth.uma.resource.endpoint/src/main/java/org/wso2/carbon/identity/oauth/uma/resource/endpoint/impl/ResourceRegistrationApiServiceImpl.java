@@ -176,7 +176,7 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
                     context)) {
                 if (updatedResource.getResource_Scopes().isEmpty()) {
                     if (log.isDebugEnabled()) {
-                        log.debug("Cannot update resource: " + resourceId + "as resource scopes are not provided");
+                        log.debug("Cannot update resource: " + resourceId + " as resource scopes are not provided.");
                     }
                     return Response.status(Response.Status.BAD_REQUEST).entity(getErrorDTO("invalid_request",
                             "Resource scopes are missing")).build();

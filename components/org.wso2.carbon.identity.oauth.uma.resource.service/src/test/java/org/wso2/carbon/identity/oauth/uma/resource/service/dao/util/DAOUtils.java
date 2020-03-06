@@ -30,6 +30,9 @@ import java.util.Map;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.spy;
 
+/**
+ * Database utils.
+ */
 public class DAOUtils {
 
     private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();

@@ -140,7 +140,7 @@ public class PermissionApiServiceImpl extends PermissionApiService {
     }
 
     /**
-     * Retrieve resource owner name with user domain
+     * Retrieve resource owner name with user domain.
      *
      * @param context message context
      */

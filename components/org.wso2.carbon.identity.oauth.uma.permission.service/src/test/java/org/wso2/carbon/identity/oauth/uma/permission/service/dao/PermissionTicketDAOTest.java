@@ -58,14 +58,14 @@ public class PermissionTicketDAOTest extends PowerMockTestCase {
     public void setUp() throws Exception {
 
         DAOTestUtils.initiateH2Base(DB_NAME, DAOTestUtils.getFilePath("permission.sql"));
-        DAOTestUtils.createResourceTable(DB_NAME, 1, "1", "photo01", createdTime,
+        DAOTestUtils.storeResourceTable(DB_NAME, 1, "1", "photo01", createdTime,
                 TestConstants.RESOURCE_OWNER_NAME, TestConstants.CLIENT_ID, TestConstants.TENANT_ID,
                 TestConstants.USER_DOMAIN);
-        DAOTestUtils.createResourceScopeTable(DB_NAME, 1, 1, "scope01");
-        DAOTestUtils.createPTTable(DB_NAME, 1, "12345", createdTime, expiredTime, TestConstants.TICKET_STATE,
+        DAOTestUtils.storeResourceScopes(DB_NAME, 1, 1, "scope01");
+        DAOTestUtils.storePT(DB_NAME, 1, "12345", createdTime, expiredTime, TestConstants.TICKET_STATE,
                 TestConstants.TENANT_ID);
-        DAOTestUtils.createPTResourceTable(DB_NAME, 1, 1, 1);
-        DAOTestUtils.createPTResourceScopeTable(DB_NAME, 1, 1, 1);
+        DAOTestUtils.storePTResources(DB_NAME, 1, 1, 1);
+        DAOTestUtils.storePTResourceScopes(DB_NAME, 1, 1, 1);
     }
 
     @AfterClass

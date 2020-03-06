@@ -49,6 +49,13 @@ public class DAOTestUtils {
     private static final String STORE_PT_RESOURCE_SCOPES_QUERY = "INSERT INTO IDN_UMA_PT_RESOURCE_SCOPE " +
             "(ID, PT_RESOURCE_ID, PT_SCOPE_ID) VALUES (?, ?, ?)";
 
+    /**
+     * Create H2 database.
+     *
+     * @param databaseName Database name.
+     * @param scriptPath   File path for the database script.
+     * @throws Exception   Exception.
+     */
     public static void initiateH2Base(String databaseName, String scriptPath) throws Exception {
 
         BasicDataSource dataSource = new BasicDataSource();
@@ -62,6 +69,12 @@ public class DAOTestUtils {
         dataSourceMap.put(databaseName, dataSource);
     }
 
+    /**
+     * Close H2 database connection.
+     *
+     * @param databaseName Database name.
+     * @throws Exception   Exception.
+     */
     public static void closeH2Base(String databaseName) throws Exception {
 
         BasicDataSource dataSource = dataSourceMap.get(databaseName);
@@ -70,6 +83,13 @@ public class DAOTestUtils {
         }
     }
 
+    /**
+     * Obtain the database connection.
+     *
+     * @param database Database name.
+     * @return database connection.
+     * @throws SQLException SQLException.
+     */
     public static Connection getConnection(String database) throws SQLException {
 
         if (dataSourceMap.get(database) != null) {
@@ -78,6 +98,13 @@ public class DAOTestUtils {
         throw new RuntimeException("No datasource initiated for database: " + database);
     }
 
+    /**
+     * Spy the database connection for unit testing.
+     *
+     * @param connection Database connection.
+     * @return spy connection object.
+     * @throws SQLException SQLException.
+     */
     public static Connection spyConnection(Connection connection) throws SQLException {
 
         Connection spy = spy(connection);
@@ -85,6 +112,12 @@ public class DAOTestUtils {
         return spy;
     }
 
+    /**
+     * Get file path for the database scripts.
+     *
+     * @param fileName Database script file name.
+     * @return file path.
+     */
     public static String getFilePath(String fileName) {
 
         if (StringUtils.isNotBlank(fileName)) {
@@ -94,6 +127,12 @@ public class DAOTestUtils {
         throw new IllegalArgumentException("DB Script file name cannot be empty.");
     }
 
+    /**
+     * Get datasource initiated for database.
+     *
+     * @param datasourceName Datasource name.
+     * @return Datasource.
+     */
     public static BasicDataSource getDatasource(String datasourceName) {
 
         if (dataSourceMap.get(datasourceName) != null) {
@@ -102,8 +141,20 @@ public class DAOTestUtils {
         throw new RuntimeException("No datasource initiated for database: " + datasourceName);
     }
 
-    public static void createPTTable(String databaseName, long id, String pt, Timestamp createdTime,
-                                     Timestamp expiredTime, String state, int tenantId) throws Exception {
+    /**
+     * Store the permission ticket in database.
+     *
+     * @param databaseName Database name.
+     * @param id           Permission ticket auto incremented id.
+     * @param pt           Permission ticket identifier.
+     * @param createdTime  Permission ticket creation time.
+     * @param expiredTime  Permission ticket expiry time.
+     * @param state        Current state of the permission ticket.
+     * @param tenantId     Tenant ID.
+     * @throws Exception   Exception.
+     */
+    public static void storePT(String databaseName, long id, String pt, Timestamp createdTime,
+                               Timestamp expiredTime, String state, int tenantId) throws Exception {
 
         PreparedStatement preparedStatement = null;
         try (Connection connection = getConnection(databaseName)) {
@@ -122,7 +173,16 @@ public class DAOTestUtils {
         }
     }
 
-    public static void createPTResourceTable(String databaseName, long id, long ptResourceId, long ptId) throws
+    /**
+     * Store resources represented by the permission ticket.
+     *
+     * @param databaseName Database name.
+     * @param id           Auto incremented id for the entry.
+     * @param ptResourceId Resource ID.
+     * @param ptId         Permission ticket ID.
+     * @throws Exception   Exception.
+     */
+    public static void storePTResources(String databaseName, long id, long ptResourceId, long ptId) throws
             Exception {
 
         PreparedStatement preparedStatement = null;
@@ -139,7 +199,16 @@ public class DAOTestUtils {
         }
     }
 
-    public static void createPTResourceScopeTable(String databaseName, long id, long ptResourceId, long scopeId) throws
+    /**
+     * Store resource scopes of the resources represented by the permission ticket.
+     *
+     * @param databaseName Database name.
+     * @param id           Auto incremented id for the entry.
+     * @param ptResourceId Resource ID.
+     * @param scopeId      Resource scope ID.
+     * @throws Exception Exception.
+     */
+    public static void storePTResourceScopes(String databaseName, long id, long ptResourceId, long scopeId) throws
             Exception {
 
         PreparedStatement preparedStatement = null;
@@ -156,9 +225,23 @@ public class DAOTestUtils {
         }
     }
 
-    public static void createResourceTable(String databaseName, long id, String resourceId, String resourceName,
-                                           Timestamp timecreated, String resourceOwnerName, String clientId,
-                                           long tenantId, String userDomain) throws Exception {
+    /**
+     * Store UMA protected resource.
+     *
+     * @param databaseName      Database name.
+     * @param id                Auto incremented id for the entry.
+     * @param resourceId        Resource identifier.
+     * @param resourceName      Resource name.
+     * @param timecreated       Resource registration time.
+     * @param resourceOwnerName Resource owner name.
+     * @param clientId          Client ID of the resource server.
+     * @param tenantId          Tenant ID.
+     * @param userDomain        Userstore domain.
+     * @throws Exception Exception.
+     */
+    public static void storeResourceTable(String databaseName, long id, String resourceId, String resourceName,
+                                          Timestamp timecreated, String resourceOwnerName, String clientId,
+                                          long tenantId, String userDomain) throws Exception {
 
         PreparedStatement preparedStatement = null;
         try (Connection connection = getConnection(databaseName)) {
@@ -179,7 +262,16 @@ public class DAOTestUtils {
         }
     }
 
-    public static void createResourceScopeTable(String databaseName, long id, long resourceIdentity, String scopeName)
+    /**
+     * Store resource scopes for the protected resource.
+     *
+     * @param databaseName     Database name.
+     * @param id               Auto incremented id for the entry.
+     * @param resourceIdentity Resource identifier.
+     * @param scopeName        Resource scope name.
+     * @throws Exception Exception.
+     */
+    public static void storeResourceScopes(String databaseName, long id, long resourceIdentity, String scopeName)
             throws Exception {
 
         PreparedStatement preparedStatement = null;

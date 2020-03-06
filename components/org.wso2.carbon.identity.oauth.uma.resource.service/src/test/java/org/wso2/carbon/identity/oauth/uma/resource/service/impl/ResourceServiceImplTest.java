@@ -33,6 +33,10 @@ import static org.testng.Assert.assertNull;
 public class ResourceServiceImplTest {
 
     private static final String RESOURCE_ID = "123454-62552-31456";
+    private static final String RESOURCE_OWNER_NAME = "admin";
+    private static final int TENANT_ID = -1234;
+    private static final String CLIENT_ID = "1234";
+    private static final String USERSTORE_DOMAIN = "primary";
     private static Resource resource = new Resource();
 
     @InjectMocks
@@ -54,16 +58,15 @@ public class ResourceServiceImplTest {
     public void testRegisterResource() throws Exception {
 
         mockStatic(ResourceDAO.class);
-        assertNull(resourceService.registerResource(resource, "admin", -1234,
-                "1234", "primary"));
+        assertNull(resourceService.registerResource(resource, RESOURCE_OWNER_NAME, TENANT_ID, CLIENT_ID,
+                USERSTORE_DOMAIN));
     }
 
     @Test
     public void testGetResourceIds() throws Exception {
 
         mockStatic(ResourceDAO.class);
-        assertNotNull(resourceService.getResourceIds("admin", "primary",
-                "1234"));
+        assertNotNull(resourceService.getResourceIds(RESOURCE_OWNER_NAME, USERSTORE_DOMAIN, CLIENT_ID));
     }
 
     @Test
