@@ -30,6 +30,18 @@ import java.util.List;
  */
 public interface PermissionService {
 
+    /**
+     * Issues the permission ticket that represents the same permissions that the resource server requested.
+     *
+     * @param resourceList      Requested list of resources.
+     * @param tenantId          Tenant ID.
+     * @param resourceOwnerName Name of the resource owner.
+     * @param clientId          Client id representing the resource server.
+     * @param userDomain        User store domain of the resource owner.
+     * @return Permission ticket.
+     * @throws UMAClientException Client side related error.
+     * @throws UMAServerException Server side related error.
+     */
     PermissionTicketModel issuePermissionTicket(List<Resource> resourceList, int tenantId, String resourceOwnerName,
                                                 String clientId, String userDomain)
             throws UMAClientException, UMAServerException;

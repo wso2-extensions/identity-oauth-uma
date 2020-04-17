@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.oauth.uma.permission.service;
 
+/**
+ * This class contains test constants for UMA permission service unit tests.
+ */
 public class TestConstants {
 
     public static final String USER_DOMAIN = "PRIMARY";

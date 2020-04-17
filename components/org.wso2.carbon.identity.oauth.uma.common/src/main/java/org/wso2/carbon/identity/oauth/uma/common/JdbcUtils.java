@@ -27,6 +27,11 @@ import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
  */
 public class JdbcUtils {
 
+    /**
+     * Get new jdbc template which supports the use of named prepared statements.
+     *
+     * @return NamedJdbcTemplate.
+     */
     public static NamedJdbcTemplate getNewNamedTemplate() {
 
         return new NamedJdbcTemplate(JDBCPersistenceManager.getInstance().getDataSource());

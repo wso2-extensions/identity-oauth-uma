@@ -28,20 +28,78 @@ import java.util.List;
 
 public interface ResourceService {
 
+    /**
+     * Delete registered resource.
+     *
+     * @param resourceId Resource ID.
+     * @return True if deleting resource is successful.
+     * @throws UMAServerException Server side related error.
+     * @throws UMAClientException Client side related error.
+     */
     boolean deleteResource(String resourceId) throws UMAServerException, UMAClientException;
 
+    /**
+     * Get registered resource IDs.
+     *
+     * @param resourceOwnerName Resource owner username.
+     * @param userDomain        User store domain.
+     * @param consumerKey       Client ID of the resource server.
+     * @return List of resource IDs.
+     * @throws UMAServerException Server side related error.
+     * @throws UMAClientException Client side related error.
+     */
     List<String> getResourceIds(String resourceOwnerName, String userDomain, String consumerKey) throws
             UMAServerException, UMAClientException;
 
+    /**
+     * Register resource as an UMA protected resource.
+     *
+     * @param resourceRegistration Resource to be registered.
+     * @param resourceOwnerName    Resource owner username.
+     * @param tenantId             Tenant ID.
+     * @param consumerKey          Client ID of the resource server.
+     * @param userDomain           User store domain.
+     * @return Registered resource.
+     * @throws UMAServerException Server side related error.
+     * @throws UMAClientException Client side related error.
+     */
     Resource registerResource(Resource resourceRegistration, String resourceOwnerName, int tenantId,
                               String consumerKey, String userDomain) throws UMAServerException, UMAClientException;
 
+    /**
+     * Get registered resource by ID.
+     *
+     * @param resourceId Resource ID.
+     * @return Resource.
+     * @throws UMAServerException Server side related error.
+     * @throws UMAClientException Client side related error.
+     */
     Resource getResourceById(String resourceId)
             throws UMAServerException, UMAClientException;
 
+    /**
+     * Update registered resource.
+     *
+     * @param resourceId           Resource ID.
+     * @param resourceRegistration Resource to be updated.
+     * @return True if updating resource is successful.
+     * @throws UMAServerException Server side related error.
+     * @throws UMAClientException Client side related error.
+     */
     boolean updateResource(String resourceId, Resource resourceRegistration)
             throws UMAServerException, UMAClientException;
 
+    /**
+     * Check if the user is a resource owner.
+     *
+     * @param resourceId  Resource ID.
+     * @param userName    Username.
+     * @param userDomain  User store domain.
+     * @param consumerKey Client ID of the resource server.
+     * @return True if the user is the resource owner.
+     * @throws UMAServerException Server side related error.
+     * @throws UMAClientException Client side related error.
+     */
     boolean isResourceOwner(String resourceId, String userName, String userDomain, String consumerKey)
             throws UMAServerException, UMAClientException;
 }

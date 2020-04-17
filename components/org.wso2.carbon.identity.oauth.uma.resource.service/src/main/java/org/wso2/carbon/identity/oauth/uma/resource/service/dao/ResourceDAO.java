@@ -43,6 +43,8 @@ import java.util.TimeZone;
 public class ResourceDAO {
 
     private static final String ICON_URI = "icon_uri";
+    private static final String PROPERTY_KEY = "PROPERTY_KEY";
+    private static final String PROPERTY_VALUE = "PROPERTY_VALUE";
     private static final String DESCRIPTION = "description";
     private static final String TYPE = "type";
     private static final String UTC = "UTC";
@@ -130,16 +132,14 @@ public class ResourceDAO {
             resource.setScopes(scopes);
 
             namedJdbcTemplate.executeQuery(SQLQueries.GET_RESOURCE_META_DATA, (resultSet, rowNumber) -> {
-                        if (resultSet.getString("PROPERTY_KEY").equals(ICON_URI)) {
-                            resource.setIconUri(resultSet.getString(
-                                    "PROPERTY_VALUE"));
+                        if (resultSet.getString(PROPERTY_KEY).equals(ICON_URI)) {
+                            resource.setIconUri(resultSet.getString(PROPERTY_VALUE));
                         }
-                        if (resultSet.getString("PROPERTY_KEY").equals(TYPE)) {
-                            resource.setType(resultSet.getString("PROPERTY_VALUE"));
+                        if (resultSet.getString(PROPERTY_KEY).equals(TYPE)) {
+                            resource.setType(resultSet.getString(PROPERTY_VALUE));
                         }
-                        if (resultSet.getString("PROPERTY_KEY").equals(DESCRIPTION)) {
-                            resource.setDescription(resultSet.getString(
-                                    "PROPERTY_VALUE"));
+                        if (resultSet.getString(PROPERTY_KEY).equals(DESCRIPTION)) {
+                            resource.setDescription(resultSet.getString(PROPERTY_VALUE));
                         }
                         return null;
                     }, namedPreparedStatement -> namedPreparedStatement.setInt(UMAConstants.SQLPlaceholders.ID, id)

@@ -62,6 +62,8 @@ import static org.wso2.carbon.identity.oauth.uma.permission.endpoint.PermissionA
         UserCoreUtil.class})
 public class PermissionApiServiceImplTest extends PowerMockTestCase {
 
+    private static final String USERNAME_WITH_USERSTORE_DOMAIN = "PRIMARY/admin";
+    private static final String USERNAME = "admin";
     private PermissionApiServiceImpl permissionApiService;
     private ResourceModelDTO resourceModelDTO;
 
@@ -123,8 +125,8 @@ public class PermissionApiServiceImplTest extends PowerMockTestCase {
         String[] tokenScopes = new String[]{PAT_SCOPE};
         when(mockAuthenticationContext.getParameter(anyString())).thenReturn(tokenScopes);
         when(mockAuthenticationContext.getUser()).thenReturn(mockUser);
-        when(mockUser.getUserName()).thenReturn("PRIMARY/admin");
-        when(UserCoreUtil.removeDomainFromName(anyString())).thenReturn("admin");
+        when(mockUser.getUserName()).thenReturn(USERNAME_WITH_USERSTORE_DOMAIN);
+        when(UserCoreUtil.removeDomainFromName(anyString())).thenReturn(USERNAME);
         PermissionTicketModel permissionTicketModel = new PermissionTicketModel();
         when(mockPermissionService.issuePermissionTicket(anyList(), anyInt(), anyString(), anyString(), anyString())).
                 thenReturn(permissionTicketModel);
@@ -141,8 +143,8 @@ public class PermissionApiServiceImplTest extends PowerMockTestCase {
         String[] tokenScopes = new String[]{PAT_SCOPE};
         when(mockAuthenticationContext.getParameter(anyString())).thenReturn(tokenScopes);
         when(mockAuthenticationContext.getUser()).thenReturn(mockUser);
-        when(mockUser.getUserName()).thenReturn("PRIMARY/admin");
-        when(UserCoreUtil.removeDomainFromName(anyString())).thenReturn("admin");
+        when(mockUser.getUserName()).thenReturn(USERNAME_WITH_USERSTORE_DOMAIN);
+        when(UserCoreUtil.removeDomainFromName(anyString())).thenReturn(USERNAME);
         doThrow(new UMAServerException("Server")).when(mockPermissionService).issuePermissionTicket(anyList(),
                 anyInt(), anyString(), anyString(), anyString());
         try {
@@ -160,8 +162,8 @@ public class PermissionApiServiceImplTest extends PowerMockTestCase {
         String[] tokenScopes = new String[]{PAT_SCOPE};
         when(mockAuthenticationContext.getParameter(anyString())).thenReturn(tokenScopes);
         when(mockAuthenticationContext.getUser()).thenReturn(mockUser);
-        when(mockUser.getUserName()).thenReturn("PRIMARY/admin");
-        when(UserCoreUtil.removeDomainFromName(anyString())).thenReturn("admin");
+        when(mockUser.getUserName()).thenReturn(USERNAME_WITH_USERSTORE_DOMAIN);
+        when(UserCoreUtil.removeDomainFromName(anyString())).thenReturn(USERNAME);
         UMAClientException umaClientException = new UMAClientException(UMAConstants
                 .ErrorMessages.ERROR_BAD_REQUEST_INVALID_RESOURCE_ID);
         doThrow(umaClientException).when(mockPermissionService).issuePermissionTicket(anyList(), anyInt(),
@@ -194,8 +196,8 @@ public class PermissionApiServiceImplTest extends PowerMockTestCase {
         String[] tokenScopes = new String[]{PAT_SCOPE};
         when(mockAuthenticationContext.getParameter(anyString())).thenReturn(tokenScopes);
         when(mockAuthenticationContext.getUser()).thenReturn(mockUser);
-        when(mockUser.getUserName()).thenReturn("PRIMARY/admin");
-        when(UserCoreUtil.removeDomainFromName(anyString())).thenReturn("admin");
+        when(mockUser.getUserName()).thenReturn(USERNAME_WITH_USERSTORE_DOMAIN);
+        when(UserCoreUtil.removeDomainFromName(anyString())).thenReturn(USERNAME);
         ResourceModelDTO requestedPermission = null;
         assertEquals(permissionApiService.requestPermission(requestedPermission, mockMessageContext).getStatus(),
                 Response.Status.BAD_REQUEST.getStatusCode());
