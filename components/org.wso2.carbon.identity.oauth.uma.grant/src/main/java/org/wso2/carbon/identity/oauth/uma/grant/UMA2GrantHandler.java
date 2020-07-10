@@ -110,6 +110,7 @@ public class UMA2GrantHandler extends AbstractAuthorizationGrantHandler {
         }
 
         String applicationTenantDomain = tokReqMsgCtx.getOauth2AccessTokenReqDTO().getTenantDomain();
+        validateRequestTenantDomain(applicationTenantDomain, tokReqMsgCtx.getOauth2AccessTokenReqDTO().getClientId());
         String subject = getSubjectFromIDToken(idToken, applicationTenantDomain);
         boolean isValidTicket;
 
@@ -146,6 +147,8 @@ public class UMA2GrantHandler extends AbstractAuthorizationGrantHandler {
     @Override
     public OAuth2AccessTokenRespDTO issue(OAuthTokenReqMessageContext tokReqMsgCtx) throws IdentityOAuth2Exception {
 
+        validateRequestTenantDomain(tokReqMsgCtx.getOauth2AccessTokenReqDTO().getTenantDomain(), tokReqMsgCtx
+                .getOauth2AccessTokenReqDTO().getClientId());
         OAuth2AccessTokenRespDTO oAuth2AccessTokenRespDTO = super.issue(tokReqMsgCtx);
         String tokenId = oAuth2AccessTokenRespDTO.getTokenId();
 
@@ -363,5 +366,27 @@ public class UMA2GrantHandler extends AbstractAuthorizationGrantHandler {
             tenantDomain = subject.substring(subject.lastIndexOf("@") + 1);
         }
         return tenantDomain;
+    }
+
+    /**
+     * Validates whether the tenant domain set in context matches with the application's tenant domain in tenant
+     * qualified URL mode.
+     *
+     * @param tenantDomainOfApp Tenant domain of the application.
+     * @param consumerKey   Consumer key of oauth application.
+     * @throws IdentityOAuth2Exception
+     */
+    private void validateRequestTenantDomain(String tenantDomainOfApp, String consumerKey) throws
+            IdentityOAuth2Exception {
+
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            // In tenant qualified URL mode we would always have the tenant domain in the context.
+            String tenantDomainFromContext = IdentityTenantUtil.getTenantDomainFromContext();
+            if (!StringUtils.equals(tenantDomainFromContext, tenantDomainOfApp)) {
+                // This means the tenant domain sent in the request and app's tenant domain do not match.
+                throw new IdentityOAuth2Exception("A valid application cannot be found for the consumer key: '" +
+                        consumerKey + "' in tenant domain: " + tenantDomainFromContext);
+            }
+        }
     }
 }

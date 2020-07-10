@@ -24,6 +24,8 @@ import org.apache.cxf.common.util.CollectionUtils;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.auth.service.AuthenticationContext;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.oauth.uma.common.HandleErrorResponseConstants;
 import org.wso2.carbon.identity.oauth.uma.common.UMAConstants;
@@ -353,7 +355,13 @@ public class ResourceRegistrationApiServiceImpl extends ResourceRegistrationApiS
 
     private URI getResourceLocationURI(CreateResourceDTO response) throws URISyntaxException {
 
-        return new URI(RESOURCE_PATH + "/" + response.getResourceId());
+        try {
+            String locationUri = ServiceURLBuilder.create().addPath(UMAConstants.REGISTERED_RESOURCE_PATH, response
+                    .getResourceId()).build().getAbsolutePublicURL();
+            return new URI(locationUri);
+        } catch (URLBuilderException e) {
+            throw new RuntimeException("Error occurred while building the resource location URI.", e);
+        }
 
     }
 
