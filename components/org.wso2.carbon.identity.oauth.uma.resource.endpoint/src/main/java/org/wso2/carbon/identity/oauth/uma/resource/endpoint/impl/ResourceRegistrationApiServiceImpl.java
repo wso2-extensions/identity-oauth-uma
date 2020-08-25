@@ -48,8 +48,6 @@ import java.net.URISyntaxException;
 import java.util.List;
 import javax.ws.rs.core.Response;
 
-import static org.wso2.carbon.identity.oauth.uma.common.UMAConstants.RESOURCE_PATH;
-
 /**
  * ResourceRegistrationApiServiceImpl is used to handling resource management.
  */

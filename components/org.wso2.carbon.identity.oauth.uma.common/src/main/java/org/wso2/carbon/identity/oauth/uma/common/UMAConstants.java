@@ -18,16 +18,12 @@
 
 package org.wso2.carbon.identity.oauth.uma.common;
 
-import org.wso2.carbon.identity.core.util.IdentityUtil;
-
 /**
  * This class holds the constants used by UMA Resource Registration Endpoint and Permission Endpoint.
  */
 public class UMAConstants {
 
     public static final String REGISTERED_RESOURCE_PATH = "/api/identity/oauth2/uma/resourceregistration/v1.0/resource";
-    public static final String RESOURCE_PATH =
-            IdentityUtil.getServerURL(REGISTERED_RESOURCE_PATH, true, true);
 
     /**
      * error descriptions
