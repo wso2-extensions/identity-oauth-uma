@@ -431,8 +431,8 @@
         <!--Swagger Dependency Version-->
         <jackson.version>1.8.6</jackson.version>
         <spring-web.version>4.1.6.RELEASE</spring-web.version>
-        <swagger-jaxrs.version>1.5.20</swagger-jaxrs.version>
-        <com.fasterxml.jackson.version>2.9.6</com.fasterxml.jackson.version>
+        <swagger-jaxrs.version>1.6.2</swagger-jaxrs.version>
+        <com.fasterxml.jackson.version>2.10.5</com.fasterxml.jackson.version>
 
         <!--Test Dependencies-->
         <junit.version>4.12</junit.version>
@@ -471,7 +471,7 @@
         <commons-lang.wso2.osgi.version.range>[2.6.0,3.0.0)</commons-lang.wso2.osgi.version.range>
 
         <org.slf4j.verison>1.6.1</org.slf4j.verison>
-        <cxf-rt.version>3.1.16</cxf-rt.version>
+        <cxf-rt.version>3.3.7</cxf-rt.version>
         <maven.checkstyle.plugin>2.17</maven.checkstyle.plugin>
         <osgi.core.version>1.4.0</osgi.core.version>
 
