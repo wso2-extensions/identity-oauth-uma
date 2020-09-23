@@ -212,9 +212,9 @@
                 <version>${jackson.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.codehaus.jackson</groupId>
-                <artifactId>jackson-mapper-asl</artifactId>
-                <version>${jackson.version}</version>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson-databind.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.codehaus.jackson</groupId>
@@ -425,6 +425,7 @@
 
         <!--Swagger Dependency Version-->
         <jackson.version>1.8.6</jackson.version>
+        <jackson-databind.version>2.10.5</jackson-databind.version>
         <spring-web.version>4.1.6.RELEASE</spring-web.version>
         <swagger-jaxrs.version>1.6.2</swagger-jaxrs.version>
         <com.fasterxml.jackson.version>2.10.5</com.fasterxml.jackson.version>
