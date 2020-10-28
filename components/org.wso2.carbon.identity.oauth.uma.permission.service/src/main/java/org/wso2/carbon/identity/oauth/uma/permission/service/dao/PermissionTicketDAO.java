@@ -493,16 +493,18 @@ public class PermissionTicketDAO {
         String sql;
         boolean isTokenIdColumnsExist = false;
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
-            if (connection.getMetaData().getDriverName().contains("MySQL") ||
-                connection.getMetaData().getDriverName().contains("H2") ||
-                connection.getMetaData().getDriverName().contains("PostgreSQL")) {
+            String driverName = connection.getMetaData().getDriverName();
+            if (driverName.contains("MySQL")
+                    || driverName.contains("MariaDB")
+                    || driverName.contains("H2")
+                    || driverName.contains("PostgreSQL")) {
                 sql = IS_TOKEN_ID_COLUMN_EXISTS_MYSQL;
             } else if (connection.getMetaData().getDatabaseProductName().contains("DB2")) {
                 sql = IS_TOKEN_ID_COLUMN_EXISTS_DB2;
-            } else if (connection.getMetaData().getDriverName().contains("MS SQL") ||
-                       connection.getMetaData().getDriverName().contains("Microsoft")) {
+            } else if (driverName.contains("MS SQL") ||
+                       driverName.contains("Microsoft")) {
                 sql = IS_TOKEN_ID_COLUMN_EXISTS_MSSQL;
-            } else if (connection.getMetaData().getDriverName().contains("Informix")) {
+            } else if (driverName.contains("Informix")) {
                 // Driver name = "IBM Informix JDBC Driver for IBM Informix Dynamic Server"
                 sql = IS_TOKEN_ID_COLUMN_EXISTS_INFORMIX;
             } else {
