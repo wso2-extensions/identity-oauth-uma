@@ -26,7 +26,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.carbon.identity.oauth.uma.resource.endpoint</artifactId>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
 
     <build>
         <plugins>
@@ -36,20 +36,6 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>2.2</version>
-                <configuration>
-                    <webResources>
-                        <resource>
-                            <!-- this is relative to the pom.xml directory -->
-                            <directory>src/main/webapp</directory>
-                        </resource>
-                    </webResources>
-                    <warName>api#identity#oauth2#uma#resourceregistration#v1.0</warName>
                 </configuration>
             </plugin>
             <!--Plugin for generating the swagger server stubs
