@@ -400,13 +400,11 @@
                 <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
                 <artifactId>org.wso2.carbon.identity.oauth.uma.resource.endpoint</artifactId>
                 <version>${project.version}</version>
-                <type>war</type>
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
                 <artifactId>org.wso2.carbon.identity.oauth.uma.permission.endpoint</artifactId>
                 <version>${project.version}</version>
-                <type>war</type>
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.oauth.uma</groupId>

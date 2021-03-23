@@ -47,10 +47,10 @@
                             javax.sql,
                             org.wso2.carbon.database.utils.jdbc;version="${org.wso2.carbon.database.utils.version.range}",
                             org.wso2.carbon.identity.core.persistence;version="${carbon.identity.framework.imp.pkg.version.range}",
-                            org.wso2.carbon.identity.core.util;version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.core.util;version="${carbon.identity.framework.imp.pkg.version.range}"
                         </Import-Package>
                         <Export-Package>
-                            org.wso2.carbon.identity.oauth.uma.common.*;${identity.oauth.uma.exp.pkg.version},
+                            org.wso2.carbon.identity.oauth.uma.common.*;${identity.oauth.uma.exp.pkg.version}
                         </Export-Package>
                     </instructions>
                 </configuration>
