@@ -62,11 +62,13 @@
             <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
             <artifactId>org.wso2.carbon.identity.oauth.uma.resource.endpoint</artifactId>
             <version>${project.version}</version>
+            <type>war</type>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
             <artifactId>org.wso2.carbon.identity.oauth.uma.permission.endpoint</artifactId>
             <version>${project.version}</version>
+            <type>war</type>
         </dependency>
     </dependencies>
 
@@ -88,14 +90,19 @@
                                     <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
                                     <artifactId>org.wso2.carbon.identity.oauth.uma.resource.endpoint</artifactId>
                                     <version>${project.version}</version>
-                                    <outputDirectory>${basedir}/src/main/resources/api_resources/</outputDirectory>
+                                    <type>war</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${basedir}/src/main/resources/</outputDirectory>
+                                    <destFileName>api#identity#oauth2#uma#resourceregistration#v1.0.war</destFileName>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
                                     <artifactId>org.wso2.carbon.identity.oauth.uma.permission.endpoint</artifactId>
                                     <version>${project.version}</version>
+                                    <type>war</type>
                                     <overWrite>true</overWrite>
-                                    <outputDirectory>${basedir}/src/main/resources/api_resources/</outputDirectory>
+                                    <outputDirectory>${basedir}/src/main/resources/</outputDirectory>
+                                    <destFileName>api#identity#oauth2#uma#permission#v1.0.war</destFileName>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>
@@ -151,6 +158,8 @@
                                 <resource>
                                     <directory>resources</directory>
                                     <includes>
+                                        <include>api#identity#oauth2#uma#resourceregistration#v1.0.war</include>
+                                        <include>api#identity#oauth2#uma#permission#v1.0.war</include>
                                         <include>**/*.sql</include>
                                         <include>p2.inf</include>
                                     </includes>

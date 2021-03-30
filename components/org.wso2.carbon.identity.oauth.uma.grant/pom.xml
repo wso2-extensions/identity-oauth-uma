@@ -84,9 +84,9 @@
                             org.wso2.carbon.utils.multitenancy.*,
                             org.wso2.carbon.core.util.*,
 
-                            org.wso2.carbon.identity.oauth.uma.common.*; version="${identity.oauth.uma.imp.pkg.version.range}",
-                            org.wso2.carbon.identity.oauth.uma.xacml.*; version="${identity.oauth.uma.imp.pkg.version.range}",
-                            org.wso2.carbon.identity.oauth.uma.permission.service.*; version="${identity.oauth.uma.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.oauth.uma.common.*; version="${project.version}",
+                            org.wso2.carbon.identity.oauth.uma.xacml.*; version="${project.version}",
+                            org.wso2.carbon.identity.oauth.uma.permission.service.*; version="${project.version}",
 
                             org.wso2.carbon.identity.oauth2.*,
 
