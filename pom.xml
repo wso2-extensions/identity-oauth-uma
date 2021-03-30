@@ -39,8 +39,10 @@
     </scm>
 
     <modules>
+        <module>components/org.wso2.carbon.identity.api.server.oauth.uma.permission</module>
         <module>components/org.wso2.carbon.identity.oauth.uma.permission.endpoint</module>
         <module>components/org.wso2.carbon.identity.oauth.uma.permission.service</module>
+        <module>components/org.wso2.carbon.identity.api.server.oauth.uma.resource</module>
         <module>components/org.wso2.carbon.identity.oauth.uma.resource.endpoint</module>
         <module>components/org.wso2.carbon.identity.oauth.uma.resource.service</module>
         <module>components/org.wso2.carbon.identity.oauth.uma.common</module>
@@ -398,13 +400,25 @@
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
+                <artifactId>org.wso2.carbon.identity.api.server.oauth.uma.permission</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
+                <artifactId>org.wso2.carbon.identity.api.server.oauth.uma.resource</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
                 <artifactId>org.wso2.carbon.identity.oauth.uma.resource.endpoint</artifactId>
                 <version>${project.version}</version>
+                <type>war</type>
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
                 <artifactId>org.wso2.carbon.identity.oauth.uma.permission.endpoint</artifactId>
                 <version>${project.version}</version>
+                <type>war</type>
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.oauth.uma</groupId>
