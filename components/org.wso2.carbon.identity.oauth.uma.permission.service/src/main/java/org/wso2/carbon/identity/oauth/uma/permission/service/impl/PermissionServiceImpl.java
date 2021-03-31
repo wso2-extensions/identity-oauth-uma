@@ -66,9 +66,12 @@ public class PermissionServiceImpl implements PermissionService {
 
         try {
             AccessTokenDO tokenDO = OAuth2Util.findAccessToken(accessToken, false);
-            String tokenId = tokenDO.getTokenId();
-            String permissionTicket = PermissionTicketDAO.retrievePermissionTicketForTokenId(tokenId);
-            return PermissionTicketDAO.getResourcesForPermissionTicket(permissionTicket);
+            if (tokenDO != null) {
+                String tokenId = tokenDO.getTokenId();
+                String permissionTicket = PermissionTicketDAO.retrievePermissionTicketForTokenId(tokenId);
+                return PermissionTicketDAO.getResourcesForPermissionTicket(permissionTicket);
+            }
+            return null;
         } catch (IdentityOAuth2Exception e) {
             throw new UMAServerException("Error occurred while retrieving token information.", e);
         }
