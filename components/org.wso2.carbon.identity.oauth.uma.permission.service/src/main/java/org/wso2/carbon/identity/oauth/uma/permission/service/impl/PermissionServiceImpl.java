@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.oauth2.model.AccessTokenDO;
 import org.wso2.carbon.identity.oauth2.util.OAuth2Util;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -71,7 +72,7 @@ public class PermissionServiceImpl implements PermissionService {
                 String permissionTicket = PermissionTicketDAO.retrievePermissionTicketForTokenId(tokenId);
                 return PermissionTicketDAO.getResourcesForPermissionTicket(permissionTicket);
             }
-            return null;
+            return new ArrayList<>();
         } catch (IdentityOAuth2Exception e) {
             throw new UMAServerException("Error occurred while retrieving token information.", e);
         }
