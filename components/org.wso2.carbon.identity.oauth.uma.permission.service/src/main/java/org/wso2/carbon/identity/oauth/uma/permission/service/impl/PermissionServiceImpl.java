@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.oauth2.model.AccessTokenDO;
 import org.wso2.carbon.identity.oauth2.util.OAuth2Util;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -65,10 +66,13 @@ public class PermissionServiceImpl implements PermissionService {
     public List<Resource> validateAccessToken(String accessToken) throws UMAClientException, UMAServerException {
 
         try {
-            AccessTokenDO tokenDO = OAuth2Util.getAccessTokenDOfromTokenIdentifier(accessToken);
-            String tokenId = tokenDO.getTokenId();
-            String permissionTicket = PermissionTicketDAO.retrievePermissionTicketForTokenId(tokenId);
-            return PermissionTicketDAO.getResourcesForPermissionTicket(permissionTicket);
+            AccessTokenDO tokenDO = OAuth2Util.findAccessToken(accessToken, false);
+            if (tokenDO != null) {
+                String tokenId = tokenDO.getTokenId();
+                String permissionTicket = PermissionTicketDAO.retrievePermissionTicketForTokenId(tokenId);
+                return PermissionTicketDAO.getResourcesForPermissionTicket(permissionTicket);
+            }
+            return new ArrayList<>();
         } catch (IdentityOAuth2Exception e) {
             throw new UMAServerException("Error occurred while retrieving token information.", e);
         }
