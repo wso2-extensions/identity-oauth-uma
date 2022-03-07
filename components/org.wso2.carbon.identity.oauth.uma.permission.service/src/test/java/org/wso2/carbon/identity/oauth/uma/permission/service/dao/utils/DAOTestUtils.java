@@ -43,11 +43,11 @@ public class DAOTestUtils {
     private static final String STORE_RESOURCE_SCOPE_QUERY = "INSERT INTO IDN_UMA_RESOURCE_SCOPE (ID, " +
             "RESOURCE_IDENTITY, SCOPE_NAME) VALUES (?,?,?)";
     private static final String STORE_PT_QUERY = "INSERT INTO IDN_UMA_PERMISSION_TICKET " +
-            "(ID, PT, TIME_CREATED, EXPIRY_TIME, TICKET_STATE, TENANT_ID) VALUES (?,?,?,?,?,?)";
+            "(PT, TIME_CREATED, EXPIRY_TIME, TICKET_STATE, TENANT_ID) VALUES (?,?,?,?,?)";
     private static final String STORE_PT_RESOURCE_IDS_QUERY = "INSERT INTO IDN_UMA_PT_RESOURCE " +
-            "(ID, PT_RESOURCE_ID, PT_ID) VALUES (?, ?, ?)";
+            "(PT_RESOURCE_ID, PT_ID) VALUES (?, ?)";
     private static final String STORE_PT_RESOURCE_SCOPES_QUERY = "INSERT INTO IDN_UMA_PT_RESOURCE_SCOPE " +
-            "(ID, PT_RESOURCE_ID, PT_SCOPE_ID) VALUES (?, ?, ?)";
+            "(PT_RESOURCE_ID, PT_SCOPE_ID) VALUES (?, ?)";
 
     /**
      * Create H2 database.
@@ -153,18 +153,17 @@ public class DAOTestUtils {
      * @param tenantId     Tenant ID.
      * @throws Exception   Exception.
      */
-    public static void storePT(String databaseName, long id, String pt, Timestamp createdTime,
+    public static void storePT(String databaseName, String pt, Timestamp createdTime,
                                Timestamp expiredTime, String state, int tenantId) throws Exception {
 
         PreparedStatement preparedStatement = null;
         try (Connection connection = getConnection(databaseName)) {
             preparedStatement = connection.prepareStatement(STORE_PT_QUERY);
-            preparedStatement.setLong(1, id);
-            preparedStatement.setString(2, pt);
-            preparedStatement.setTimestamp(3, createdTime);
-            preparedStatement.setTimestamp(4, expiredTime);
-            preparedStatement.setString(5, state);
-            preparedStatement.setLong(6, tenantId);
+            preparedStatement.setString(1, pt);
+            preparedStatement.setTimestamp(2, createdTime);
+            preparedStatement.setTimestamp(3, expiredTime);
+            preparedStatement.setString(4, state);
+            preparedStatement.setLong(5, tenantId);
             preparedStatement.execute();
         } finally {
             if (preparedStatement != null) {
@@ -182,15 +181,14 @@ public class DAOTestUtils {
      * @param ptId         Permission ticket ID.
      * @throws Exception   Exception.
      */
-    public static void storePTResources(String databaseName, long id, long ptResourceId, long ptId) throws
+    public static void storePTResources(String databaseName, long ptResourceId, long ptId) throws
             Exception {
 
         PreparedStatement preparedStatement = null;
         try (Connection connection = getConnection(databaseName)) {
             preparedStatement = connection.prepareStatement(STORE_PT_RESOURCE_IDS_QUERY);
-            preparedStatement.setLong(1, id);
-            preparedStatement.setLong(2, ptResourceId);
-            preparedStatement.setLong(3, ptId);
+            preparedStatement.setLong(1, ptResourceId);
+            preparedStatement.setLong(2, ptId);
             preparedStatement.execute();
         } finally {
             if (preparedStatement != null) {
@@ -208,15 +206,14 @@ public class DAOTestUtils {
      * @param scopeId      Resource scope ID.
      * @throws Exception Exception.
      */
-    public static void storePTResourceScopes(String databaseName, long id, long ptResourceId, long scopeId) throws
+    public static void storePTResourceScopes(String databaseName, long ptResourceId, long scopeId) throws
             Exception {
 
         PreparedStatement preparedStatement = null;
         try (Connection connection = getConnection(databaseName)) {
             preparedStatement = connection.prepareStatement(STORE_PT_RESOURCE_SCOPES_QUERY);
-            preparedStatement.setLong(1, id);
-            preparedStatement.setLong(2, ptResourceId);
-            preparedStatement.setLong(3, scopeId);
+            preparedStatement.setLong(1, ptResourceId);
+            preparedStatement.setLong(2, scopeId);
             preparedStatement.execute();
         } finally {
             if (preparedStatement != null) {
