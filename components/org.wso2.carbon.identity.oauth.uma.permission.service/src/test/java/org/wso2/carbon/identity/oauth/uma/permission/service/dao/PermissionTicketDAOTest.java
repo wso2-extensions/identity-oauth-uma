@@ -62,10 +62,10 @@ public class PermissionTicketDAOTest extends PowerMockTestCase {
                 TestConstants.RESOURCE_OWNER_NAME, TestConstants.CLIENT_ID, TestConstants.TENANT_ID,
                 TestConstants.USER_DOMAIN);
         DAOTestUtils.storeResourceScopes(DB_NAME, 1, 1, "scope01");
-        DAOTestUtils.storePT(DB_NAME, 1, "12345", createdTime, expiredTime, TestConstants.TICKET_STATE,
+        DAOTestUtils.storePT(DB_NAME, "12345", createdTime, expiredTime, TestConstants.TICKET_STATE,
                 TestConstants.TENANT_ID);
-        DAOTestUtils.storePTResources(DB_NAME, 1, 1, 1);
-        DAOTestUtils.storePTResourceScopes(DB_NAME, 1, 1, 1);
+        DAOTestUtils.storePTResources(DB_NAME, 1, 1);
+        DAOTestUtils.storePTResourceScopes(DB_NAME, 1, 1);
     }
 
     @AfterClass
