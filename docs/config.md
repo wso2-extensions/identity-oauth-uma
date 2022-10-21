@@ -52,9 +52,28 @@ You can either download the UMA artifacts or build the authenticator from the so
 1. Stop WSO2 Identity Server if it is already running.
 2. Add the below configuration to the `<IS-Home>/repository/conf/deployment.toml` file.
     ```
-   [oauth.grant_type.uma_ticket]
-    enable=true
-   ```
+    [[oauth.custom_grant_type]]
+    name = "urn:ietf:params:oauth:grant-type:uma-ticket"
+    grant_handler = "org.wso2.carbon.identity.oauth.uma.grant.UMA2GrantHandler"
+    grant_validator = "org.wso2.carbon.identity.oauth.uma.grant.GrantValidator"
+
+    [[event_listener]]
+    id = "uma_introspection_data_provider"
+    type = "org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+    name = "org.wso2.carbon.identity.oauth.uma.permission.service.impl.UMAIntrospectionDataProvider"
+    order = "161"
+    enable = false
+
+    [[resource.access_control]]
+    context = "(.*)/api/identity/oauth2/uma/resourceregistration/v1.0/(.*)"
+    secure = "true"
+    http_method = "all"
+
+    [[resource.access_control]]
+    context = "(.*)/api/identity/oauth2/uma/permission/v1.0/(.*)"
+    secured = "true"
+    http_method = "all"
+    ```
 3. Start/ Restart WSO2 Identity Server.
 
 
