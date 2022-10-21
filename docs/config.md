@@ -71,7 +71,7 @@ You can either download the UMA artifacts or build the authenticator from the so
 
     [[resource.access_control]]
     context = "(.*)/api/identity/oauth2/uma/permission/v1.0/(.*)"
-    secured = "true"
+    secure = "true"
     http_method = "all"
     ```
 3. Start/ Restart WSO2 Identity Server.
