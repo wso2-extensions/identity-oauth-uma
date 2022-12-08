@@ -4,4 +4,4 @@ UMA 2.0 is a standard protocol built on top of OAuth 2.0, which enables party-to
 
 ## Getting started
 
-* To get started with User Managed Access, Go to [configuring UMA 2.0](config.md).  
+* To get started with User Managed Access, see the instructions on [configuring UMA 2.0](config.md).  

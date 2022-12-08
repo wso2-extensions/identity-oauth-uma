@@ -4,15 +4,14 @@ WSO2 Identity Server (WSO2 IS) supports the UMA 2.0 protocol, which allows a res
 
 ## Deploying UMA Artifacts
 
-You can build the authenticator from the source code.
+You can build the authenticator from the source code by following the steps given below.
 
-To build from the source code:
    1. Stop WSO2 Identity Server if it is already running.
    2. To build the artifacts, navigate to the repository directory and execute the following command:
       ```
       mvn clean install
       ```
-   3. Add the `.jar` files are created in the following directories to the `<IS_HOME>/repository/components/dropins` directory.
+   3. Add the `.jar` files, which are created in the following directories to the `<IS_HOME>/repository/components/dropins` directory.
       ```
       components/org.wso2.carbon.identity.oauth.uma.common/target
       components/org.wso2.carbon.identity.oauth.uma.grant/target
@@ -20,7 +19,7 @@ To build from the source code:
       components/org.wso2.carbon.identity.oauth.uma.resource.service/target
       components/org.wso2.carbon.identity.oauth.uma.xacml.extension/target
       ```
-   4. Add the `.war` files are created in the following directories to the `<IS_HOME>/repository/deployment/server/webapps` directory.
+   4. Add the `.war` files, which are created in the following directories to the `<IS_HOME>/repository/deployment/server/webapps` directory.
       ```
       components/org.wso2.carbon.identity.oauth.uma.permission.endpoint/target
       components/org.wso2.carbon.identity.oauth.uma.resource.endpoint/target 
