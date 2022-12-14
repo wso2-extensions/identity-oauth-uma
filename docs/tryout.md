@@ -61,9 +61,6 @@ You need to register your application as a service provider in WSO2 Identity Ser
         
 4. Enter the **Callback Url**.
 
-    !!! note
-        The **Callback Url** is the exact location in the service provider's application to which an access token will be sent. This URL should be the URL of the page that the user is redirected to after successful authentication.
-
 5. Click **Add**. Note the **OAuth Client Key** and **OAuth Client Secret** that appear.
     
 ---
@@ -88,9 +85,6 @@ Make the following changes to the created service provider.
 
 2. Enter the **Callback Url**. 
 
-    !!! note
-        The **Callback Url** is the exact location in the service provider's application to which an access token will be sent. This URL should be the URL of the page that the user is redirected to after successful authentication.
-
 3. Click **Add**. Note the **OAuth Client Key** and **OAuth Client Secret** that appear. 
 
 ### Claim configuration
@@ -110,24 +104,20 @@ Update claims for service provider:
 ## Obtain the Protection API Access token (PAT)
 
 -   Execute the following curl command to obtain the PAT:
+    -   Be sure to replace the `<CLIENT_ID>` and `<CLIENT_SECRET>` tags with the values you obtained when you [configured the service provider for the resource server](#configure-service-provider-to-act-as-the-resource-server).
+    -   In this guide, the grant type that is used to obtain the PAT is the password grant type. Therefore, you need to pass the resource owners credentials in the curl command. 
 
-    !!! tip
-        -   Be sure to replace the `<CLIENT_ID>` and `<CLIENT_SECRET>` tags with the values you obtained when you [configured the service provider for the resource server](#configure-service-provider-to-act-as-the-resource-server).
-        -   In this guide, the grant type that is used to obtain the PAT is the password grant type. Therefore, you need to pass the resource owners credentials in the curl command. 
+    **Request Format**
+    ```
+    curl -u <CLIENT_ID>:<CLIENT_SECRET> -k -d "grant_type=password&username=<USERNAME>&password=<PASSWORD>&scope=uma_protection internal_application_mgt_view" -H "Content-Type:application/x-www-form-urlencoded" https://<IS_HOST>:<IS_PORT>/oauth2/token
 
-    !!! abstract ""
-        **Request Format**
-        ```
-        curl -u <CLIENT_ID>:<CLIENT_SECRET> -k -d "grant_type=password&username=<USERNAME>&password=<PASSWORD>&scope=uma_protection internal_application_mgt_view" -H "Content-Type:application/x-www-form-urlencoded" https://<IS_HOST>:<IS_PORT>/oauth2/token
-        
-        ```
-        ---
-        **Sample Request**
-        ```curl
-        curl -u hwbR3jd2fikSApLKfv_wiwRWNSwa:q7Kb74s5dcK3FBh1MUWAJqvdrs8a -k -d "grant_type=password&username=larry&password=larry123&scope=uma_protection internal_application_mgt_view" -H "Content-Type:application/x-www-form-urlencoded" https://localhost:9443/oauth2/token
-        ```
+    ```
+    **Sample Request**
+    ```curl
+    curl -u hwbR3jd2fikSApLKfv_wiwRWNSwa:q7Kb74s5dcK3FBh1MUWAJqvdrs8a -k -d "grant_type=password&username=larry&password=larry123&scope=uma_protection internal_application_mgt_view" -H "Content-Type:application/x-www-form-urlencoded" https://localhost:9443/oauth2/token
+    ```
 
-    You will get a response similar to the following:
+-   You will get a response similar to the following:
 
     ```
     {
@@ -146,40 +136,37 @@ Update claims for service provider:
 Now, you need to register the resource.
 
 -   Execute the following curl command to put the resouce owner's resource under authorization server (WSO2 IS) protection.
-
-    !!! tip
-        -   Make sure to replace the `<PAT>` tag with the [access token you got in the previous section](#obtain-the-protection-api-access-token-pat).
+    -   Make sure to replace the `<PAT>` tag with the [access token you got in the previous section](#obtain-the-protection-api-access-token-pat).
     
 
-    !!! abstract ""
-        **Request Format**
-        ```
-        curl -X POST \
-        https://<IS_HOST>:<IS_PORT>/api/identity/oauth2/uma/resourceregistration/v1.0/resource \
-        -H 'Authorization: Bearer <PAT>' \
-        -H 'Content-Type: application/json' \
-        -d '<RESOURCE_PAYLOAD>'
-        ```
-        ---
-        **Sample Request**
-        ```curl      
-        curl -X POST \
-        https://localhost:9443/api/identity/oauth2/uma/resourceregistration/v1.0/resource \
-        -H 'Authorization: Bearer 64658549-47c1-3b5a-8637-c629f16c4118' \
-        -H 'Content-Type: application/json' \
-        -d '{
-            "resource_scopes": [
-                "view",
-                "download"
-            ],
-            "description": "Collection of digital photographs",
-            "icon_uri": "http://www.example.com/icons/flower.png",
-            "name": "Photo Album",
-            "type": "http://www.example.com/rsrcs/photoalbum"
-            }'
-        ```
+    **Request Format**
+    ```
+    curl -X POST \
+    https://<IS_HOST>:<IS_PORT>/api/identity/oauth2/uma/resourceregistration/v1.0/resource \
+    -H 'Authorization: Bearer <PAT>' \
+    -H 'Content-Type: application/json' \
+    -d '<RESOURCE_PAYLOAD>'
+    ```
 
-    You will get a response similar to the following:
+    **Sample Request**
+    ```curl      
+    curl -X POST \
+    https://localhost:9443/api/identity/oauth2/uma/resourceregistration/v1.0/resource \
+    -H 'Authorization: Bearer 64658549-47c1-3b5a-8637-c629f16c4118' \
+    -H 'Content-Type: application/json' \
+    -d '{
+        "resource_scopes": [
+            "view",
+            "download"
+        ],
+        "description": "Collection of digital photographs",
+        "icon_uri": "http://www.example.com/icons/flower.png",
+        "name": "Photo Album",
+        "type": "http://www.example.com/rsrcs/photoalbum"
+        }'
+    ```
+
+-   You will get a response similar to the following:
 
     ```
     {
@@ -202,46 +189,45 @@ Follow the steps given below to create, register and publish a policy:
 3.  Click **Add New Entitlement Policy** and then click **Write Policy in XML**.
 4.  Copy the following sample policy and paste it on the **Source View** pane:
 
-    !!! note
-        - Replace the `{ENTER_YOUR_RESOURCE_ID}` tag with the resource ID that you obtained when you [registered the resource](#register-the-resource).
-        - Replace the `{ENTER_REQUESTING_PARTY_USERNAME}` tag with the username provided for the [requesting party](#create-the-requesting-party).
-        - Replace the `{ENTER_PERMITTED_RESOURCE_SCOPE}` tag with the permitted resource scope for the defined requesting party.
+- Replace the `{ENTER_YOUR_RESOURCE_ID}` tag with the resource ID that you obtained when you [registered the resource](#register-the-resource).
+- Replace the `{ENTER_REQUESTING_PARTY_USERNAME}` tag with the username provided for the [requesting party](#create-the-requesting-party).
+- Replace the `{ENTER_PERMITTED_RESOURCE_SCOPE}` tag with the permitted resource scope for the defined requesting party.
        
 
     ``` java
-        <Policy xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17"  PolicyId="UMApolicy" RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable" Version="1.0">
-           <Target>
-              <AnyOf>
-                 <AllOf>
+    <Policy xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17"  PolicyId="UMApolicy" RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable" Version="1.0">
+        <Target>
+            <AnyOf>
+                <AllOf>
+                <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                    <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">{ENTER_YOUR_RESOURCE_ID}</AttributeValue>
+                    <AttributeDesignator AttributeId="http://wso2.org/identity/identity-resource/resource-id" Category="http://wso2.org/identity/identity-resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true"></AttributeDesignator>
+                </Match>
+                </AllOf>
+            </AnyOf>
+        </Target>
+        <Rule Effect="Permit" RuleId="permit_for_username">
+            <Target>
+                <AnyOf>
+                <AllOf>
                     <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-                       <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">{ENTER_YOUR_RESOURCE_ID}</AttributeValue>
-                       <AttributeDesignator AttributeId="http://wso2.org/identity/identity-resource/resource-id" Category="http://wso2.org/identity/identity-resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true"></AttributeDesignator>
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">{ENTER_REQUESTING_PARTY_USERNAME}</AttributeValue>
+                        <AttributeDesignator AttributeId="http://wso2.org/identity/user/username" Category="http://wso2.org/identity/user" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"></AttributeDesignator>
                     </Match>
-                 </AllOf>
-              </AnyOf>
-           </Target>
-           <Rule Effect="Permit" RuleId="permit_for_username">
-              <Target>
-                 <AnyOf>
-                    <AllOf>
-                       <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-                          <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">{ENTER_REQUESTING_PARTY_USERNAME}</AttributeValue>
-                          <AttributeDesignator AttributeId="http://wso2.org/identity/user/username" Category="http://wso2.org/identity/user" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"></AttributeDesignator>
-                       </Match>
-                    </AllOf>
-                 </AnyOf>
-              </Target>
-              <Condition>
-                 <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-at-least-one-member-of">
-                    <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-bag">
-                       <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">{ENTER_PERMITTED_RESOURCE_SCOPE}</AttributeValue>
-                    </Apply>
-                    <AttributeDesignator AttributeId="http://wso2.org/identity/identity-action/action-name" Category="http://wso2.org/identity/identity-action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true"></AttributeDesignator>
-                 </Apply>
-              </Condition>
-           </Rule>
-           <Rule Effect="Deny" RuleId="Deny_all"></Rule>
-        </Policy>
+                </AllOf>
+                </AnyOf>
+            </Target>
+            <Condition>
+                <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-at-least-one-member-of">
+                <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-bag">
+                    <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">{ENTER_PERMITTED_RESOURCE_SCOPE}</AttributeValue>
+                </Apply>
+                <AttributeDesignator AttributeId="http://wso2.org/identity/identity-action/action-name" Category="http://wso2.org/identity/identity-action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true"></AttributeDesignator>
+                </Apply>
+            </Condition>
+        </Rule>
+        <Rule Effect="Deny" RuleId="Deny_all"></Rule>
+    </Policy>
     ```
 
 5.  **Save** the policy. You will see the new policy that you created listed in the **Policy Administration** page.  
@@ -265,46 +251,22 @@ let's try out the flow for a requesting party to access this resource.
 
 The permission endpoint allows the resource server to request permission when a client acting on behalf of the requesting party makes a resource request without a token or if the request contains an invalid token.
 
-!!! tip
-    
-    By default, the permission ticket is valid for 300 seconds. This time
-    period might not be sufficient for you to try out this tutorial and if
-    the permission ticket expires you need to obtain a new permission ticket
-    in order to proceed
-    
-    Therefore, to try out the tutorial without having to obtain a new
-    permission ticket, you need to follow the step below to change the
-    permission ticket expiration validity period:
-    
-    -   Add the following configuration to the `deployment.toml` file in the `<IS_HOME>/repository/conf` folder and set the value to 3600. 
-    ```toml
-    [oauth.token_validation]
-    authorization_code_validity= "3600"
-    ```
-
 -   Execute the following curl command to obtain the permission ticket.
 
     -   Make sure to replace the `<PAT>` tag with the [access token you got in the previous section](#obtain-the-protection-api-access-token-pat).
     -   Replace the `<RESOURCE_ID>` tag with the ID you got when [registering the resource](#register-the-resource).
     -   Replace the `<PERMISSION_PAYLOAD>` tag with required permissions.  
     
-        !!! note 
-            The request can contain one or more permission values by having multiple
-            resources and the relevant scopes. The sample request used
-            in this guide contains a single permission.
-    
-    !!! abstract ""
-        **Request Format**
-        ```
-        curl -X POST https://<IS_HOST>:<IS_PORT>/api/identity/oauth2/uma/permission/v1.0/permission -H 'authorization: Bearer <PAT>' -H "Content-Type: application/json" -d '["<PERMISSION_PAYLOAD>"]' -k
-        ```
-        ---
-        **Sample Request**
-        ```curl
-        curl -X POST https://localhost:9443/api/identity/oauth2/uma/permission/v1.0/permission -H 'authorization: Bearer b8df48ff-feab-3632-b3dc-68ae6b4c62e2' -H "Content-Type: application/json" -d '[{"resource_id":"ceaa6506-1da9-456b-88d8-027797d2e081","resource_scopes":["view"]}]' -k
-        ```
+    **Request Format**
+    ```
+    curl -X POST https://<IS_HOST>:<IS_PORT>/api/identity/oauth2/uma/permission/v1.0/permission -H 'authorization: Bearer <PAT>' -H "Content-Type: application/json" -d '["<PERMISSION_PAYLOAD>"]' -k
+    ```
+    **Sample Request**
+    ```curl
+    curl -X POST https://localhost:9443/api/identity/oauth2/uma/permission/v1.0/permission -H 'authorization: Bearer b8df48ff-feab-3632-b3dc-68ae6b4c62e2' -H "Content-Type: application/json" -d '[{"resource_id":"ceaa6506-1da9-456b-88d8-027797d2e081","resource_scopes":["view"]}]' -k
+    ```
       
-    You will get a response similar to the following:
+- You will get a response similar to the following:
 
     ```
     {"ticket":"97f476f2-72d0-4540-aa08-a4784bd2053e"}
@@ -317,30 +279,30 @@ The permission endpoint allows the resource server to request permission when a 
 The client should pass id token to prove its identity to the authorization server. For the sample scenario in this tutorial only the requesting party username is required.
 
 -   Execute the following curl command to obtain the OIDC id\_token.
-    Be sure to replace the `<CLIENT_ID>` and `<CLIENT_SECRET>` tags with the values you got when you [Configured the service provider for the client](#configure-service-provider-to-act-as-the-client).  Since the grant type use here is the password grant type, you need  to specify the requesting party credentials in the curl command.
+    -   Be sure to replace the `<CLIENT_ID>` and `<CLIENT_SECRET>` tags with the values you got when you [Configured the service provider for the client](#configure-service-provider-to-act-as-the-client).  
+    -   Since the grant type use here is the password grant type, you need  to specify the requesting party credentials in the curl command.
     
-    !!! abstract ""
-        **Request Format**
-        ```
-        curl -u <CLIENT_ID>:<CLIENT_SECRET> -k -d "grant_type=password&username=<USERNAME>&password=<PASSWORD>&scope=openid" -H "Content-Type:application/x-www-form-urlencoded" https://localhost:9443/oauth2/token
-        ```
-        ---
-        **Sample Request**
-        ```curl
-        curl -u IRBYPhUyAtYjjUIgjZySI800fUMa:6m_9dkM8e7RSxs77JW0dbf9ECr0a -k -d "grant_type=password&username=sam&password=sam123&scope=openid" -H "Content-Type:application/x-www-form-urlencoded" https://localhost:9443/oauth2/token
-        ```
+    **Request Format**
+    ```
+    curl -u <CLIENT_ID>:<CLIENT_SECRET> -k -d "grant_type=password&username=<USERNAME>&password=<PASSWORD>&scope=openid" -H "Content-Type:application/x-www-form-urlencoded" https://localhost:9443/oauth2/token
+    ```
+    ---
+    **Sample Request**
+    ```curl
+    curl -u IRBYPhUyAtYjjUIgjZySI800fUMa:6m_9dkM8e7RSxs77JW0dbf9ECr0a -k -d "grant_type=password&username=sam&password=sam123&scope=openid" -H "Content-Type:application/x-www-form-urlencoded" https://localhost:9443/oauth2/token
+    ```
       
-    You will get a response similar to the following:
+-   You will get a response similar to the following:
 
     ```
-        {
-           "access_token":"f2999d40-af06-3779-b157-731d6540c5de",
-           "refresh_token":"f95adb62-34ae-311e-83c1-6b136eb49017",
-           "scope":"openid",
-           "id_token":"eyJ4NXQiOiJOVEF4Wm1NeE5ETXlaRGczTVRVMVpHTTBNekV6T0RKaFpXSTRORE5sWkRVMU9HRmtOakZpTVEiLCJraWQiOiJOVEF4Wm1NeE5ETXlaRGczTVRVMVpHTTBNekV6T0RKaFpXSTRORE5sWkRVMU9HRmtOakZpTVEiLCJhbGciOiJSUzI1NiJ9.eyJhdF9oYXNoIjoiMVhhWm43TE1LeU5sdFhFbnBOZ09fQSIsImF1ZCI6IkN6Ym42MVVmS09ZckF3azlBZjZidXIzbkthOGEiLCJzdWIiOiJzYW0iLCJhenAiOiJDemJuNjFVZktPWXJBd2s5QWY2YnVyM25LYThhIiwiYW1yIjpbInBhc3N3b3JkIl0sImlzcyI6Imh0dHBzOlwvXC9sb2NhbGhvc3Q6OTQ0M1wvb2F1dGgyXC90b2tlbiIsImV4cCI6MTUzNTE4MjM5OCwiaWF0IjoxNTM1MTc4Nzk4fQ.Rs3nPOMA_Fn8iWfDpVvmgWayhKU3_hhMQg_WHPxE0P_Dg2S8qxtSHBLMj6Z_b5iXNIAKFYFA_VF9fxZnSKgmVxZiYyrD0YADbZ5Hu6PW5uQPI59c0hdXT4rCH2WG2hP4slKRqsNZ1DCleWr0aiCPLwWixyUdnPub2c98IOcheOhkOOVV6WvAtI56f2gRDzUf66-t-3ZgKgfxkT0X6uNkvkRsk3oG7nK6_2wCuyoGYIS1h0yzryZYPmRLs7Db7QShshkB9yhAHrqo8b9b7Lf8S5NAXH2fcayEBq1MaqioBN9b_11swQ6R_2IA1EgoDfZ-eKGWCjOEsKusPmuDAI4xvQ",
-           "token_type":"Bearer",
-           "expires_in":3600
-        }
+    {
+        "access_token":"f2999d40-af06-3779-b157-731d6540c5de",
+        "refresh_token":"f95adb62-34ae-311e-83c1-6b136eb49017",
+        "scope":"openid",
+        "id_token":"eyJ4NXQiOiJOVEF4Wm1NeE5ETXlaRGczTVRVMVpHTTBNekV6T0RKaFpXSTRORE5sWkRVMU9HRmtOakZpTVEiLCJraWQiOiJOVEF4Wm1NeE5ETXlaRGczTVRVMVpHTTBNekV6T0RKaFpXSTRORE5sWkRVMU9HRmtOakZpTVEiLCJhbGciOiJSUzI1NiJ9.eyJhdF9oYXNoIjoiMVhhWm43TE1LeU5sdFhFbnBOZ09fQSIsImF1ZCI6IkN6Ym42MVVmS09ZckF3azlBZjZidXIzbkthOGEiLCJzdWIiOiJzYW0iLCJhenAiOiJDemJuNjFVZktPWXJBd2s5QWY2YnVyM25LYThhIiwiYW1yIjpbInBhc3N3b3JkIl0sImlzcyI6Imh0dHBzOlwvXC9sb2NhbGhvc3Q6OTQ0M1wvb2F1dGgyXC90b2tlbiIsImV4cCI6MTUzNTE4MjM5OCwiaWF0IjoxNTM1MTc4Nzk4fQ.Rs3nPOMA_Fn8iWfDpVvmgWayhKU3_hhMQg_WHPxE0P_Dg2S8qxtSHBLMj6Z_b5iXNIAKFYFA_VF9fxZnSKgmVxZiYyrD0YADbZ5Hu6PW5uQPI59c0hdXT4rCH2WG2hP4slKRqsNZ1DCleWr0aiCPLwWixyUdnPub2c98IOcheOhkOOVV6WvAtI56f2gRDzUf66-t-3ZgKgfxkT0X6uNkvkRsk3oG7nK6_2wCuyoGYIS1h0yzryZYPmRLs7Db7QShshkB9yhAHrqo8b9b7Lf8S5NAXH2fcayEBq1MaqioBN9b_11swQ6R_2IA1EgoDfZ-eKGWCjOEsKusPmuDAI4xvQ",
+        "token_type":"Bearer",
+        "expires_in":3600
+    }
     ```
 
 ---
@@ -374,71 +336,55 @@ You will get a response similar to the following:
 ## Token introspection
 
 
-Execute the following curl command to get the token introspection:  
+- Execute the following curl command to get the token introspection:  
 
--   Make sure to replace the `               <PAT>              `
-        tag with the [access token you got in the previous
-        section](#obtain-the-protection-api-access-token-pat)
-        .
+    -   Make sure to replace the `<PAT>` tag with the [access token you got in the previous section](#obtain-the-protection-api-access-token-pat).
 
--   Replace the `               <RPT>              ` tag with the [request party token you
-        obtained](#obtain-the-requesting-party-token)
-        .
+    -   Replace the `<RPT>` tag with the [request party token you obtained](#obtain-the-requesting-party-token).
 
-``` java
-curl -v -k -H "Authorization: Bearer <PAT>" -H "Content-Type:application/x-www-form-urlencoded" -X POST --data "token=<RPT>" https://<IS_HOST>:<IS_PORT>/oauth2/introspect
-```
-
-You get a response similar to the following:
-
-```
-{
-   "nbf":1553414959,
-   "permissions":[
-      {
-         "resource_scopes":[
-            "view"
-         ],
-         "resource_id":"08e69621-e418-4914-b85f-164e127c20de"
-      }
-   ],
-   "active":true,
-   "token_type":"Bearer",
-   "exp":1553418559,
-   "iat":1553414959,
-   "client_id":"JfTSiJ24gh8sYHTQVuOl5RoftkAa",
-   "username":"sam"
-}
-```
-
-If the token introspection for the RPT is successful, the resource
-server can share the resource with the client.
-
-This is how UMA works.
-
-!!! note
-    
-    In order to obtain UMA related information in the introspection end
-    point, add the following configuration to the `deployment.toml` file in the `<IS_HOME>/repository/conf/` folder .  
-    This is disabled by default. The response shown above with additional UMA
-    related details is what we get when the following configuration is
-    enabled.
-    
     ``` java
-    [oauth.grant_type.uma_ticket]
-    retrieve_uma_permission_info_through_introspection="true"
+    curl -v -k -H "Authorization: Bearer <PAT>" -H "Content-Type:application/x-www-form-urlencoded" -X POST --data "token=<RPT>" https://<IS_HOST>:<IS_PORT>/oauth2/introspect
     ```
-    
-    Following is a sample response when the above configuration is disabled.
-    
+
+-   You get a response similar to the following:
+
     ```
     {
-      "nbf": 1553411123,
-      "active": true,
-      "token_type": "Bearer",
-      "exp": 1553414723,
-      "iat": 1553411123,
-      "client_id": "JfTSiJ24gh8sYHTQVuOl5RoftkAa",
-      "username": "sam"
+    "nbf":1553414959,
+    "permissions":[
+        {
+            "resource_scopes":[
+                "view"
+            ],
+            "resource_id":"08e69621-e418-4914-b85f-164e127c20de"
+        }
+    ],
+    "active":true,
+    "token_type":"Bearer",
+    "exp":1553418559,
+    "iat":1553414959,
+    "client_id":"JfTSiJ24gh8sYHTQVuOl5RoftkAa",
+    "username":"sam"
     }
     ```
+
+-   If the token introspection for the RPT is successful, the resource
+server can share the resource with the client.
+    -   In order to obtain UMA related information in the introspection endpoint, add the following configuration to the `deployment.toml` file in the `<IS_HOME>/repository/conf/` folder.  
+    -   This is disabled by default. The response shown above with additional UMA related details is what we get when the following configuration is enabled.
+        ``` java
+        [oauth.grant_type.uma_ticket]
+        retrieve_uma_permission_info_through_introspection="true"
+        ```
+    -   Following is a sample response when the above configuration is disabled.
+        ```
+        {
+            "nbf": 1553411123,
+            "active": true,
+            "token_type": "Bearer",
+            "exp": 1553414723,
+            "iat": 1553411123,
+            "client_id": "JfTSiJ24gh8sYHTQVuOl5RoftkAa",
+            "username": "sam"
+        }
+        ```
