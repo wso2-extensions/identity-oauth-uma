@@ -37,7 +37,7 @@ Now that you have the resource owner and requesting party to try out the scenari
 
 ---
 
-## Configure service provider to act as the resource server
+## Register the resource server as a service provider in WSO2 IS
 
 You need to register your resource server (application) as a service provider in WSO2 Identity Server.
 
@@ -65,7 +65,7 @@ You need to register your resource server (application) as a service provider in
     
 ---
     
-## Configure service provider to act as the client
+## Register the client as a service provider in WSO2 IS
     
 You need to register the client application (of the requesting party) as a service provider in WSO2 Identity Server.
 
