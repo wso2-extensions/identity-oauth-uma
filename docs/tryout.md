@@ -15,7 +15,7 @@ Once you try out the guide, you will understand how to use UMA 2.0 to do the fol
 ---
 
 ## Create the resource owner
-
+Let's create a resource owner in WSO2 IS.
 
 1.  Log in to the WSO2 Identity Server Management Console (`https://<IS_HOST>:<PORT>/carbon`) using administrator credentials (`admin:admin`).
 2.  On the **Main** > **Identity** section, click **Add** under **Users and Roles**.
@@ -28,9 +28,9 @@ Once you try out the guide, you will understand how to use UMA 2.0 to do the fol
 ---
 
 ## Create the requesting party
-
+Let's create the requesting party on WSO2 IS.
 1.  On the **Main** > **Identity** section, click **Add** under **Users and Roles**.
-2.  Click **Add New User** and create a new user by providing username and password.
+2.  Click **Add New User** and create a new user by providing the username and password.
 3.  Click **Finish**.
 
 Now that you have the resource owner and requesting party to try out the scenario, the next step is to configure one service provider for the resource server and another service provider for the client acting on behalf of the requesting party.
@@ -136,7 +136,7 @@ Update claims for the service provider:
 Now, you need to register the resource.
 
 -   Execute the following curl command to put the resouce owner's resource under authorization server (WSO2 IS) protection.
-    -   Make sure to replace the `<PAT>` tag with the [access token you got in the previous section](#obtain-the-protection-api-access-token-pat).
+    -   Be sure to replace the `<PAT>` tag with the [access token you got in the previous section](#obtain-the-protection-api-access-token-pat).
     
 
     **Request Format**
@@ -176,13 +176,13 @@ Now, you need to register the resource.
 
 Now you have completed registering the resource.
 
-Next, you need to create and publish an access policy to provide specific users appropriate resource scopes (permissions) to access the resource. <br> e.g. The requesting party is allowed to have view permission to the registered resource of the resource owner.
+Next, you need to create and publish an access policy to provide specific users appropriate resource scopes (permissions) to access the resource. For example, the requesting party is allowed to have view permission to the registered resource of the resource owner.
 
 ---
 
 ## Publish a policy
 
-Follow the steps given below to create, register and publish a policy:
+Follow the steps given below to create, register, and publish a policy:
 
 1.  Sign in to the management console (`https://<IS_HOST>:<IS_PORT>/carbon`) using resource owner [credentials](#create-the-resource-owner).
 2.  On the **Main** tab, go to the **Entitlement** section and click **Policy Administration** under **PAP**.
@@ -230,7 +230,7 @@ Follow the steps given below to create, register and publish a policy:
     </Policy>
     ```
 
-5.  **Save** the policy. You will see the new policy that you created listed in the **Policy Administration** page.  
+5.  Save the policy. You will see the new policy that you created listed in the **Policy Administration** page.  
     
     ![add-uma-policy](img/add-uma-policy.png) 
 
@@ -242,7 +242,7 @@ Follow the steps given below to create, register and publish a policy:
     ![view-uma-policy](img/view-uma-policy.png) 
 
 
-Now that the resource owner has put their resource under the authorization server protection, 
+Now that the resource owner has put their resource under the authorization server's protection, 
 let's try out the flow for a requesting party to access this resource.
 
 ---
@@ -279,8 +279,8 @@ The permission endpoint allows the resource server to request permission when a 
 The client should pass id token to prove its identity to the authorization server. For the sample scenario in this tutorial only the requesting party username is required.
 
 -   Execute the following curl command to obtain the OIDC id\_token.
-    -   Be sure to replace the `<CLIENT_ID>` and `<CLIENT_SECRET>` tags with the values you got when you [Configured the service provider for the client](#configure-service-provider-to-act-as-the-client).  
-    -   Since the grant type use here is the password grant type, you need  to specify the requesting party credentials in the curl command.
+    -   Be sure to replace the `<CLIENT_ID>` and `<CLIENT_SECRET>` tags with the values you got when you [configured the service provider for the client](#configure-service-provider-to-act-as-the-client).  
+    -   Since the grant type used here is the password grant type, you need  to specify the requesting party credentials in the curl command.
     
     **Request Format**
     ```
@@ -313,9 +313,9 @@ The client acting on behalf of the requesting party has to obtain the requesting
 
 Execute the following curl command to obtain the RPT.  
 
--   Make sure to replace the `<CLIENT_ID>` and `<CLIENT_SECRET>` tags with the values you got after [configuring service provider for the client](#configure-service-provider-to-act-as-the-client).
--   Replace `<PERMISSION_TICKET>` with the value you generated under the [obtaining a permission ticket](#obtain-a-permission-ticket) section.
--   Make sure to replace the `<ID_TOKEN>` tag with the [OIDC id\_token](#obtain-the-oidc-id95token) you obtained.
+-   Be sure to replace the `<CLIENT_ID>` and `<CLIENT_SECRET>` tags with the values you got after [configuring the service provider for the client](#configure-service-provider-to-act-as-the-client).
+-   Replace `<PERMISSION_TICKET>` with the value you generated when [obtaining a permission ticket](#obtain-a-permission-ticket).
+-   Be sure to replace the `<ID_TOKEN>` tag with the [OIDC id\_token](#obtain-the-oidc-id95token) you obtained.
 
 ```
 curl --user <CLIENT_ID>:<CLIENT_SECRET> -k -d "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Auma-ticket&ticket=<PERMISSION_TICKET>&claim_token=<ID_TOKEN>" -H "Content-Type: application/x-www-form-urlencoded" https://<IS_HOST>:<IS_PORT>/oauth2/token
