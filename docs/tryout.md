@@ -41,7 +41,7 @@ Now that you have the resource owner and requesting party to try out the scenari
 
 You need to register your resource server (application) as a service provider in WSO2 Identity Server.
 
-1. Log in to the WSO2 Identity Server Management Console (`https://<IS_HOST>:<PORT>/carbon`) using administrator credentials (`admin:admin`).
+1. Sign in to the WSO2 Identity Server Management Console (`https://<IS_HOST>:<PORT>/carbon`) using administrator credentials (`admin:admin`).
 
 2. Go to **Main** > **Identity** > **Service Providers** and click **Add**.
 
@@ -137,6 +137,7 @@ Now, you need to register the resource.
 
 -   Execute the following curl command to put the resouce owner's resource under authorization server (WSO2 IS) protection.
     > **Note**
+    > 
     > Be sure to replace the `<PAT>` tag with the [access token you got in the previous section](#obtain-the-protection-api-access-token-pat).
     
 
@@ -254,7 +255,9 @@ let's try out the flow for a requesting party to access this resource.
 The permission endpoint allows the resource server to request permission when a client acting on behalf of the requesting party makes a resource request without a token or if the request contains an invalid token.
 
 > **Note**
+> 
 > By default, the permission ticket is valid for 300 seconds. This time period might not be sufficient for you to try out this tutorial and if the permission ticket expires you need to obtain a new permission ticket in order to proceed
+> 
 > Therefore, to try out the tutorial without having to obtain a new permission ticket, you need to follow the step below to change the permission ticket expiration validity period:
 > - Add the following configuration to the `deployment.toml` file in the `<IS_HOME>/repository/conf` folder and set the value to 3600.
 >   ```
@@ -268,6 +271,7 @@ The permission endpoint allows the resource server to request permission when a 
     -   Replace the `<PERMISSION_PAYLOAD>` tag with required permissions.
 
     > **Note**
+    > 
     > The request can contain one or more permission values by having multiple resources and the relevant scopes. The sample request used in this guide contains a single permission.
     
     **Request Format**
@@ -326,6 +330,7 @@ The client acting on behalf of the requesting party has to obtain the requesting
 
 Execute the following curl command to obtain the RPT.  
 > **Note**
+> 
 > Be sure to replace the placeholders in the curl command as follows:
 > -   `<CLIENT_ID>` and `<CLIENT_SECRET>` tags with the values you got after [configuring the service provider for the client](#configure-service-provider-to-act-as-the-client).
 > -   `<PERMISSION_TICKET>` with the value you generated when [obtaining a permission ticket](#obtain-a-permission-ticket).
@@ -360,7 +365,7 @@ You will get a response similar to the following:
     curl -v -k -H "Authorization: Bearer <PAT>" -H "Content-Type:application/x-www-form-urlencoded" -X POST --data "token=<RPT>" https://<IS_HOST>:<IS_PORT>/oauth2/introspect
     ```
 
--   You get a response similar to the following:
+- You get a response similar to the following:
 
     ```
     {
@@ -382,23 +387,26 @@ You will get a response similar to the following:
     }
     ```
 
--   If the token introspection for the RPT is successful, the resource
+- If the token introspection for the RPT is successful, the resource
 server can share the resource with the client.
-    -   In order to obtain UMA-related information in the introspection endpoint, add the following configuration to the `deployment.toml` file in the `<IS_HOME>/repository/conf/` folder.  
-    -   This is disabled by default. The response shown above with additional UMA related details is what we get when the following configuration is enabled.
-        ``` java
-        [oauth.grant_type.uma_ticket]
-        retrieve_uma_permission_info_through_introspection="true"
-        ```
-    -   Following is a sample response when the above configuration is disabled.
-        ```
-        {
-            "nbf": 1553411123,
-            "active": true,
-            "token_type": "Bearer",
-            "exp": 1553414723,
-            "iat": 1553411123,
-            "client_id": "JfTSiJ24gh8sYHTQVuOl5RoftkAa",
-            "username": "sam"
-        }
-        ```
+> **Note**
+>
+> In order to obtain UMA-related information in the introspection endpoint, add the following configuration to the `deployment.toml` file in the `<IS_HOME>/repository/conf/` folder.  
+>
+> This is disabled by default. The response shown above with additional UMA related details is what we get when the following configuration is enabled.
+>    ``` java
+>    [oauth.grant_type.uma_ticket]
+>    retrieve_uma_permission_info_through_introspection="true"
+>    ```
+> Following is a sample response when the above configuration is disabled.
+> ```
+> {
+>    "nbf": 1553411123,
+>    "active": true,
+>    "token_type": "Bearer",
+>    "exp": 1553414723,
+>    "iat": 1553411123,
+>    "client_id": "JfTSiJ24gh8sYHTQVuOl5RoftkAa",
+>    "username": "sam"
+> }
+> ```
