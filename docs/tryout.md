@@ -6,7 +6,7 @@ WSO2 Identity Server (WSO2 IS) supports the UMA 2.0 protocol, which allows a res
 
 To demonstrate the UMA flow using WSO2 IS as the authorization server, let’s consider a sample scenario where the resource owner wants to share a resource on their resource server with a requesting party. This requesting party uses a client to view the resource owner's resource. Note that the resource owner wants to allow this requesting party to only have view permission to their resource.
 
-Once you try out the guide you will understand how to use UMA 2.0 to do the following:
+Once you try out the guide, you will understand how to use UMA 2.0 to do the following:
 
 -   Outsource authorization.
 -   Control resources and share resources in a selective manner via a
@@ -20,7 +20,7 @@ Once you try out the guide you will understand how to use UMA 2.0 to do the foll
 1.  Log in to the WSO2 Identity Server Management Console (`https://<IS_HOST>:<PORT>/carbon`) using administrator credentials (`admin:admin`).
 2.  On the **Main** > **Identity** section, click **Add** under **Users and Roles**.
 <a name ="resourceowner_credentials"></a>
-3. Click **Add New User** and create a new user by providing username and password.
+3. Click **Add New User** and create a new user by providing the username and password.
 4.  Click **Next**.
 5.  Select the role as **admin**.
 6.  Click **Finish**.
@@ -33,7 +33,7 @@ Once you try out the guide you will understand how to use UMA 2.0 to do the foll
 2.  Click **Add New User** and create a new user by providing username and password.
 3.  Click **Finish**.
 
-Now that you have the resource owner and requesting party to try out the scenario, next step is to configure one service provider for the resource server and another service provider for the client acting on behalf of the requesting party.
+Now that you have the resource owner and requesting party to try out the scenario, the next step is to configure one service provider for the resource server and another service provider for the client acting on behalf of the requesting party.
 
 ---
 
@@ -43,7 +43,7 @@ You need to register your application as a service provider in WSO2 Identity Ser
 
 1. Log in to the WSO2 Identity Server Management Console (`https://<IS_HOST>:<PORT>/carbon`) using administrator credentials (`admin:admin`).
 
-2. Navigate to **Main** > **Identity** > **Service Providers** > **Add**.
+2. Go to **Main** > **Identity** > **Service Providers** and click **Add**.
 
 3. Enter a **Service Provider Name**. Optionally, enter a **Description**.
     
@@ -53,7 +53,7 @@ You need to register your application as a service provider in WSO2 Identity Ser
 
 1. Expand **Inbound Authentication Configuration** and then **OAuth/OpenID Connect Configuration**. 
 
-2. Click **Configure.**   
+2. Click **Configure**.   
 
 3. Make sure **urn:ietf:params:oauth:grant-type:uma-ticket** is selected from the **Allowed Grant Types** list.
 
@@ -71,7 +71,7 @@ You need to register your application as a service provider in WSO2 Identity Ser
 
 1. Log in to the WSO2 Identity Server Management Console (`https://<IS_HOST>:<PORT>/carbon`) using administrator credentials (`admin:admin`).
 
-2. Navigate to **Main** > **Identity** > **Service Providers** > **Add**.
+2. Go to **Main** > **Identity** > **Service Providers** and click **Add**.
 
 3. Enter a **Service Provider Name**. Optionally, enter a **Description**.
     
@@ -89,7 +89,7 @@ Make the following changes to the created service provider.
 
 ### Claim configuration
 
-Update claims for service provider:
+Update claims for the service provider:
 
 1. Expand **Claim Configuration** and select `http://wso2.org/claims/username` as the **Subject Claim URI**.
 
