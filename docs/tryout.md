@@ -39,7 +39,7 @@ Now that you have the resource owner and requesting party to try out the scenari
 
 ## Configure service provider to act as the resource server
 
-You need to register your application as a service provider in WSO2 Identity Server.
+You need to register your resource server (application) as a service provider in WSO2 Identity Server.
 
 1. Log in to the WSO2 Identity Server Management Console (`https://<IS_HOST>:<PORT>/carbon`) using administrator credentials (`admin:admin`).
 
@@ -67,7 +67,7 @@ You need to register your application as a service provider in WSO2 Identity Ser
     
 ## Configure service provider to act as the client
     
-You need to register your application as a service provider in WSO2 Identity Server.
+You need to register the client application (of the requesting party) as a service provider in WSO2 Identity Server.
 
 1. Sign in to the WSO2 Identity Server Management Console (`https://<IS_HOST>:<PORT>/carbon`) using administrator credentials (`admin:admin`).
 
@@ -104,9 +104,8 @@ Update claims for the service provider:
 ## Obtain the Protection API Access token (PAT)
 
 -   Execute the following curl command to obtain the PAT:
-    > **Note**
-    > Be sure to replace the `<CLIENT_ID>` and `<CLIENT_SECRET>` tags with the values you obtained when you [configured the service provider for the resource server](#configure-service-provider-to-act-as-the-resource-server).
-    > In this guide, the grant type that is used to obtain the PAT is the password grant type. Therefore, you need to pass the resource owners credentials in the curl command. 
+    -   Be sure to replace the `<CLIENT_ID>` and `<CLIENT_SECRET>` tags with the values you obtained when you [configured the service provider for the resource server](#configure-service-provider-to-act-as-the-resource-server).
+    -   In this guide, the grant type that is used to obtain the PAT is the password grant type. Therefore, you need to pass the resource owner's credentials in the curl command. 
 
     **Request Format**
     ```
@@ -353,7 +352,7 @@ You will get a response similar to the following:
 
 - Execute the following curl command to get the token introspection:  
 
-    -   Make sure to replace the `<PAT>` tag with the [access token you got in the previous section](#obtain-the-protection-api-access-token-pat).
+    -   Be sure to replace the `<PAT>` tag with the [access token you got in the previous section](#obtain-the-protection-api-access-token-pat).
 
     -   Replace the `<RPT>` tag with the [request party token you obtained](#obtain-the-requesting-party-token).
 
@@ -385,22 +384,21 @@ You will get a response similar to the following:
 
 -   If the token introspection for the RPT is successful, the resource
 server can share the resource with the client.
-    > **Note**
-    > In order to obtain UMA related information in the introspection endpoint, add the following configuration to the `deployment.toml` file in the `<IS_HOME>/repository/conf/` folder.  
-    > This configuration is disabled by default. You will get the response shown above with additional UMA-related details when the configuration is enabled.
-    > ``` java
-    > [oauth.grant_type.uma_ticket]
-    > retrieve_uma_permission_info_through_introspection="true"
-    > ```
-    > Following is a sample response when the above configuration is disabled.
-    > ```
-    > {
-    >     "nbf": 1553411123,
-    >     "active": true,
-    >     "token_type": "Bearer",
-    >     "exp": 1553414723,
-    >     "iat": 1553411123,
-    >     "client_id": "JfTSiJ24gh8sYHTQVuOl5RoftkAa",
-    >     "username": "sam"
-    > }
-    > ```
+    -   In order to obtain UMA-related information in the introspection endpoint, add the following configuration to the `deployment.toml` file in the `<IS_HOME>/repository/conf/` folder.  
+    -   This is disabled by default. The response shown above with additional UMA related details is what we get when the following configuration is enabled.
+        ``` java
+        [oauth.grant_type.uma_ticket]
+        retrieve_uma_permission_info_through_introspection="true"
+        ```
+    -   Following is a sample response when the above configuration is disabled.
+        ```
+        {
+            "nbf": 1553411123,
+            "active": true,
+            "token_type": "Bearer",
+            "exp": 1553414723,
+            "iat": 1553411123,
+            "client_id": "JfTSiJ24gh8sYHTQVuOl5RoftkAa",
+            "username": "sam"
+        }
+        ```
