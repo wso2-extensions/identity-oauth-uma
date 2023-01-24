@@ -17,7 +17,7 @@ Once you try out the guide, you will understand how to use UMA 2.0 to do the fol
 ## Create the resource owner
 Let's create a resource owner in WSO2 IS.
 
-1.  Log in to the WSO2 Identity Server Management Console (`https://<IS_HOST>:<PORT>/carbon`) using administrator credentials (`admin:admin`).
+1.  Sign in to the WSO2 Identity Server Management Console (`https://<IS_HOST>:<PORT>/carbon`) using administrator credentials (`admin:admin`).
 2.  On the **Main** > **Identity** section, click **Add** under **Users and Roles**.
 <a name ="resourceowner_credentials"></a>
 3. Click **Add New User** and create a new user by providing the username and password.
@@ -69,7 +69,7 @@ You need to register your application as a service provider in WSO2 Identity Ser
     
 You need to register your application as a service provider in WSO2 Identity Server.
 
-1. Log in to the WSO2 Identity Server Management Console (`https://<IS_HOST>:<PORT>/carbon`) using administrator credentials (`admin:admin`).
+1. Sign in to the WSO2 Identity Server Management Console (`https://<IS_HOST>:<PORT>/carbon`) using administrator credentials (`admin:admin`).
 
 2. Go to **Main** > **Identity** > **Service Providers** and click **Add**.
 
@@ -104,8 +104,9 @@ Update claims for the service provider:
 ## Obtain the Protection API Access token (PAT)
 
 -   Execute the following curl command to obtain the PAT:
-    -   Be sure to replace the `<CLIENT_ID>` and `<CLIENT_SECRET>` tags with the values you obtained when you [configured the service provider for the resource server](#configure-service-provider-to-act-as-the-resource-server).
-    -   In this guide, the grant type that is used to obtain the PAT is the password grant type. Therefore, you need to pass the resource owners credentials in the curl command. 
+    > **Note**
+    > Be sure to replace the `<CLIENT_ID>` and `<CLIENT_SECRET>` tags with the values you obtained when you [configured the service provider for the resource server](#configure-service-provider-to-act-as-the-resource-server).
+    > In this guide, the grant type that is used to obtain the PAT is the password grant type. Therefore, you need to pass the resource owners credentials in the curl command. 
 
     **Request Format**
     ```
@@ -136,7 +137,8 @@ Update claims for the service provider:
 Now, you need to register the resource.
 
 -   Execute the following curl command to put the resouce owner's resource under authorization server (WSO2 IS) protection.
-    -   Be sure to replace the `<PAT>` tag with the [access token you got in the previous section](#obtain-the-protection-api-access-token-pat).
+    > **Note**
+    > Be sure to replace the `<PAT>` tag with the [access token you got in the previous section](#obtain-the-protection-api-access-token-pat).
     
 
     **Request Format**
@@ -189,9 +191,10 @@ Follow the steps given below to create, register, and publish a policy:
 3.  Click **Add New Entitlement Policy** and then click **Write Policy in XML**.
 4.  Copy the following sample policy and paste it on the **Source View** pane:
 
-- Replace the `{ENTER_YOUR_RESOURCE_ID}` tag with the resource ID that you obtained when you [registered the resource](#register-the-resource).
-- Replace the `{ENTER_REQUESTING_PARTY_USERNAME}` tag with the username provided for the [requesting party](#create-the-requesting-party).
-- Replace the `{ENTER_PERMITTED_RESOURCE_SCOPE}` tag with the permitted resource scope for the defined requesting party.
+    > **Note**
+    > - Replace the `{ENTER_YOUR_RESOURCE_ID}` tag with the resource ID that you obtained when you [registered the resource](#register-the-resource).
+    > - Replace the `{ENTER_REQUESTING_PARTY_USERNAME}` tag with the username provided for the [requesting party](#create-the-requesting-party).
+    > - Replace the `{ENTER_PERMITTED_RESOURCE_SCOPE}` tag with the permitted resource scope for the defined requesting party.
        
 
     ``` java
@@ -251,11 +254,22 @@ let's try out the flow for a requesting party to access this resource.
 
 The permission endpoint allows the resource server to request permission when a client acting on behalf of the requesting party makes a resource request without a token or if the request contains an invalid token.
 
+> **Note**
+> By default, the permission ticket is valid for 300 seconds. This time period might not be sufficient for you to try out this tutorial and if the permission ticket expires you need to obtain a new permission ticket in order to proceed
+> Therefore, to try out the tutorial without having to obtain a new permission ticket, you need to follow the step below to change the permission ticket expiration validity period:
+> - Add the following configuration to the `deployment.toml` file in the `<IS_HOME>/repository/conf` folder and set the value to 3600.
+>   ```
+>   [oauth.token_validation]
+>   authorization_code_validity= "3600"
+>   ```
 -   Execute the following curl command to obtain the permission ticket.
 
     -   Make sure to replace the `<PAT>` tag with the [access token you got in the previous section](#obtain-the-protection-api-access-token-pat).
     -   Replace the `<RESOURCE_ID>` tag with the ID you got when [registering the resource](#register-the-resource).
-    -   Replace the `<PERMISSION_PAYLOAD>` tag with required permissions.  
+    -   Replace the `<PERMISSION_PAYLOAD>` tag with required permissions.
+
+    > **Note**
+    > The request can contain one or more permission values by having multiple resources and the relevant scopes. The sample request used in this guide contains a single permission.
     
     **Request Format**
     ```
@@ -312,10 +326,11 @@ The client should pass id token to prove its identity to the authorization serve
 The client acting on behalf of the requesting party has to obtain the requesting party token (RPT) with the obtained permission ticket and the claim token.
 
 Execute the following curl command to obtain the RPT.  
-
--   Be sure to replace the `<CLIENT_ID>` and `<CLIENT_SECRET>` tags with the values you got after [configuring the service provider for the client](#configure-service-provider-to-act-as-the-client).
--   Replace `<PERMISSION_TICKET>` with the value you generated when [obtaining a permission ticket](#obtain-a-permission-ticket).
--   Be sure to replace the `<ID_TOKEN>` tag with the [OIDC id\_token](#obtain-the-oidc-id95token) you obtained.
+> **Note**
+> Be sure to replace the placeholders in the curl command as follows:
+> -   `<CLIENT_ID>` and `<CLIENT_SECRET>` tags with the values you got after [configuring the service provider for the client](#configure-service-provider-to-act-as-the-client).
+> -   `<PERMISSION_TICKET>` with the value you generated when [obtaining a permission ticket](#obtain-a-permission-ticket).
+> -   `<ID_TOKEN>` tag with the [OIDC id\_token](#obtain-the-oidc-id95token) you obtained.
 
 ```
 curl --user <CLIENT_ID>:<CLIENT_SECRET> -k -d "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Auma-ticket&ticket=<PERMISSION_TICKET>&claim_token=<ID_TOKEN>" -H "Content-Type: application/x-www-form-urlencoded" https://<IS_HOST>:<IS_PORT>/oauth2/token
@@ -370,21 +385,22 @@ You will get a response similar to the following:
 
 -   If the token introspection for the RPT is successful, the resource
 server can share the resource with the client.
-    -   In order to obtain UMA related information in the introspection endpoint, add the following configuration to the `deployment.toml` file in the `<IS_HOME>/repository/conf/` folder.  
-    -   This is disabled by default. The response shown above with additional UMA related details is what we get when the following configuration is enabled.
-        ``` java
-        [oauth.grant_type.uma_ticket]
-        retrieve_uma_permission_info_through_introspection="true"
-        ```
-    -   Following is a sample response when the above configuration is disabled.
-        ```
-        {
-            "nbf": 1553411123,
-            "active": true,
-            "token_type": "Bearer",
-            "exp": 1553414723,
-            "iat": 1553411123,
-            "client_id": "JfTSiJ24gh8sYHTQVuOl5RoftkAa",
-            "username": "sam"
-        }
-        ```
+    > **Note**
+    > In order to obtain UMA related information in the introspection endpoint, add the following configuration to the `deployment.toml` file in the `<IS_HOME>/repository/conf/` folder.  
+    > This configuration is disabled by default. You will get the response shown above with additional UMA-related details when the configuration is enabled.
+    > ``` java
+    > [oauth.grant_type.uma_ticket]
+    > retrieve_uma_permission_info_through_introspection="true"
+    > ```
+    > Following is a sample response when the above configuration is disabled.
+    > ```
+    > {
+    >     "nbf": 1553411123,
+    >     "active": true,
+    >     "token_type": "Bearer",
+    >     "exp": 1553414723,
+    >     "iat": 1553411123,
+    >     "client_id": "JfTSiJ24gh8sYHTQVuOl5RoftkAa",
+    >     "username": "sam"
+    > }
+    > ```
