@@ -12,6 +12,12 @@ Once you try out the guide, you will understand how to use UMA 2.0 to do the fol
 -   Control resources and share resources in a selective manner via a
     single console (authorization server).
 
+## Prerequisites
+
+Be sure to [enable UMA in your WSO2 Identity Server](config.md) before trying out this tutorial.
+
+This UMA extension is compatible with **WSO2 IS 6.1.0** and later versions.
+
 ---
 
 ## Create the resource owner
@@ -104,7 +110,7 @@ Update claims for the service provider:
 ## Obtain the Protection API Access token (PAT)
 
 -   Execute the following curl command to obtain the PAT:
-    -   Be sure to replace the `<CLIENT_ID>` and `<CLIENT_SECRET>` tags with the values you obtained when you [configured the service provider for the resource server](#configure-service-provider-to-act-as-the-resource-server).
+    -   Be sure to replace the `<CLIENT_ID>` and `<CLIENT_SECRET>` tags with the values you obtained when you [configured the service provider for the resource server](#register-the-resource-server-as-a-service-provider-in-wso2-is).
     -   In this guide, the grant type that is used to obtain the PAT is the password grant type. Therefore, you need to pass the resource owner's credentials in the curl command. 
 
     **Request Format**
@@ -331,9 +337,9 @@ Execute the following curl command to obtain the RPT.
 > **Note**
 > 
 > Be sure to replace the placeholders in the curl command as follows:
-> -   `<CLIENT_ID>` and `<CLIENT_SECRET>` tags with the values you got after [configuring the service provider for the client](#configure-service-provider-to-act-as-the-client).
+> -   `<CLIENT_ID>` and `<CLIENT_SECRET>` tags with the values you got after [configuring the service provider for the client](#register-the-client-as-a-service-provider-in-wso2-is).
 > -   `<PERMISSION_TICKET>` with the value you generated when [obtaining a permission ticket](#obtain-a-permission-ticket).
-> -   `<ID_TOKEN>` tag with the [OIDC id\_token](#obtain-the-oidc-id95token) you obtained.
+> -   `<ID_TOKEN>` tag with the [OIDC id\_token](#obtain-the-oidc-id_token) you obtained.
 
 ```curl
 curl --user <CLIENT_ID>:<CLIENT_SECRET> -k -d "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Auma-ticket&ticket=<PERMISSION_TICKET>&claim_token=<ID_TOKEN>" -H "Content-Type: application/x-www-form-urlencoded" https://<IS_HOST>:<IS_PORT>/oauth2/token
