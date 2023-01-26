@@ -108,9 +108,8 @@ Update claims for the service provider:
     -   In this guide, the grant type that is used to obtain the PAT is the password grant type. Therefore, you need to pass the resource owner's credentials in the curl command. 
 
     **Request Format**
-    ```
+    ```curl
     curl -u <CLIENT_ID>:<CLIENT_SECRET> -k -d "grant_type=password&username=<USERNAME>&password=<PASSWORD>&scope=uma_protection internal_application_mgt_view" -H "Content-Type:application/x-www-form-urlencoded" https://<IS_HOST>:<IS_PORT>/oauth2/token
-
     ```
     **Sample Request**
     ```curl
@@ -119,7 +118,7 @@ Update claims for the service provider:
 
 -   You will get a response similar to the following:
 
-    ```
+    ```json
     {
         "access_token":"b8df48ff-feab-3632-b3dc-68ae6b4c62e2",
         "refresh_token":"1037ccad-f45a-38e7-96ad-40c00fbc7ca4",
@@ -138,11 +137,11 @@ Now, you need to register the resource.
 -   Execute the following curl command to put the resouce owner's resource under authorization server (WSO2 IS) protection.
     > **Note**
     > 
-    > Be sure to replace the `<PAT>` tag with the [access token you got in the previous section](#obtain-the-protection-api-access-token-pat).
-    
+    > Be sure to replace the `<PAT>` tag with the [access token you got in the previous section](#obtain-the-protection-api-access-token-pat).
+    >
 
     **Request Format**
-    ```
+    ```curl
     curl -X POST \
     https://<IS_HOST>:<IS_PORT>/api/identity/oauth2/uma/resourceregistration/v1.0/resource \
     -H 'Authorization: Bearer <PAT>' \
@@ -170,7 +169,7 @@ Now, you need to register the resource.
 
 -   You will get a response similar to the following:
 
-    ```
+    ```json
     {
         "_id": "ceaa6506-1da9-456b-88d8-027797d2e081"
     }
@@ -195,9 +194,9 @@ Follow the steps given below to create, register, and publish a policy:
     > - Replace the `{ENTER_YOUR_RESOURCE_ID}` tag with the resource ID that you obtained when you [registered the resource](#register-the-resource).
     > - Replace the `{ENTER_REQUESTING_PARTY_USERNAME}` tag with the username provided for the [requesting party](#create-the-requesting-party).
     > - Replace the `{ENTER_PERMITTED_RESOURCE_SCOPE}` tag with the permitted resource scope for the defined requesting party.
-       
+    >   
 
-    ``` java
+    ```java
     <Policy xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17"  PolicyId="UMApolicy" RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable" Version="1.0">
         <Target>
             <AnyOf>
@@ -260,7 +259,7 @@ The permission endpoint allows the resource server to request permission when a 
 > 
 > Therefore, to try out the tutorial without having to obtain a new permission ticket, you need to follow the step below to change the permission ticket expiration validity period:
 > - Add the following configuration to the `deployment.toml` file in the `<IS_HOME>/repository/conf` folder and set the value to 3600.
->   ```
+>   ```toml
 >   [oauth.token_validation]
 >   authorization_code_validity= "3600"
 >   ```
@@ -275,7 +274,7 @@ The permission endpoint allows the resource server to request permission when a 
     > The request can contain one or more permission values by having multiple resources and the relevant scopes. The sample request used in this guide contains a single permission.
     
     **Request Format**
-    ```
+    ```curl
     curl -X POST https://<IS_HOST>:<IS_PORT>/api/identity/oauth2/uma/permission/v1.0/permission -H 'authorization: Bearer <PAT>' -H "Content-Type: application/json" -d '["<PERMISSION_PAYLOAD>"]' -k
     ```
     **Sample Request**
@@ -285,7 +284,7 @@ The permission endpoint allows the resource server to request permission when a 
       
 - You will get a response similar to the following:
 
-    ```
+    ```json
     {"ticket":"97f476f2-72d0-4540-aa08-a4784bd2053e"}
     ```
 
@@ -300,7 +299,7 @@ The client should pass id token to prove its identity to the authorization serve
     -   Since the grant type used here is the password grant type, you need  to specify the requesting party credentials in the curl command.
     
     **Request Format**
-    ```
+    ```curl
     curl -u <CLIENT_ID>:<CLIENT_SECRET> -k -d "grant_type=password&username=<USERNAME>&password=<PASSWORD>&scope=openid" -H "Content-Type:application/x-www-form-urlencoded" https://localhost:9443/oauth2/token
     ```
     ---
@@ -311,7 +310,7 @@ The client should pass id token to prove its identity to the authorization serve
       
 -   You will get a response similar to the following:
 
-    ```
+    ```json
     {
         "access_token":"f2999d40-af06-3779-b157-731d6540c5de",
         "refresh_token":"f95adb62-34ae-311e-83c1-6b136eb49017",
@@ -336,13 +335,13 @@ Execute the following curl command to obtain the RPT.
 > -   `<PERMISSION_TICKET>` with the value you generated when [obtaining a permission ticket](#obtain-a-permission-ticket).
 > -   `<ID_TOKEN>` tag with the [OIDC id\_token](#obtain-the-oidc-id95token) you obtained.
 
-```
+```curl
 curl --user <CLIENT_ID>:<CLIENT_SECRET> -k -d "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Auma-ticket&ticket=<PERMISSION_TICKET>&claim_token=<ID_TOKEN>" -H "Content-Type: application/x-www-form-urlencoded" https://<IS_HOST>:<IS_PORT>/oauth2/token
 ```
 
 You will get a response similar to the following:
 
-```
+```json
 {
    "access_token":"p8dj48ff-heah-3632-b3dc-68aenm4c62e9",
    "token_type":"Bearer",
@@ -367,7 +366,7 @@ You will get a response similar to the following:
 
 - You get a response similar to the following:
 
-    ```
+    ```json
     {
     "nbf":1553414959,
     "permissions":[
@@ -394,7 +393,7 @@ server can share the resource with the client.
 > In order to obtain UMA-related information in the introspection endpoint, add the following configuration to the `deployment.toml` file in the `<IS_HOME>/repository/conf/` folder.  
 >
 > This is disabled by default. The response shown above with additional UMA related details is what we get when the following configuration is enabled.
->    ```
+>    ```toml
 >    [[event_listener]]
 >    id = "uma_introspection_data_provider"
 >    type = "org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
@@ -403,7 +402,7 @@ server can share the resource with the client.
 >    enable = true
 >    ```
 > Following is a sample response when the above configuration is disabled.
-> ```
+> ```json
 > {
 >    "nbf": 1553411123,
 >    "active": true,

@@ -31,7 +31,7 @@ You can build the authenticator from the source code by following the steps give
 
 1. Stop WSO2 Identity Server if it is already running.
 2. Add the below configuration to the `<IS-Home>/repository/conf/deployment.toml` file.
-    ```
+    ```toml
     [[oauth.custom_grant_type]]
     name = "urn:ietf:params:oauth:grant-type:uma-ticket"
     grant_handler = "org.wso2.carbon.identity.oauth.uma.grant.UMA2GrantHandler"
@@ -50,7 +50,7 @@ You can build the authenticator from the source code by following the steps give
     > **Note**
     >
     > In order to obtain UMA-related information in the introspection endpoint, add the following configuration to the `deployment.toml` file.
-    >    ```
+    >    ```toml
     >    [[event_listener]]
     >    id = "uma_introspection_data_provider"
     >    type = "org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
