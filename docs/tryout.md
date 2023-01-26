@@ -394,9 +394,13 @@ server can share the resource with the client.
 > In order to obtain UMA-related information in the introspection endpoint, add the following configuration to the `deployment.toml` file in the `<IS_HOME>/repository/conf/` folder.  
 >
 > This is disabled by default. The response shown above with additional UMA related details is what we get when the following configuration is enabled.
->    ``` java
->    [oauth.grant_type.uma_ticket]
->    retrieve_uma_permission_info_through_introspection="true"
+>    ```
+>    [[event_listener]]
+>    id = "uma_introspection_data_provider"
+>    type = "org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+>    name = "org.wso2.carbon.identity.oauth.uma.permission.service.impl.UMAIntrospectionDataProvider"
+>    order = "161"
+>    enable = true
 >    ```
 > Following is a sample response when the above configuration is disabled.
 > ```
