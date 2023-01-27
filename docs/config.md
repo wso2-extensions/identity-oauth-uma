@@ -22,7 +22,7 @@ You can either download the UMA artifacts or build the authenticator from the so
     api#identity#oauth2#uma#resourceregistration#v_.war
     api#identity#oauth2#uma#permission#v_.war
     ```
-5. Run the corresponding db script from the [folder](../features/org.wso2.carbon.identity.oauth.uma.server.feature/resources/dbscripts)
+5. Run the corresponding db script from the [folder](../features/org.wso2.carbon.identity.oauth.uma.server.feature/resources/dbscripts).
 6. Start/ Restart WSO2 Identity Server.
 
 ### Build from the source code
