@@ -4,5 +4,6 @@ UMA 2.0 is a standard protocol built on top of OAuth 2.0, which enables party-to
 
 ## Getting started
 
+* You can download the connector and other required artifacts from the [WSO2 store](https://store.wso2.com/store/assets/isconnector/list).
 * To get started with User Managed Access, see the instructions on [configuring UMA 2.0](config.md).  
 * Once you have completed your configurations, you can [try out User Managed Access](tryout.md) with WSO2 Identity Server.
