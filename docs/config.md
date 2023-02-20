@@ -67,17 +67,6 @@ You can either download the UMA artifacts or build the authenticator from the so
     secure = "true"
     http_method = "all"
     ```
-    > **Note**
-    >
-    > In order to obtain UMA-related information in the introspection endpoint, add the following configuration to the `deployment.toml` file.
-    >    ```toml
-    >    [[event_listener]]
-    >    id = "uma_introspection_data_provider"
-    >    type = "org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
-    >    name = "org.wso2.carbon.identity.oauth.uma.permission.service.impl.UMAIntrospectionDataProvider"
-    >    order = "161"
-    >    enable = true
-    >    ```
 3. Start/ Restart WSO2 Identity Server.
 
 
