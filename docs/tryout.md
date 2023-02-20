@@ -115,11 +115,11 @@ Update claims for the service provider:
 
     **Request Format**
     ```curl
-    curl -u <CLIENT_ID>:<CLIENT_SECRET> -k -d "grant_type=password&username=<USERNAME>&password=<PASSWORD>&scope=uma_protection internal_application_mgt_view" -H "Content-Type:application/x-www-form-urlencoded" https://<IS_HOST>:<IS_PORT>/oauth2/token
+    curl -u <CLIENT_ID>:<CLIENT_SECRET> -k -d "grant_type=password&username=<USERNAME>&password=<PASSWORD>&scope=uma_protection" -H "Content-Type:application/x-www-form-urlencoded" https://<IS_HOST>:<IS_PORT>/oauth2/token
     ```
     **Sample Request**
     ```curl
-    curl -u hwbR3jd2fikSApLKfv_wiwRWNSwa:q7Kb74s5dcK3FBh1MUWAJqvdrs8a -k -d "grant_type=password&username=larry&password=larry123&scope=uma_protection internal_application_mgt_view" -H "Content-Type:application/x-www-form-urlencoded" https://localhost:9443/oauth2/token
+    curl -u hwbR3jd2fikSApLKfv_wiwRWNSwa:q7Kb74s5dcK3FBh1MUWAJqvdrs8a -k -d "grant_type=password&username=larry&password=larry123&scope=uma_protection" -H "Content-Type:application/x-www-form-urlencoded" https://localhost:9443/oauth2/token
     ```
 
 -   You will get a response similar to the following:
@@ -128,7 +128,7 @@ Update claims for the service provider:
     {
         "access_token":"b8df48ff-feab-3632-b3dc-68ae6b4c62e2",
         "refresh_token":"1037ccad-f45a-38e7-96ad-40c00fbc7ca4",
-        "scope":"internal_application_mgt_view uma_protection",
+        "scope":"uma_protection",
         "token_type":"Bearer",
         "expires_in":3600
     }
@@ -350,6 +350,7 @@ You will get a response similar to the following:
 ```json
 {
    "access_token":"p8dj48ff-heah-3632-b3dc-68aenm4c62e9",
+   "refresh_token":"7c57d4a6-43f8-3504-976f-0084ea5c50b5",
    "token_type":"Bearer",
    "expires_in":3600
 }
@@ -359,6 +360,13 @@ You will get a response similar to the following:
 
 ## Token introspection
 
+> **Note**
+> 
+> Add the following configuration to the `deployment.toml` file in the `<IS_HOME>/repository/conf` folder to enable introspection permissions. 
+> ```toml
+> [resource_access_control.introspect]
+> permissions = []
+> ```
 
 - Execute the following curl command to get the token introspection:  
 
@@ -374,6 +382,7 @@ You will get a response similar to the following:
 
     ```json
     {
+    "aut":"APPLICATION_USER",
     "nbf":1553414959,
     "permissions":[
         {
@@ -388,34 +397,9 @@ You will get a response similar to the following:
     "exp":1553418559,
     "iat":1553414959,
     "client_id":"JfTSiJ24gh8sYHTQVuOl5RoftkAa",
-    "username":"sam"
+    "username":"sam@carbon.super"
     }
     ```
 
 - If the token introspection for the RPT is successful, the resource
 server can share the resource with the client.
-> **Note**
->
-> In order to obtain UMA-related information in the introspection endpoint, add the following configuration to the `deployment.toml` file in the `<IS_HOME>/repository/conf/` folder.  
->
-> This is disabled by default. The response shown above with additional UMA related details is what we get when the following configuration is enabled.
->    ```toml
->    [[event_listener]]
->    id = "uma_introspection_data_provider"
->    type = "org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
->    name = "org.wso2.carbon.identity.oauth.uma.permission.service.impl.UMAIntrospectionDataProvider"
->    order = "161"
->    enable = true
->    ```
-> Following is a sample response when the above configuration is disabled.
-> ```json
-> {
->    "nbf": 1553411123,
->    "active": true,
->    "token_type": "Bearer",
->    "exp": 1553414723,
->    "iat": 1553411123,
->    "client_id": "JfTSiJ24gh8sYHTQVuOl5RoftkAa",
->    "username": "sam"
-> }
-> ```
