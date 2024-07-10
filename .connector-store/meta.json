@@ -1,0 +1,20 @@
+{
+    "name": "UMA 2.0 Connector",
+    "owner": "WSO2",
+    "category": "OAuth 2.0 grant type",
+    "documentationUrl": "https://github.com/wso2-extensions/identity-oauth-uma/tree/master/docs",
+    "description": "UMA 2.0 is a standard protocol built on top of OAuth 2.0, which enables party-to-party sharing. It gives the resource owners the ability to control who can access their protected resources from a centralized authorization server by creating authorization policies.",
+    "status": "Active",
+    "labels": [
+        "Oauth-2.0-grant-type",
+        "Oauth2-Add-ons"
+    ],
+    "releases": [
+        {
+            "tagName": "v1.3.10",
+            "products": [
+                "IS 6.1.0"
+            ]
+        }
+    ]
+}
