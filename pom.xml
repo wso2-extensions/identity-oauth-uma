@@ -343,6 +343,11 @@
                 <version>${project.version}</version>
                 <type>zip</type>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.inbound.auth.oauth2</groupId>
+                <artifactId>org.wso2.carbon.identity.oauth</artifactId>
+                <version>${carbon.identity.framework.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -371,7 +376,7 @@
 
         <!-- Carbon Identity Framework version -->
         <carbon.identity.framework.version>5.18.144</carbon.identity.framework.version>
-        <carbon.identity.framework.imp.pkg.version.range>[5.18.0, 6.0.0)
+        <carbon.identity.framework.imp.pkg.version.range>[5.18.0, 8.0.0)
         </carbon.identity.framework.imp.pkg.version.range>
 
         <!-- Carbon kernel version -->
@@ -385,7 +390,7 @@
 
         <!--Maven Plugin Version-->
         <maven.bundle.plugin.version>3.2.0</maven.bundle.plugin.version>
-        <maven.compiler.plugin.version>2.3.1</maven.compiler.plugin.version>
+        <maven.compiler.plugin.version>3.10.1</maven.compiler.plugin.version>
         <carbon.p2.plugin.version>1.5.3</carbon.p2.plugin.version>
 
         <!-- Commons -->
@@ -402,7 +407,7 @@
 
         <!-- Identity Inbound Auth OAuth Version-->
         <org.wso2.carbon.identity.oauth.version>6.2.18</org.wso2.carbon.identity.oauth.version>
-        <org.wso2.carbon.identity.oauth.import.version.range>[6.2.18, 7.0.0)</org.wso2.carbon.identity.oauth.import.version.range>
+        <org.wso2.carbon.identity.oauth.import.version.range>[6.2.18, 8.0.0)</org.wso2.carbon.identity.oauth.import.version.range>
 
         <carbon.database.utils.version>2.0.7</carbon.database.utils.version>
 
