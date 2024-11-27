@@ -371,7 +371,7 @@
 
         <!-- Carbon Identity Framework version -->
         <carbon.identity.framework.version>5.18.144</carbon.identity.framework.version>
-        <carbon.identity.framework.imp.pkg.version.range>[5.18.0, 6.0.0)
+        <carbon.identity.framework.imp.pkg.version.range>[5.18.0, 8.0.0)
         </carbon.identity.framework.imp.pkg.version.range>
 
         <!-- Carbon kernel version -->
@@ -402,7 +402,7 @@
 
         <!-- Identity Inbound Auth OAuth Version-->
         <org.wso2.carbon.identity.oauth.version>6.2.18</org.wso2.carbon.identity.oauth.version>
-        <org.wso2.carbon.identity.oauth.import.version.range>[6.2.18, 7.0.0)</org.wso2.carbon.identity.oauth.import.version.range>
+        <org.wso2.carbon.identity.oauth.import.version.range>[6.2.18, 8.0.0)</org.wso2.carbon.identity.oauth.import.version.range>
 
         <carbon.database.utils.version>2.0.7</carbon.database.utils.version>
 
