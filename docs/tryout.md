@@ -105,6 +105,15 @@ Update claims for the service provider:
 
 2. Click **Update** to save the changes.
 
+### Create custom scope
+
+1. In the WSO2 Identity Server Console, go to User Attributes & Stores > Attributes > Manage Attribute Mappings > OpenID Connect.
+2. Under Manage Attribute Mappings, click OpenID Connect.
+3. Click Scopes
+4. Click New OIDC Scope to open the Create OpenID Connect Scope dialog box.
+5. Enter scope name as `uma_protection` and also give Display name and Description.
+6. Select the attributes that should correspond to the scope and click Finish. (ex:username)
+
 ---
 
 ## Obtain the Protection API Access token (PAT)
