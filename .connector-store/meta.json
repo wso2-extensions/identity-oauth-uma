@@ -11,7 +11,7 @@
     ],
     "releases": [
         {
-            "tagName": "v1.3.10",
+            "tagName": "1.3.10",
             "products": [
                 "IS 6.1.0"
             ]
