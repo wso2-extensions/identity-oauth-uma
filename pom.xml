@@ -349,7 +349,7 @@
 
         <!--Swagger Dependency Version-->
         <com.fasterxml.jackson.version>2.13.2</com.fasterxml.jackson.version>
-        <com.fasterxml.jackson-databind.version>2.13.2.1</com.fasterxml.jackson-databind.version>
+        <com.fasterxml.jackson-databind.version>2.13.4.2</com.fasterxml.jackson-databind.version>
         <swagger-jaxrs.version>1.6.2</swagger-jaxrs.version>
 
         <!--Test Dependencies-->
