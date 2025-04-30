@@ -396,7 +396,7 @@
         </org.wso2.carbon.identity.auth.service.version>
 
         <!-- Identity Inbound Auth OAuth Version-->
-        <org.wso2.carbon.identity.oauth.version>7.0.278-SNAPSHOT</org.wso2.carbon.identity.oauth.version>
+        <org.wso2.carbon.identity.oauth.version>7.0.286</org.wso2.carbon.identity.oauth.version>
         <org.wso2.carbon.identity.oauth.import.version.range>[6.2.18, 8.0.0)</org.wso2.carbon.identity.oauth.import.version.range>
 
         <carbon.database.utils.version>2.0.7</carbon.database.utils.version>
