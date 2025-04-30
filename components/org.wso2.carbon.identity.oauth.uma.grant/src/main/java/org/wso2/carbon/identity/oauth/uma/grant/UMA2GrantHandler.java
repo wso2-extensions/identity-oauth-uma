@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018-2025, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -11,7 +11,7 @@
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
+ * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
@@ -26,10 +26,8 @@ import com.nimbusds.jwt.SignedJWT;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.oauth.uma.common.exception.UMAClientException;
@@ -48,12 +46,9 @@ import org.wso2.carbon.identity.oauth2.util.OAuth2Util;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
-import java.security.Key;
 import java.security.interfaces.RSAPrivateKey;
 import java.text.ParseException;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Grant type for User Managed Access 2.0.
@@ -61,7 +56,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class UMA2GrantHandler extends AbstractAuthorizationGrantHandler {
 
     private static final Log log = LogFactory.getLog(UMA2GrantHandler.class);
-    private Map<Integer, Key> privateKeys = new ConcurrentHashMap<>();
 
     @Override
     public boolean validateGrant(OAuthTokenReqMessageContext tokReqMsgCtx) throws IdentityOAuth2Exception {
@@ -223,7 +217,7 @@ public class UMA2GrantHandler extends AbstractAuthorizationGrantHandler {
         // Check whether the assertion is encrypted.
         EncryptedJWT encryptedJWT = getEncryptedJWT(idToken);
         if (encryptedJWT != null) {
-            RSAPrivateKey rsaPrivateKey = getPrivateKey(tenantDomain);
+            RSAPrivateKey rsaPrivateKey = (RSAPrivateKey) OAuth2Util.getPrivateKey(tenantDomain);
             RSADecrypter decrypter = new RSADecrypter(rsaPrivateKey);
             try {
                 encryptedJWT.decrypt(decrypter);
@@ -301,57 +295,10 @@ public class UMA2GrantHandler extends AbstractAuthorizationGrantHandler {
         }
     }
 
-    private RSAPrivateKey getPrivateKey(String tenantDomain) throws IdentityOAuth2Exception {
-
-        Key privateKey;
-        int tenantId = OAuth2Util.getTenantId(tenantDomain);
-
-        if (!(privateKeys.containsKey(tenantId))) {
-
-            try {
-                IdentityTenantUtil.initializeRegistry(tenantId, tenantDomain);
-            } catch (IdentityException e) {
-                throw new IdentityOAuth2Exception("Error occurred while loading registry for tenant " +
-                        tenantDomain, e);
-            }
-
-            // Get tenant's key store manager.
-            KeyStoreManager tenantKSM = KeyStoreManager.getInstance(tenantId);
-
-            if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
-
-                // Derive key store name.
-                String ksName = tenantDomain.trim().replace(".", "-");
-                String jksName = ksName + ".jks";
-
-                // Obtain private key.
-                privateKey = tenantKSM.getPrivateKey(jksName, tenantDomain);
-            } else {
-                try {
-                    privateKey = tenantKSM.getDefaultPrivateKey();
-                } catch (Exception e) {
-
-                    // Intentionally catch Exception as an Exception is thrown from the above layer.
-                    throw new IdentityOAuth2Exception("Error while obtaining private key for super tenant", e);
-                }
-            }
-
-            // PrivateKey will not be null always
-            privateKeys.put(tenantId, privateKey);
-        } else {
-
-            // PrivateKey will not be null because containsKey() true says given key is exist and ConcurrentHashMap
-            // does not allow to store null values.
-            privateKey = privateKeys.get(tenantId);
-        }
-
-        return (RSAPrivateKey) privateKey;
-    }
-
     private boolean isEncryptedJWTSigned(String payload) {
 
         if (StringUtils.isNotEmpty(payload)) {
-            String[] parts = payload.split(".");
+            String[] parts = payload.split("\\.");
             return parts.length == 3 && StringUtils.isNotEmpty(parts[2]);
         }
         return false;
