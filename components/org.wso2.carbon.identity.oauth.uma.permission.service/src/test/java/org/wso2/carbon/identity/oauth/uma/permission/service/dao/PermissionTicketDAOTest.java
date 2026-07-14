@@ -18,12 +18,10 @@
 
 package org.wso2.carbon.identity.oauth.uma.permission.service.dao;
 
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
-import org.testng.IObjectFactory;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.identity.oauth.uma.common.JdbcUtils;
@@ -40,15 +38,10 @@ import java.util.List;
 import java.util.UUID;
 import javax.sql.DataSource;
 
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
-
 /**
  * Unit tests for PermissionTicketDAO.
  */
-@PrepareForTest(JdbcUtils.class)
-public class PermissionTicketDAOTest extends PowerMockTestCase {
+public class PermissionTicketDAOTest {
 
     private static final String DB_NAME = "UMA_DB";
     private Timestamp createdTime = new Timestamp(System.currentTimeMillis());
@@ -74,27 +67,21 @@ public class PermissionTicketDAOTest extends PowerMockTestCase {
         DAOTestUtils.closeH2Base(DB_NAME);
     }
 
-    @ObjectFactory
-    public IObjectFactory getObjectFactory() {
-
-        return new org.powermock.modules.testng.PowerMockObjectFactory();
-    }
-
     @Test
     public void testPersistPermissionTicket() throws Exception {
 
-        DataSource dataSource = mock(DataSource.class);
-        mockStatic(JdbcUtils.class);
-        when(JdbcUtils.getNewNamedTemplate()).thenReturn(new NamedJdbcTemplate(dataSource));
-        try (Connection connection = DAOTestUtils.getConnection(DB_NAME)) {
-            Connection spy = DAOTestUtils.spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spy);
-            List<Resource> list = new ArrayList<>();
-            list.add(getResource());
-            PermissionTicketDAO.persistPermissionTicket(list, getPermissionTicketDO(),
-                    TestConstants.RESOURCE_OWNER_NAME, TestConstants.CLIENT_ID, TestConstants.USER_DOMAIN);
+        DataSource dataSource = Mockito.mock(DataSource.class);
+        try (MockedStatic<JdbcUtils> mockedJdbcUtils = Mockito.mockStatic(JdbcUtils.class)) {
+            mockedJdbcUtils.when(JdbcUtils::getNewNamedTemplate).thenReturn(new NamedJdbcTemplate(dataSource));
+            try (Connection connection = DAOTestUtils.getConnection(DB_NAME)) {
+                Connection spy = DAOTestUtils.spyConnection(connection);
+                Mockito.when(dataSource.getConnection()).thenReturn(spy);
+                List<Resource> list = new ArrayList<>();
+                list.add(getResource());
+                PermissionTicketDAO.persistPermissionTicket(list, getPermissionTicketDO(),
+                        TestConstants.RESOURCE_OWNER_NAME, TestConstants.CLIENT_ID, TestConstants.USER_DOMAIN);
+            }
         }
-
     }
 
     /**
@@ -103,16 +90,17 @@ public class PermissionTicketDAOTest extends PowerMockTestCase {
     @Test(expectedExceptions = UMAException.class)
     public void testPersistInvalidResourceId() throws Exception {
 
-        DataSource dataSource = mock(DataSource.class);
-        mockStatic(JdbcUtils.class);
-        when(JdbcUtils.getNewNamedTemplate()).thenReturn(new NamedJdbcTemplate(dataSource));
-        try (Connection connection = DAOTestUtils.getConnection(DB_NAME)) {
-            Connection spy = DAOTestUtils.spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spy);
-            List<Resource> list = new ArrayList<>();
-            list.add(getResourceWithInvalidResourceId());
-            PermissionTicketDAO.persistPermissionTicket(list, getPermissionTicketDO(),
-                    TestConstants.RESOURCE_OWNER_NAME, TestConstants.CLIENT_ID, TestConstants.USER_DOMAIN);
+        DataSource dataSource = Mockito.mock(DataSource.class);
+        try (MockedStatic<JdbcUtils> mockedJdbcUtils = Mockito.mockStatic(JdbcUtils.class)) {
+            mockedJdbcUtils.when(JdbcUtils::getNewNamedTemplate).thenReturn(new NamedJdbcTemplate(dataSource));
+            try (Connection connection = DAOTestUtils.getConnection(DB_NAME)) {
+                Connection spy = DAOTestUtils.spyConnection(connection);
+                Mockito.when(dataSource.getConnection()).thenReturn(spy);
+                List<Resource> list = new ArrayList<>();
+                list.add(getResourceWithInvalidResourceId());
+                PermissionTicketDAO.persistPermissionTicket(list, getPermissionTicketDO(),
+                        TestConstants.RESOURCE_OWNER_NAME, TestConstants.CLIENT_ID, TestConstants.USER_DOMAIN);
+            }
         }
     }
 
@@ -122,16 +110,17 @@ public class PermissionTicketDAOTest extends PowerMockTestCase {
     @Test(expectedExceptions = UMAException.class)
     public void testPersistInvalidResourceScope() throws Exception {
 
-        DataSource dataSource = mock(DataSource.class);
-        mockStatic(JdbcUtils.class);
-        when(JdbcUtils.getNewNamedTemplate()).thenReturn(new NamedJdbcTemplate(dataSource));
-        try (Connection connection = DAOTestUtils.getConnection(DB_NAME)) {
-            Connection spy = DAOTestUtils.spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spy);
-            List<Resource> list = new ArrayList<>();
-            list.add(getResourceWithInvalidResourceScope());
-            PermissionTicketDAO.persistPermissionTicket(list, getPermissionTicketDO(),
-                    TestConstants.RESOURCE_OWNER_NAME, TestConstants.CLIENT_ID, TestConstants.USER_DOMAIN);
+        DataSource dataSource = Mockito.mock(DataSource.class);
+        try (MockedStatic<JdbcUtils> mockedJdbcUtils = Mockito.mockStatic(JdbcUtils.class)) {
+            mockedJdbcUtils.when(JdbcUtils::getNewNamedTemplate).thenReturn(new NamedJdbcTemplate(dataSource));
+            try (Connection connection = DAOTestUtils.getConnection(DB_NAME)) {
+                Connection spy = DAOTestUtils.spyConnection(connection);
+                Mockito.when(dataSource.getConnection()).thenReturn(spy);
+                List<Resource> list = new ArrayList<>();
+                list.add(getResourceWithInvalidResourceScope());
+                PermissionTicketDAO.persistPermissionTicket(list, getPermissionTicketDO(),
+                        TestConstants.RESOURCE_OWNER_NAME, TestConstants.CLIENT_ID, TestConstants.USER_DOMAIN);
+            }
         }
     }
 

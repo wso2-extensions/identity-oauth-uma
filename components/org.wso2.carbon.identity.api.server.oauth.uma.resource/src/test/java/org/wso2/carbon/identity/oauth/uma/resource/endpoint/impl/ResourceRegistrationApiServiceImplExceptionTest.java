@@ -2,15 +2,14 @@ package org.wso2.carbon.identity.oauth.uma.resource.endpoint.impl;
 
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.osgi.framework.BundleContext;
 import org.osgi.util.tracker.ServiceTracker;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
-import org.testng.IObjectFactory;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.internal.OSGiDataHolder;
 import org.wso2.carbon.identity.auth.service.AuthenticationContext;
 import org.wso2.carbon.identity.oauth.uma.common.exception.UMAException;
@@ -27,14 +26,12 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
 
-import static org.mockito.Matchers.anyString;
-import static org.powermock.api.mockito.PowerMockito.when;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertNotEquals;
 
 
-@PrepareForTest({BundleContext.class, ServiceTracker.class, PrivilegedCarbonContext.class, ResourceService.class})
-public class ResourceRegistrationApiServiceImplExceptionTest extends PowerMockTestCase {
+public class ResourceRegistrationApiServiceImplExceptionTest {
 
     private ResourceRegistrationApiServiceImpl resourcesApiService = null;
     private Resource resource;
@@ -47,9 +44,6 @@ public class ResourceRegistrationApiServiceImplExceptionTest extends PowerMockTe
     private BundleContext mockBundleContext;
 
     @Mock
-    private ServiceTracker mockServiceTracker;
-
-    @Mock
     private MessageContext mockMessageContext;
 
     @Mock
@@ -58,23 +52,18 @@ public class ResourceRegistrationApiServiceImplExceptionTest extends PowerMockTe
     @Mock
     private HttpServletRequest mockHTTPServletRequest;
 
-    @ObjectFactory
-    public IObjectFactory getObjectFactory() {
-
-        return new org.powermock.modules.testng.PowerMockObjectFactory();
-    }
+    private MockedConstruction<ServiceTracker> mockedServiceTrackerConstruction;
 
     @BeforeMethod
     public void setUp() throws Exception {
 
+        MockitoAnnotations.openMocks(this);
         resourcesApiService = new ResourceRegistrationApiServiceImpl();
         resource = new Resource();
-        //Get OSGIservice by starting the tenant flow.
-        whenNew(ServiceTracker.class).withAnyArguments().thenReturn(mockServiceTracker);
+        Object[] services = new Object[]{resourceService};
+        mockedServiceTrackerConstruction = Mockito.mockConstruction(ServiceTracker.class,
+                (mock, context) -> when(mock.getServices()).thenReturn(services));
         TestUtil.startTenantFlow("carbon.super");
-        Object[] services = new Object[1];
-        services[0] = resourceService;
-        when(mockServiceTracker.getServices()).thenReturn(services);
         OSGiDataHolder.getInstance().setBundleContext(mockBundleContext);
 
         resource.setName("photo_albem1");
@@ -88,6 +77,13 @@ public class ResourceRegistrationApiServiceImplExceptionTest extends PowerMockTe
         resource.setType("http://www.example.com/rsrcs/photoalbum");
     }
 
+    @AfterMethod
+    public void tearDown() throws Exception {
+
+        if (mockedServiceTrackerConstruction != null) {
+            mockedServiceTrackerConstruction.close();
+        }
+    }
 
     @Test
     public void testUpdateResource() throws Exception {
