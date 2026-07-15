@@ -20,16 +20,15 @@ package org.wso2.carbon.identity.oauth.uma.permission.endpoint;
 
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.osgi.framework.BundleContext;
 import org.osgi.util.tracker.ServiceTracker;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
-import org.testng.IObjectFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.internal.OSGiDataHolder;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.auth.service.AuthenticationContext;
@@ -46,21 +45,17 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
 
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.anyString;
-import static org.powermock.api.mockito.PowerMockito.doThrow;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.oauth.uma.permission.endpoint.PermissionApiServiceImpl.OAUTH2_ALLOWED_SCOPES;
 import static org.wso2.carbon.identity.oauth.uma.permission.endpoint.PermissionApiServiceImpl.PAT_SCOPE;
 
-@PrepareForTest({BundleContext.class, ServiceTracker.class, PrivilegedCarbonContext.class, PermissionService.class,
-        UserCoreUtil.class})
-public class PermissionApiServiceImplTest extends PowerMockTestCase {
+public class PermissionApiServiceImplTest {
 
     private static final String USERNAME_WITH_USERSTORE_DOMAIN = "PRIMARY/admin";
     private static final String USERNAME = "admin";
@@ -69,9 +64,6 @@ public class PermissionApiServiceImplTest extends PowerMockTestCase {
 
     @Mock
     private BundleContext mockBundleContext;
-
-    @Mock
-    private ServiceTracker mockServiceTracker;
 
     @Mock
     private PermissionService mockPermissionService;
@@ -91,30 +83,32 @@ public class PermissionApiServiceImplTest extends PowerMockTestCase {
     @Mock
     private User mockUser;
 
-    @ObjectFactory
-    public IObjectFactory getObjectFactory() {
-
-        return new org.powermock.modules.testng.PowerMockObjectFactory();
-    }
+    private MockedStatic<UserCoreUtil> mockedUserCoreUtil;
+    private MockedConstruction<ServiceTracker> mockedServiceTrackerConstruction;
 
     @BeforeMethod
     public void setUp() throws Exception {
 
+        MockitoAnnotations.openMocks(this);
         permissionApiService = new PermissionApiServiceImpl();
         resourceModelDTO = new ResourceModelDTO();
-        mockStatic(UserCoreUtil.class);
-        //Get OSGIservice by starting the tenant flow.
-        whenNew(ServiceTracker.class).withAnyArguments().thenReturn(mockServiceTracker);
+        Object[] services = new Object[]{mockPermissionService};
+        mockedServiceTrackerConstruction = Mockito.mockConstruction(ServiceTracker.class,
+                (mock, context) -> when(mock.getServices()).thenReturn(services));
         TestUtil.startTenantFlow("carbon.super");
-        Object[] services = new Object[1];
-        services[0] = mockPermissionService;
-        when(mockServiceTracker.getServices()).thenReturn(services);
         OSGiDataHolder.getInstance().setBundleContext(mockBundleContext);
+        mockedUserCoreUtil = Mockito.mockStatic(UserCoreUtil.class);
     }
 
     @AfterMethod
     public void tearDown() throws Exception {
 
+        if (mockedUserCoreUtil != null) {
+            mockedUserCoreUtil.close();
+        }
+        if (mockedServiceTrackerConstruction != null) {
+            mockedServiceTrackerConstruction.close();
+        }
     }
 
     @Test
@@ -126,7 +120,7 @@ public class PermissionApiServiceImplTest extends PowerMockTestCase {
         when(mockAuthenticationContext.getParameter(anyString())).thenReturn(tokenScopes);
         when(mockAuthenticationContext.getUser()).thenReturn(mockUser);
         when(mockUser.getUserName()).thenReturn(USERNAME_WITH_USERSTORE_DOMAIN);
-        when(UserCoreUtil.removeDomainFromName(anyString())).thenReturn(USERNAME);
+        mockedUserCoreUtil.when(() -> UserCoreUtil.removeDomainFromName(anyString())).thenReturn(USERNAME);
         PermissionTicketModel permissionTicketModel = new PermissionTicketModel();
         when(mockPermissionService.issuePermissionTicket(anyList(), anyInt(), anyString(), anyString(), anyString())).
                 thenReturn(permissionTicketModel);
@@ -144,7 +138,7 @@ public class PermissionApiServiceImplTest extends PowerMockTestCase {
         when(mockAuthenticationContext.getParameter(anyString())).thenReturn(tokenScopes);
         when(mockAuthenticationContext.getUser()).thenReturn(mockUser);
         when(mockUser.getUserName()).thenReturn(USERNAME_WITH_USERSTORE_DOMAIN);
-        when(UserCoreUtil.removeDomainFromName(anyString())).thenReturn(USERNAME);
+        mockedUserCoreUtil.when(() -> UserCoreUtil.removeDomainFromName(anyString())).thenReturn(USERNAME);
         doThrow(new UMAServerException("Server")).when(mockPermissionService).issuePermissionTicket(anyList(),
                 anyInt(), anyString(), anyString(), anyString());
         try {
@@ -163,7 +157,7 @@ public class PermissionApiServiceImplTest extends PowerMockTestCase {
         when(mockAuthenticationContext.getParameter(anyString())).thenReturn(tokenScopes);
         when(mockAuthenticationContext.getUser()).thenReturn(mockUser);
         when(mockUser.getUserName()).thenReturn(USERNAME_WITH_USERSTORE_DOMAIN);
-        when(UserCoreUtil.removeDomainFromName(anyString())).thenReturn(USERNAME);
+        mockedUserCoreUtil.when(() -> UserCoreUtil.removeDomainFromName(anyString())).thenReturn(USERNAME);
         UMAClientException umaClientException = new UMAClientException(UMAConstants
                 .ErrorMessages.ERROR_BAD_REQUEST_INVALID_RESOURCE_ID);
         doThrow(umaClientException).when(mockPermissionService).issuePermissionTicket(anyList(), anyInt(),
@@ -197,7 +191,7 @@ public class PermissionApiServiceImplTest extends PowerMockTestCase {
         when(mockAuthenticationContext.getParameter(anyString())).thenReturn(tokenScopes);
         when(mockAuthenticationContext.getUser()).thenReturn(mockUser);
         when(mockUser.getUserName()).thenReturn(USERNAME_WITH_USERSTORE_DOMAIN);
-        when(UserCoreUtil.removeDomainFromName(anyString())).thenReturn(USERNAME);
+        mockedUserCoreUtil.when(() -> UserCoreUtil.removeDomainFromName(anyString())).thenReturn(USERNAME);
         ResourceModelDTO requestedPermission = null;
         assertEquals(permissionApiService.requestPermission(requestedPermission, mockMessageContext).getStatus(),
                 Response.Status.BAD_REQUEST.getStatusCode());

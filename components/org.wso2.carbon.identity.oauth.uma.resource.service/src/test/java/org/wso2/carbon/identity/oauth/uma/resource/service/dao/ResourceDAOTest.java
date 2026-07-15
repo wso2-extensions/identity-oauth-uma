@@ -16,12 +16,10 @@
 
 package org.wso2.carbon.identity.oauth.uma.resource.service.dao;
 
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
-import org.testng.IObjectFactory;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.identity.oauth.uma.common.JdbcUtils;
@@ -33,13 +31,8 @@ import java.sql.Connection;
 import java.sql.Timestamp;
 import javax.sql.DataSource;
 
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
 
-
-@PrepareForTest(JdbcUtils.class)
-public class ResourceDAOTest extends PowerMockTestCase {
+public class ResourceDAOTest {
 
     private static final String DB_NAME = "regdb";
     private int tenantId = -1234;
@@ -66,36 +59,31 @@ public class ResourceDAOTest extends PowerMockTestCase {
         DAOUtils.closeH2Base(DB_NAME);
     }
 
-    @ObjectFactory
-    public IObjectFactory getObjectFactory() {
-
-        return new org.powermock.modules.testng.PowerMockObjectFactory();
-    }
-
     @Test
     public void testRegisterResource() throws Exception {
 
-        DataSource dataSource = mock(DataSource.class);
-        mockStatic(JdbcUtils.class);
-        when(JdbcUtils.getNewNamedTemplate()).thenReturn(new NamedJdbcTemplate(dataSource));
-        try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
-            Connection spy = DAOUtils.spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spy);
-            ResourceDAO.registerResource(new Resource(), resourceOwnerName, tenantId, clientId, userDomain);
+        DataSource dataSource = Mockito.mock(DataSource.class);
+        try (MockedStatic<JdbcUtils> mockedJdbcUtils = Mockito.mockStatic(JdbcUtils.class)) {
+            mockedJdbcUtils.when(JdbcUtils::getNewNamedTemplate).thenReturn(new NamedJdbcTemplate(dataSource));
+            try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
+                Connection spy = DAOUtils.spyConnection(connection);
+                Mockito.when(dataSource.getConnection()).thenReturn(spy);
+                ResourceDAO.registerResource(new Resource(), resourceOwnerName, tenantId, clientId, userDomain);
+            }
         }
-
     }
 
     @Test(priority = 1)
     public void testRetrieveResource() throws Exception {
 
-        DataSource dataSource = mock(DataSource.class);
-        mockStatic(JdbcUtils.class);
-        when(JdbcUtils.getNewNamedTemplate()).thenReturn(new NamedJdbcTemplate(dataSource));
-        try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
-            Connection spy = DAOUtils.spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spy);
-            ResourceDAO.retrieveResource(resourceId);
+        DataSource dataSource = Mockito.mock(DataSource.class);
+        try (MockedStatic<JdbcUtils> mockedJdbcUtils = Mockito.mockStatic(JdbcUtils.class)) {
+            mockedJdbcUtils.when(JdbcUtils::getNewNamedTemplate).thenReturn(new NamedJdbcTemplate(dataSource));
+            try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
+                Connection spy = DAOUtils.spyConnection(connection);
+                Mockito.when(dataSource.getConnection()).thenReturn(spy);
+                ResourceDAO.retrieveResource(resourceId);
+            }
         }
     }
 
@@ -105,39 +93,42 @@ public class ResourceDAOTest extends PowerMockTestCase {
     @Test(expectedExceptions = UMAException.class)
     public void testRetrieveResourceWithInvalidResourceId() throws Exception {
 
-        DataSource dataSource = mock(DataSource.class);
-        mockStatic(JdbcUtils.class);
-        when(JdbcUtils.getNewNamedTemplate()).thenReturn(new NamedJdbcTemplate(dataSource));
-        try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
-            Connection spy = DAOUtils.spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spy);
-            ResourceDAO.retrieveResource("1234");
+        DataSource dataSource = Mockito.mock(DataSource.class);
+        try (MockedStatic<JdbcUtils> mockedJdbcUtils = Mockito.mockStatic(JdbcUtils.class)) {
+            mockedJdbcUtils.when(JdbcUtils::getNewNamedTemplate).thenReturn(new NamedJdbcTemplate(dataSource));
+            try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
+                Connection spy = DAOUtils.spyConnection(connection);
+                Mockito.when(dataSource.getConnection()).thenReturn(spy);
+                ResourceDAO.retrieveResource("1234");
+            }
         }
     }
 
     @Test
     public void testRetrieveResourceIDs() throws Exception {
 
-        DataSource dataSource = mock(DataSource.class);
-        mockStatic(JdbcUtils.class);
-        when(JdbcUtils.getNewNamedTemplate()).thenReturn(new NamedJdbcTemplate(dataSource));
-        try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
-            Connection spy = DAOUtils.spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spy);
-            ResourceDAO.retrieveResourceIDs(resourceOwnerName, userDomain, clientId);
+        DataSource dataSource = Mockito.mock(DataSource.class);
+        try (MockedStatic<JdbcUtils> mockedJdbcUtils = Mockito.mockStatic(JdbcUtils.class)) {
+            mockedJdbcUtils.when(JdbcUtils::getNewNamedTemplate).thenReturn(new NamedJdbcTemplate(dataSource));
+            try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
+                Connection spy = DAOUtils.spyConnection(connection);
+                Mockito.when(dataSource.getConnection()).thenReturn(spy);
+                ResourceDAO.retrieveResourceIDs(resourceOwnerName, userDomain, clientId);
+            }
         }
     }
 
     @Test(priority = 3)
     public void testDeleteResource() throws Exception {
 
-        DataSource dataSource = mock(DataSource.class);
-        mockStatic(JdbcUtils.class);
-        when(JdbcUtils.getNewNamedTemplate()).thenReturn(new NamedJdbcTemplate(dataSource));
-        try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
-            Connection spy = DAOUtils.spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spy);
-            ResourceDAO.deleteResource(resourceId);
+        DataSource dataSource = Mockito.mock(DataSource.class);
+        try (MockedStatic<JdbcUtils> mockedJdbcUtils = Mockito.mockStatic(JdbcUtils.class)) {
+            mockedJdbcUtils.when(JdbcUtils::getNewNamedTemplate).thenReturn(new NamedJdbcTemplate(dataSource));
+            try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
+                Connection spy = DAOUtils.spyConnection(connection);
+                Mockito.when(dataSource.getConnection()).thenReturn(spy);
+                ResourceDAO.deleteResource(resourceId);
+            }
         }
     }
 
@@ -147,26 +138,28 @@ public class ResourceDAOTest extends PowerMockTestCase {
     @Test(expectedExceptions = UMAException.class)
     public void testDeleteResourceWithInvalidResourceId() throws Exception {
 
-        DataSource dataSource = mock(DataSource.class);
-        mockStatic(JdbcUtils.class);
-        when(JdbcUtils.getNewNamedTemplate()).thenReturn(new NamedJdbcTemplate(dataSource));
-        try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
-            Connection spy = DAOUtils.spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spy);
-            ResourceDAO.deleteResource("1234");
+        DataSource dataSource = Mockito.mock(DataSource.class);
+        try (MockedStatic<JdbcUtils> mockedJdbcUtils = Mockito.mockStatic(JdbcUtils.class)) {
+            mockedJdbcUtils.when(JdbcUtils::getNewNamedTemplate).thenReturn(new NamedJdbcTemplate(dataSource));
+            try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
+                Connection spy = DAOUtils.spyConnection(connection);
+                Mockito.when(dataSource.getConnection()).thenReturn(spy);
+                ResourceDAO.deleteResource("1234");
+            }
         }
     }
 
     @Test(priority = 2)
     public void testUpdateResource() throws Exception {
 
-        DataSource dataSource = mock(DataSource.class);
-        mockStatic(JdbcUtils.class);
-        when(JdbcUtils.getNewNamedTemplate()).thenReturn(new NamedJdbcTemplate(dataSource));
-        try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
-            Connection spy = DAOUtils.spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spy);
-            ResourceDAO.updateResource(resourceId, new Resource());
+        DataSource dataSource = Mockito.mock(DataSource.class);
+        try (MockedStatic<JdbcUtils> mockedJdbcUtils = Mockito.mockStatic(JdbcUtils.class)) {
+            mockedJdbcUtils.when(JdbcUtils::getNewNamedTemplate).thenReturn(new NamedJdbcTemplate(dataSource));
+            try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
+                Connection spy = DAOUtils.spyConnection(connection);
+                Mockito.when(dataSource.getConnection()).thenReturn(spy);
+                ResourceDAO.updateResource(resourceId, new Resource());
+            }
         }
     }
 
@@ -176,13 +169,14 @@ public class ResourceDAOTest extends PowerMockTestCase {
     @Test(expectedExceptions = UMAException.class)
     public void testUpdateResourceWithInvalidResourceId() throws Exception {
 
-        DataSource dataSource = mock(DataSource.class);
-        mockStatic(JdbcUtils.class);
-        when(JdbcUtils.getNewNamedTemplate()).thenReturn(new NamedJdbcTemplate(dataSource));
-        try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
-            Connection spy = DAOUtils.spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spy);
-            ResourceDAO.updateResource("1234", new Resource());
+        DataSource dataSource = Mockito.mock(DataSource.class);
+        try (MockedStatic<JdbcUtils> mockedJdbcUtils = Mockito.mockStatic(JdbcUtils.class)) {
+            mockedJdbcUtils.when(JdbcUtils::getNewNamedTemplate).thenReturn(new NamedJdbcTemplate(dataSource));
+            try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
+                Connection spy = DAOUtils.spyConnection(connection);
+                Mockito.when(dataSource.getConnection()).thenReturn(spy);
+                ResourceDAO.updateResource("1234", new Resource());
+            }
         }
     }
 

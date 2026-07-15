@@ -78,8 +78,8 @@
                 <inherited>true</inherited>
                 <configuration>
                     <encoding>UTF-8</encoding>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>21</source>
+                    <target>21</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -170,17 +170,10 @@
                 <scope>test</scope>
                 <version>${jacoco.version}</version>
             </dependency>
-            <!-- https://mvnrepository.com/artifact/org.powermock/powermock-module-testng -->
             <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-module-testng</artifactId>
-                <version>${powermock.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-api-mockito</artifactId>
-                <version>${powermock.version}</version>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${mockito.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -354,10 +347,10 @@
         <swagger-jaxrs.version>1.6.2</swagger-jaxrs.version>
 
         <!--Test Dependencies-->
-        <testng.version>6.9.10</testng.version>
-        <jacoco.version>0.7.9</jacoco.version>
-        <powermock.version>1.6.6</powermock.version>
-        <maven.surefire.plugin.version>2.18.1</maven.surefire.plugin.version>
+        <testng.version>7.10.1</testng.version>
+        <jacoco.version>0.8.12</jacoco.version>
+        <mockito.version>5.3.1</mockito.version>
+        <maven.surefire.plugin.version>3.1.2</maven.surefire.plugin.version>
         <h2database.version>2.2.220</h2database.version>
         <org.wso2.carbon.identity.testutil.version>5.10.25</org.wso2.carbon.identity.testutil.version>
 
@@ -379,8 +372,8 @@
         <apache.felix.scr.ds.annotations.version>1.2.4</apache.felix.scr.ds.annotations.version>
 
         <!--Maven Plugin Version-->
-        <maven.bundle.plugin.version>3.2.0</maven.bundle.plugin.version>
-        <maven.compiler.plugin.version>2.3.1</maven.compiler.plugin.version>
+        <maven.bundle.plugin.version>5.1.9</maven.bundle.plugin.version>
+        <maven.compiler.plugin.version>3.14.1</maven.compiler.plugin.version>
         <carbon.p2.plugin.version>1.5.3</carbon.p2.plugin.version>
 
         <!-- Commons -->

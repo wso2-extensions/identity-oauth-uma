@@ -18,12 +18,10 @@
 
 package org.wso2.carbon.identity.oauth.uma.permission.service.impl;
 
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.testng.IObjectFactory;
+import org.mockito.MockedStatic;
+import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.oauth.config.OAuthServerConfiguration;
 import org.wso2.carbon.identity.oauth.uma.permission.service.TestConstants;
@@ -32,14 +30,12 @@ import org.wso2.carbon.identity.oauth.uma.permission.service.model.Resource;
 
 import java.util.ArrayList;
 
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertNotNull;
 
-@PrepareForTest({PermissionTicketDAO.class, OAuthServerConfiguration.class})
 public class PermissionServiceImplTest {
 
-    @InjectMocks
     private PermissionServiceImpl permissionService;
 
     @Mock
@@ -48,25 +44,21 @@ public class PermissionServiceImplTest {
     @BeforeMethod
     public void setUp() throws Exception {
 
+        MockitoAnnotations.openMocks(this);
         permissionService = new PermissionServiceImpl();
-    }
-
-    @ObjectFactory
-    public IObjectFactory getObjectFactory() {
-
-        return new org.powermock.modules.testng.PowerMockObjectFactory();
     }
 
     @Test
     public void testIssuePermissionTicket() throws Exception {
 
-        mockStatic(OAuthServerConfiguration.class);
-        when(OAuthServerConfiguration.getInstance()).thenReturn(oAuthServerConfiguration);
-        when(oAuthServerConfiguration.getAuthorizationCodeValidityPeriodInSeconds()).thenReturn(300L);
-        mockStatic(PermissionTicketDAO.class);
-        assertNotNull(permissionService.issuePermissionTicket(new ArrayList<Resource>(), TestConstants.TENANT_ID,
-                TestConstants.RESOURCE_OWNER_NAME, TestConstants.CLIENT_ID, TestConstants.USER_DOMAIN),
-                "Expected a not null object");
+        try (MockedStatic<OAuthServerConfiguration> mockedOAuthConfig = mockStatic(OAuthServerConfiguration.class);
+             MockedStatic<PermissionTicketDAO> mockedPermissionTicketDAO = mockStatic(PermissionTicketDAO.class)) {
+            mockedOAuthConfig.when(OAuthServerConfiguration::getInstance).thenReturn(oAuthServerConfiguration);
+            when(oAuthServerConfiguration.getAuthorizationCodeValidityPeriodInSeconds()).thenReturn(300L);
+            assertNotNull(permissionService.issuePermissionTicket(new ArrayList<Resource>(), TestConstants.TENANT_ID,
+                    TestConstants.RESOURCE_OWNER_NAME, TestConstants.CLIENT_ID, TestConstants.USER_DOMAIN),
+                    "Expected a not null object");
+        }
     }
 
 }

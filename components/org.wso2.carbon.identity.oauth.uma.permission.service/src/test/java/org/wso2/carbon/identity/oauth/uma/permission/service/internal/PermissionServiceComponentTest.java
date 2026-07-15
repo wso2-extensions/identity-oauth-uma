@@ -22,19 +22,15 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.osgi.framework.BundleContext;
-import org.testng.IObjectFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.oauth.uma.permission.service.impl.PermissionServiceImpl;
 
-import java.util.Dictionary;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.MockitoAnnotations.initMocks;
-import static org.powermock.api.mockito.PowerMockito.doAnswer;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.MockitoAnnotations.openMocks;
 import static org.testng.Assert.assertEquals;
 
 public class PermissionServiceComponentTest {
@@ -45,18 +41,12 @@ public class PermissionServiceComponentTest {
     @BeforeClass
     public void setUp() throws Exception {
 
-        initMocks(this);
+        openMocks(this);
     }
 
     @AfterMethod
     public void tearDown() throws Exception {
 
-    }
-
-    @ObjectFactory
-    public IObjectFactory getObjectFactory() {
-
-        return new org.powermock.modules.testng.PowerMockObjectFactory();
     }
 
     @Test
@@ -71,8 +61,7 @@ public class PermissionServiceComponentTest {
                 serviceName[0] = permissionService.getClass().getName();
                 return null;
             }
-        }).when(bundleContext).registerService(anyString(), any(PermissionServiceComponent.class),
-                any(Dictionary.class));
+        }).when(bundleContext).registerService(anyString(), any(), any());
 
         PermissionServiceComponent permissionServiceComponent = new PermissionServiceComponent();
         permissionServiceComponent.activate(bundleContext);
